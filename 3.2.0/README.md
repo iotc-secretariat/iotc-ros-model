@@ -13,7 +13,7 @@ This version was produced in July 2025 with the following improvements:
 * [x] Remove the redundant prefix on columns which are already named in the schema name (See [file](./columns_to_rename.csv)).
 * [x] Move some tables from ```ros_common``` to their dedicated specific schema (See [file](./tables_to_move.csv)).
 * [x] Remove in views SPECIES.SPECIES_OFFICIAL column (See [file](./remove_species_official.csv)).
-* [x] Review the following measurement tables to avoir duplicated measurement (See [file](./measurements_tables.csv)): 
+* [x] Review the following measurement tables to avoir duplicated measurement (See [file](./measurements_tables.csv) and [count result](./measurement-tables.count.csv)): 
   * [x] ```capacities```
   * [x] ```depths```
   * [x] ```diameters```

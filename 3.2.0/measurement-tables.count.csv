@@ -1,0 +1,10 @@
+table,before count,after count
+ros_common.capacities,1764,76
+ros_common.depths,23,5
+ros_common.diameters,62,15
+ros_common.engines,1676,2
+ros_common.estimated_weights,153960,6225
+ros_common.lengths,5134,251
+ros_common.measured_lengths,935628,1589
+ros_common.ranges,3,1
+ros_common.sizes,46,5
