@@ -4914,4 +4914,5 @@ UPDATE ros_common.biometric_information SET measured_length_id = measured_length
 DELETE FROM ros_common.measured_lengths WHERE id >= 1000000;
 ALTER TABLE ros_common.biometric_information ADD CONSTRAINT bmtrcnltrntvmsrdlngthd FOREIGN KEY (alternative_measured_length_id) references ros_common.measured_lengths (id);
 ALTER TABLE ros_common.biometric_information ADD CONSTRAINT bmtrcnfrmtonmsrdlngthd FOREIGN KEY (measured_length_id) references ros_common.measured_lengths (id);
-ALTER TABLE ros_common.measured_lengths ADD CONSTRAINT uk_measured_lengths UNIQUE (unit,value,curved,type_of_measurement_code,measured_length_type_code,length_measuring_tool_code);
+ALTER TABLE ros_common.measured_lengths ADD CONSTRAINT uk_measured_lengths UNIQUE (unit, value, curved, type_of_measurement_code, measured_length_type_code, length_measuring_tool_code);
+SELECT setval('ros_common.measured_lengths_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.measured_lengths));

@@ -29,4 +29,5 @@ DELETE FROM ros_common.sizes WHERE id >= 1000000;
 ALTER TABLE ros_gn.gillnet_configuration_stretched_mesh_sizes ADD CONSTRAINT gngllntcnstrtchdmshszd FOREIGN KEY (stretched_mesh_size_id) references ros_common.sizes (id);
 ALTER TABLE ros_ps.general_gear_attributes ADD CONSTRAINT psgnrlbntstrtchdmshszd FOREIGN KEY (bunt_stretched_mesh_size_id) references ros_common.sizes (id);
 ALTER TABLE ros_ps.general_gear_attributes ADD CONSTRAINT psgnrmdntstrtchdmshszd FOREIGN KEY (mid_net_stretched_mesh_size_id) references ros_common.sizes (id);
-ALTER TABLE ros_common.sizes ADD CONSTRAINT uk_sizes UNIQUE (unit,value);
+ALTER TABLE ros_common.sizes ADD CONSTRAINT uk_sizes UNIQUE (unit, value);
+SELECT setval('ros_common.sizes_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.sizes));

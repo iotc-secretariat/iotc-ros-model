@@ -1,3 +1,4 @@
+
 ALTER TABLE ros_ll.branchline_sections DROP CONSTRAINT brnchlnesectionsdmtrid;
 ALTER TABLE ros_ll.general_gear_attributes DROP CONSTRAINT llgnrlgrttrbtmnlndmtrd;
 INSERT INTO ros_common.diameters(id, unit, value) OVERRIDING SYSTEM VALUE VALUES (1000000, 'MM', 5.0);
@@ -51,4 +52,5 @@ UPDATE ros_ll.general_gear_attributes SET mainline_diameter_id = mainline_diamet
 DELETE FROM ros_common.diameters WHERE id >= 1000000;
 ALTER TABLE ros_ll.branchline_sections ADD CONSTRAINT brnchlnesectionsdmtrid FOREIGN KEY (diameter_id) references ros_common.diameters (id);
 ALTER TABLE ros_ll.general_gear_attributes ADD CONSTRAINT llgnrlgrttrbtmnlndmtrd FOREIGN KEY (mainline_diameter_id) references ros_common.diameters (id);
-ALTER TABLE ros_common.diameters ADD CONSTRAINT uk_diameters UNIQUE (unit,value);
+ALTER TABLE ros_common.diameters ADD CONSTRAINT uk_diameters UNIQUE (unit, value);
+SELECT setval('ros_common.diameters_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.diameters));

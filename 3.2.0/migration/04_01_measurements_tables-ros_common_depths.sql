@@ -1,3 +1,4 @@
+
 ALTER TABLE ros_pl.bait_fishing_operations DROP CONSTRAINT btfshngprtionsvntdpthd;
 ALTER TABLE ros_gn.gillnet_configuration DROP CONSTRAINT gllntcnfgrationntdpthd;
 ALTER TABLE ros_ps.general_gear_attributes DROP CONSTRAINT psgnrlgrttrmxmmntdpthd;
@@ -22,4 +23,5 @@ DELETE FROM ros_common.depths WHERE id >= 1000000;
 ALTER TABLE ros_pl.bait_fishing_operations ADD CONSTRAINT btfshngprtionsvntdpthd FOREIGN KEY (event_depth_id) references ros_common.depths (id);
 ALTER TABLE ros_gn.gillnet_configuration ADD CONSTRAINT gllntcnfgrationntdpthd FOREIGN KEY (net_depth_id) references ros_common.depths (id);
 ALTER TABLE ros_ps.general_gear_attributes ADD CONSTRAINT psgnrlgrttrmxmmntdpthd FOREIGN KEY (maximum_net_depth_id) references ros_common.depths (id);
-ALTER TABLE ros_common.depths ADD CONSTRAINT uk_depths UNIQUE (unit,value);
+ALTER TABLE ros_common.depths ADD CONSTRAINT uk_depths UNIQUE (unit, value);
+SELECT setval('ros_common.depths_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.depths));

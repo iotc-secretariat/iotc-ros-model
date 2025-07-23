@@ -7,4 +7,5 @@ INSERT INTO ros_common.ranges(id, unit, value) OVERRIDING SYSTEM VALUE VALUES (1
 UPDATE ros_common.vessel_attributes SET autonomy_range_id = autonomy_range_id - 1000000 + 1;
 DELETE FROM ros_common.ranges WHERE id >= 1000000;
 ALTER TABLE ros_common.vessel_attributes ADD CONSTRAINT vsslttrbutestnmyrngeid FOREIGN KEY (autonomy_range_id) references ros_common.ranges (id);
-ALTER TABLE ros_common.ranges ADD CONSTRAINT uk_ranges UNIQUE (unit,value);
+ALTER TABLE ros_common.ranges ADD CONSTRAINT uk_ranges UNIQUE (unit, value);
+SELECT setval('ros_common.ranges_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.ranges));

@@ -813,4 +813,5 @@ ALTER TABLE ros_ll.tori_line_details ADD CONSTRAINT trlndtlstrmrlnlngthmxd FOREI
 ALTER TABLE ros_ll.tori_line_details ADD CONSTRAINT trlndtlstrmrlnlngthmnd FOREIGN KEY (streamer_line_length_min_id) references ros_common.lengths (id);
 ALTER TABLE ros_ll.tori_line_details ADD CONSTRAINT trlndtailstrlnlengthid FOREIGN KEY (tori_line_length_id) references ros_common.lengths (id);
 ALTER TABLE ros_ps.general_gear_attributes ADD CONSTRAINT psgnrlgrttmxmmntlngthd FOREIGN KEY (maximum_net_length_id) references ros_common.lengths (id);
-ALTER TABLE ros_common.lengths ADD CONSTRAINT uk_lengths UNIQUE (unit,value);
+ALTER TABLE ros_common.lengths ADD CONSTRAINT uk_lengths UNIQUE (unit, value);
+SELECT setval('ros_common.lengths_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.lengths));

@@ -232,4 +232,5 @@ INSERT INTO ros_common.capacities(id, unit, value) OVERRIDING SYSTEM VALUE VALUE
 UPDATE ros_common.vessel_attributes SET fish_storage_capacity_id = fish_storage_capacity_id - 1000000 + 1;
 DELETE FROM ros_common.capacities WHERE id >= 1000000;
 ALTER TABLE ros_common.vessel_attributes ADD CONSTRAINT vsslttrbtfshstrgcpctyd FOREIGN KEY (fish_storage_capacity_id) references ros_common.capacities (id);
-ALTER TABLE ros_common.capacities ADD CONSTRAINT uk_capacities UNIQUE (unit,value);
+ALTER TABLE ros_common.capacities ADD CONSTRAINT uk_capacities UNIQUE (unit, value);
+SELECT setval('ros_common.capacities_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.capacities));

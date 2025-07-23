@@ -10,4 +10,5 @@ INSERT INTO ros_common.engines(id, unit, value) OVERRIDING SYSTEM VALUE VALUES (
 UPDATE ros_common.vessel_attributes_main_engines SET main_engine_id = main_engine_id - 1000000 + 1;
 DELETE FROM ros_common.engines WHERE id >= 1000000;
 ALTER TABLE ros_common.vessel_attributes_main_engines ADD CONSTRAINT vsslttrbtsmnngnsmnngnd FOREIGN KEY (main_engine_id) references ros_common.engines (id);
-ALTER TABLE ros_common.engines ADD CONSTRAINT uk_engines UNIQUE (unit,value);
+ALTER TABLE ros_common.engines ADD CONSTRAINT uk_engines UNIQUE (unit, value);
+SELECT setval('ros_common.engines_ID_seq', (SELECT COALESCE(MAX(id), 1) FROM ros_common.engines));
