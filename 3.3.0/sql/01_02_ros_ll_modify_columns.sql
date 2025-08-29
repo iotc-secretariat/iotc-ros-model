@@ -20,9 +20,6 @@ ALTER TABLE ros_ll.general_gear_attributes DROP COLUMN mainline_diameter_id;
 -- Remove the column "ros_ll.setting_operations→vms_on"
 ALTER TABLE ros_ll.setting_operations DROP COLUMN vms_on;
 
--- Add the column "ros_ll.lights_by_type_and_colour→percentage"
-ALTER TABLE ros_ll.lights_by_type_and_colour ADD COLUMN percentage double precision;
-
 -- Rename the column ```ros_ll.catch_details→catch_detail_number``` to ```ros_ll.catch_details→catch_detail_original_id```
 ALTER TABLE ros_ll.catch_details RENAME catch_detail_number TO catch_detail_original_id;
 -- Rename the column ```ros_ll.fishing_events→event_number``` to ```.ros_ll.fishing_events→event_original_id```

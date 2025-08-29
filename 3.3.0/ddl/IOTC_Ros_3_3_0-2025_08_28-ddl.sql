@@ -8665,8 +8665,7 @@ CREATE TABLE ros_ll.lights_by_type_and_colour (
     number_of_lights_by_type_and_colour integer,
     setting_operation_id integer,
     light_colour_code character(2),
-    light_type_code character(2),
-    percentage double precision
+    light_type_code character(2)
 );
 
 

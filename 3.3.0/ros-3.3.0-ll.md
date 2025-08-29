@@ -33,7 +33,6 @@ The directory [sql](sql) contains all _SQL_ scripts to perform this migration.
 * [x] Remove the column ```ros_ll.general_gear_attributes→mainline_length_id```
 * [x] Remove the column ```ros_ll.general_gear_attributes→mainline_diameter_id```
 * [x] Remove the column ```ros_ll.setting_operations→vms_on```
-* [x] Add the column ```ros_ll.lights_by_type_and_colour→percentage```
 * [x] Remove the table ```ros_ll.hauling_operations_stunning_methods```
 * [x] Remove the table ```ros_ll.observer_data_transhipment_details```
 * [x] Add table ```ros_ll.leader_set```
