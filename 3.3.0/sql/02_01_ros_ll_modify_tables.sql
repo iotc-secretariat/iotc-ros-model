@@ -35,3 +35,19 @@ ALTER TABLE ONLY ros_ll.leader_set
     ADD CONSTRAINT fk_ros_ll_leader_total_branchline_maximum_length_id FOREIGN KEY (total_branchline_maximum_length_id) REFERENCES ros_common.lengths(id);
 
 ALTER TABLE ros_ll.leader_set OWNER TO "ros-admin";
+
+-- Add table "ros_ll.branchline_configurations_storage"
+CREATE TABLE ros_ll.branchline_configurations_storage (
+    branchline_configuration_id integer NOT NULL,
+    branchline_storage_code char(2) NOT NULL);
+
+ALTER TABLE ONLY ros_ll.branchline_configurations_storage
+    ADD CONSTRAINT ll_branchline_configurations_storage_pkey PRIMARY KEY (branchline_configuration_id, branchline_storage_code);
+
+ALTER TABLE ONLY ros_ll.branchline_configurations_storage
+    ADD CONSTRAINT fk_ros_ll_branchline_configurations_storage_configuration FOREIGN KEY (branchline_configuration_id) REFERENCES ros_ll.branchline_configurations(id);
+
+ALTER TABLE ONLY ros_ll.branchline_configurations_storage
+    ADD CONSTRAINT fk_ros_ll_branchline_configurations_storage_code FOREIGN KEY (branchline_storage_code) REFERENCES refs_fishery.branchline_storages(code);
+
+ALTER TABLE ros_ll.branchline_configurations_storage OWNER TO "ros-admin";

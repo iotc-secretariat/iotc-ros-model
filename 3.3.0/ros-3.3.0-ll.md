@@ -42,4 +42,7 @@ The directory [sql](sql) contains all _SQL_ scripts to perform this migration.
   * column ```percentage_of_branchlines``` (_double_ or _integer_?)
   * column ```total_branchline_minimum_length_id``` (foreign key to ```ros_common.lengths```, unit is ```M```)
   * column ```total_branchline_maximum_length_id``` (foreign key to ```ros_common.lengths```, unit is ```M```)
+* [x] Add table ```ros_ll.branchline_configurations_storage```
+  * column ```branchline_configuration_id``` (foreign key to ```ros_ll.branchline_configurations```)
+  * column ```branchline_storage_code``` (foreign key to ```refs_fishery.branchline_storages```)
 
