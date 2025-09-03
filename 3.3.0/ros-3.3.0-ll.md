@@ -29,6 +29,7 @@ The directory [sql](sql) contains all _SQL_ scripts to perform this migration.
 * [x] Change the type of column ```ros_ll.tag_details→tag_recovery``` to boolean (default value false)
 * [x] Change the type of column ```ros_ll.tag_details→tag_release``` to boolean (default value false)
 * [x] Change the type of column ```ros_ll.tori_line_details→streamers_reach_surface``` to boolean (default value false)
+* [x] Add column ```ros_ll.additional_catch_details_on_ssi→hook_type_code``` (foreign key to ```refs_fishery.hook_types```)
 * [x] Remove the column ```ros_ll.general_gear_attributes→line_material_type_code```
 * [x] Remove the column ```ros_ll.general_gear_attributes→mainline_length_id```
 * [x] Remove the column ```ros_ll.general_gear_attributes→mainline_diameter_id```

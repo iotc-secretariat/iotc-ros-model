@@ -111,5 +111,7 @@ ALTER TABLE ros_ll.tori_line_details ADD COLUMN streamers_reach_surface2 BOOLEAN
 UPDATE ros_ll.tori_line_details SET streamers_reach_surface2 = case when streamers_reach_surface = 0 then FALSE when streamers_reach_surface = 1 then TRUE end;
 ALTER TABLE ros_ll.tori_line_details DROP COLUMN streamers_reach_surface;
 ALTER TABLE ros_ll.tori_line_details RENAME streamers_reach_surface2 TO streamers_reach_surface;
-
+-- Add column ```ros_ll.additional_catch_details_on_ssi→hook_type_code```
+ALTER TABLE ros_ll.additional_catch_details_on_ssi ADD COLUMN hook_type_code char(3);
+ALTER TABLE ONLY ros_ll.additional_catch_details_on_ssi ADD CONSTRAINT fk_ros_ll_additional_catch_details_on_ssi_hook_type_code FOREIGN KEY (hook_type_code) REFERENCES refs_fishery.hook_types(code);
 
