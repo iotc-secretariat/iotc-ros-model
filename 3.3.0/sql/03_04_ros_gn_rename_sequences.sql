@@ -1,0 +1,11 @@
+ALTER SEQUENCE ros_gn.gn_additional_catch_details_on_ssi_id_seq RENAME TO additional_catch_details_on_ssi_id_seq;
+ALTER SEQUENCE ros_gn.gn_catch_details_id_seq RENAME TO catch_details_id_seq;
+ALTER SEQUENCE ros_gn.gn_fishing_events_id_seq RENAME TO fishing_events_id_seq;
+ALTER SEQUENCE ros_gn.gn_gear_specifications_id_seq RENAME TO gear_specifications_id_seq;
+ALTER SEQUENCE ros_gn.gn_hauling_operations_id_seq RENAME TO hauling_operations_id_seq;
+ALTER SEQUENCE ros_gn.gn_mitigation_measures_id_seq RENAME TO mitigation_measures_id_seq;
+ALTER SEQUENCE ros_gn.gn_observer_data_id_seq RENAME TO observer_data_id_seq;
+ALTER SEQUENCE ros_gn.gn_setting_operations_id_seq RENAME TO setting_operations_id_seq;
+ALTER SEQUENCE ros_gn.gn_special_equipment_id_seq RENAME TO special_equipment_id_seq;
+ALTER SEQUENCE ros_gn.gn_specimens_id_seq RENAME TO specimens_id_seq;
+ALTER SEQUENCE ros_gn.gn_tag_details_id_seq RENAME TO tag_details_id_seq;

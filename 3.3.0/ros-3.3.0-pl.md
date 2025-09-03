@@ -30,6 +30,7 @@ The directory [sql](sql) contains all _SQL_ scripts to perform the migration.
 * [ ] Add the column ```ros_pl.bait_fishing_event_pl_catch_detail→estimated_weight_id```
 * [x] Remove the table ```ros_pl.observer_data_transhipment_details```
 * [x] Remove the table ```ros_pl.bait_fishing_operations_cl_school_sighting_cues```
-
+* [x] Rename ```pl_xxx``` sequence to ```xxx```
+* 
 **FIXME:** To be continued for baits specimen information, additional details on non target species, additional catch details on ssi, biometric information, etc.
 

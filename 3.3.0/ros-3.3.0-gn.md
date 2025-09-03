@@ -23,4 +23,5 @@ The directory [sql](sql) contains all _SQL_ scripts to perform the migration.
 * [x] Change the type of column ```ros_gn.tag_details→tag_recovery``` type to boolean (default value false)
 * [x] Change the type of column ```ros_gn.tag_details→tag_release``` type to boolean (default value false)
 * [x] Remove the table ```ros_gn.observer_data_transhipment_details```
+* [x] Rename ```gn_xxx``` sequence to ```xxx```
 

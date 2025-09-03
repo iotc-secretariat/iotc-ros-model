@@ -46,4 +46,5 @@ The directory [sql](sql) contains all _SQL_ scripts to perform this migration.
 * [x] Add table ```ros_ll.branchline_configurations_storage```
   * column ```branchline_configuration_id``` (foreign key to ```ros_ll.branchline_configurations```)
   * column ```branchline_storage_code``` (foreign key to ```refs_fishery.branchline_storages```)
+* [x] Rename ```ll_xxx``` sequence to ```xxx```
 

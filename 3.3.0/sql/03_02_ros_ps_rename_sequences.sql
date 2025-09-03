@@ -1,0 +1,10 @@
+ALTER SEQUENCE ros_ps.ps_catch_details_id_seq RENAME TO catch_details_id_seq;
+ALTER SEQUENCE ros_ps.ps_fishing_events_id_seq RENAME TO fishing_events_id_seq;
+ALTER SEQUENCE ros_ps.ps_gear_specifications_id_seq RENAME TO gear_specifications_id_seq;
+ALTER SEQUENCE ros_ps.ps_general_gear_attributes_id_seq RENAME TO general_gear_attributes_id_seq;
+ALTER SEQUENCE ros_ps.ps_object_details_id_seq RENAME TO object_details_id_seq;
+ALTER SEQUENCE ros_ps.ps_observer_data_id_seq RENAME TO observer_data_id_seq;
+ALTER SEQUENCE ros_ps.ps_setting_operations_id_seq RENAME TO setting_operations_id_seq;
+ALTER SEQUENCE ros_ps.ps_special_equipment_id_seq RENAME TO special_equipment_id_seq;
+ALTER SEQUENCE ros_ps.ps_specimens_id_seq RENAME TO specimens_id_seq;
+ALTER SEQUENCE ros_ps.ps_tag_details_id_seq RENAME TO tag_details_id_seq;

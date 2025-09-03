@@ -1,0 +1,10 @@
+ALTER SEQUENCE ros_pl.pl_additional_catch_details_on_ssi_id_seq RENAME TO additional_catch_details_on_ssi_id_seq;
+ALTER SEQUENCE ros_pl.pl_catch_details_id_seq RENAME TO catch_details_id_seq;
+ALTER SEQUENCE ros_pl.pl_gear_specifications_id_seq RENAME TO gear_specifications_id_seq;
+ALTER SEQUENCE ros_pl.pl_general_gear_attributes_id_seq RENAME TO general_gear_attributes_id_seq;
+ALTER SEQUENCE ros_pl.pl_object_details_id_seq RENAME TO object_details_id_seq;
+ALTER SEQUENCE ros_pl.pl_observer_data_id_seq RENAME TO observer_data_id_seq;
+ALTER SEQUENCE ros_pl.pl_special_equipment_id_seq RENAME TO special_equipment_id_seq;
+ALTER SEQUENCE ros_pl.pl_specimens_id_seq RENAME TO specimens_id_seq;
+ALTER SEQUENCE ros_pl.pl_tag_details_id_seq RENAME TO tag_details_id_seq;
+ALTER SEQUENCE ros_pl.pl_tuna_fishing_operations_id_seq RENAME TO tuna_fishing_operations_id_seq;
