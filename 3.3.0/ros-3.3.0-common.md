@@ -39,3 +39,57 @@ The directory [sql](sql) contains all _SQL_ scripts to perform the migration.
 * [x] Remove the table ```ros_common.vessel_identification_phone```
 * [x] Remove the table ```ros_common.measured_weights``` (never used)
 
+## Simplify the trip scope model
+
+Actually, the model is quite complex, so we decided to simplify it by removing some tables and rearranging some others.
+
+The ```ros_common.general_vessel_and_trip_information``` table is the entry point to a trip; it contains:
+
+- ```trip_original_id``` column is external data (so nothing more to do for it)
+- ```observer_id``` and ```vessel_identification_id``` columns are pointing to observer registry and to vessel registry, those data do not depend on the trip, ids are legimit, but they could be moved to new tables (see below)
+- ```observed_trip_summary_id``` points to ```ros_common.observed_trip_summary``` table, we should move this table data inside the ```ros_common.general_vessel_and_trip_information``` table or add ```observer_id``` column on it and remove his own id to use the ```ros_common.general_vessel_and_trip_information``` id
+- ```observer_trip_detail_id``` points to ```ros_common.observer_trip_details``` table, we should move this table data inside the ```ros_common.general_vessel_and_trip_information``` table, we do not find any reason to keep this extra table
+- ```vessel_attributes_id```, ```vessel_electronics_id```,  ```vessel_owner_and_personnel_id``` and ```vessel_trip_details_id``` points to ```ros_common.vessel_attributes```, ```ros_common.vessel_electronics```, ```ros_common.vessel_owner_and_personnel``` and ```ros_common.vessel_trip_details``` tables. Their scopes are the same as the trip, there is no point that they have their own id.
+  Moreover, there is no extra-value to keep them in a separate table; we should merge them into a new table ```ros_common.trip_vessel_details``` and use the ```ros_common.general_vessel_and_trip_information``` id as the primary key.
+
+The ```ros_common.general_vessel_and_trip_information``` table name should be changed to ```ros_common.trip```.
+
+### New model proposal
+
+#### Table ```ros_common.trip```
+
+This is the new entry point to a trip, it will contain only two columns:
+
+1. ```id```
+2. ```trip_original_id```
+
+Observer and vessel information will be linked to his trip by the ```ros_common.trip.id```.
+
+#### Table ```ros_common.trip_observer```
+
+This table will contain all information about the observer (it has no own id and will use the ```trip.id```), here is his definition:
+
+1. ```trip_id``` column is pointing to ```ros_common.trip``` table and is the primary key
+2. ```observer_id``` column is pointing to ```ros_common.observer_identification``` table (moved from ```ros_common.general_vessel_and_trip_information```)
+3. ```date_time_disembarkation``` (moved from ```ros_common.observer_trip_details```)
+4. ```date_time_embarkation``` (moved from ```ros_common.observer_trip_details```)
+5. ```disembarkation_location_id``` (moved from ```ros_common.observer_trip_details```)
+6. ```embarkation_location_id``` (moved from ```ros_common.observer_trip_details```)
+
+#### Table ```ros_common.trip_vessel```
+
+This table will contain all information about the vessel (it has no own id and will use the ```trip.id```), here is his definition:
+
+1. ```trip_id``` column is pointing to ```ros_common.trip``` table and is the primary key
+2. ```vessel_identification_id``` column is pointing to ```ros_common.vessel_identification``` table (moved from ```ros_common.general_vessel_and_trip_information```)
+3. all columns from ```ros_common.observed_trip_summary``` (except the ```id``` column)
+4. all columns from ```ros_common.vessel_attributes``` (except the ```id``` column)
+5. all columns from ```ros_common.vessel_electronics``` (except the ```id``` column)
+6. all columns from ```ros_common.vessel_owner_and_personnel``` (except the ```id``` column)
+7. all columns from ```ros_common.vessel_trip_details``` (except the ```id``` column)
+
+All related tables around ```ros_common.vessel_attributes``` should be renamed to ```trip_vessel_xxx```:
+
+1. ```ros_common.vessel_attributes_fish_preservation_method``` will be renamed to ```ros_common.trip_vessel_fish_preservation_method```
+2. ```ros_common.vessel_attributes_fish_storage_type``` will be renamed to ```ros_common.trip_vessel_fish_storage_type```
+3. ```ros_common.vessel_attributes_main_engines``` will be renamed to ```ros_common.trip_vessel_main_engines```
