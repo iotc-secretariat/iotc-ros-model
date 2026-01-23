@@ -1,0 +1,3 @@
+ALTER TABLE ros_common.vessel_identification RENAME TO vessel;
+ALTER TABLE ros_common.vessel_identification_licensed_target_species RENAME TO vessel_licensed_target_species;
+ALTER TABLE ros_common.vessel_licensed_target_species RENAME COLUMN vessel_identification_id TO vessel_id;

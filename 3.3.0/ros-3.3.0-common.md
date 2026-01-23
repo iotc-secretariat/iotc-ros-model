@@ -192,3 +192,12 @@ To replace ```ros_common.vessel_attributes_main_engines``` table.
 In each subdomain ```observer_data``` tables, replace column ```vessel_and_trip_information_id``` by ```trip_id```.
 
 In table ```ros_common.reasons_for_days_lost```, replace column ```observed_trip_summary_id``` by ```trip_id```.
+
+### Rename ```ros_common.vessel_identification``` table to ```ros_common.vessel```
+
+Will also rename table ```ros_common.vessel_identification_licensed_target_species``` to ```ros_common.vessel_licensed_target_species```.
+
+rename also some columns from ```vessel_identification_id``` to ```vessel_id``` in tables:
+
+* ```ros_common.vessel_licensed_target_species```
+* ```ros_common.trip_vessel```

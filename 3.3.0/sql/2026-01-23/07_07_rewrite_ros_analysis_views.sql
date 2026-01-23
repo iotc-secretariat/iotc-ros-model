@@ -15,7 +15,7 @@ create or replace view ros_analysis.v_ps_sf_w(gear, flag, year, month, grid_1, g
            count(DISTINCT sp.id)                                                     AS num_fish
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
@@ -50,7 +50,7 @@ create or replace view ros_analysis.v_ps_sf_l(gear, flag, year, month, grid_1, g
            count(DISTINCT sp.id)                                                     AS num_fish
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
@@ -90,7 +90,7 @@ create or replace view ros_analysis.v_ps_sets_raw
            'SET'::text                                                                                               AS effort_unit_code
     FROM ros_ps.observer_data o
              JOIN ros_common.trip_vessel gvti ON o.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries f2f ON c.code = f2f.flag_code::bpchar
              JOIN ros_ps.fishing_events fed ON fed.observer_data_id = o.id
@@ -125,7 +125,7 @@ create or replace view ros_analysis.v_ps_in(gear, flag, year, month, grid_1, gri
            cl_cn.code                                                                AS condition_code
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
@@ -164,7 +164,7 @@ create or replace view ros_analysis.v_ps_ef_raw(gear, flag, year, month, grid_1,
            'SETS'::text                                                              AS effort_unit
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
@@ -183,7 +183,7 @@ create or replace view ros_analysis.v_ps_ef_fd(gear, flag, year, month, grid_1, 
            'FDAYS'::text                                                             AS effort_unit
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
@@ -230,7 +230,7 @@ create or replace view ros_analysis.v_ps_ca(gear, flag, year, month, grid_1, gri
            'KG'::text                                                                AS catch_unit
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
@@ -260,7 +260,7 @@ create or replace view ros_analysis.v_ll_sf_w(gear, flag, year, month, grid_1, g
            count(DISTINCT sp.id)                                                     AS num_fish
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -294,7 +294,7 @@ create or replace view ros_analysis.v_ll_sf_l(gear, flag, year, month, grid_1, g
            count(DISTINCT sp.id)                                                     AS num_fish
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -437,7 +437,7 @@ create or replace view ros_analysis.v_ll_sets_raw
            'HK'::text                                          AS effort_unit_code
     FROM ros_ll.observer_data o
              JOIN ros_common.trip_vessel gvti ON o.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries f2f ON c.code = f2f.flag_code::bpchar
              JOIN ros_ll.fishing_events fed ON fed.observer_data_id = o.id
@@ -464,7 +464,7 @@ create or replace view ros_analysis.v_ll_sets_raw
            'HK'::text                                          AS effort_unit_code
     FROM ros_ll.observer_data o
              JOIN ros_common.trip_vessel gvti ON o.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries f2f ON c.code = f2f.flag_code::bpchar
              JOIN ros_ll.fishing_events fed ON fed.observer_data_id = o.id
@@ -499,7 +499,7 @@ create or replace view ros_analysis.v_ll_in(gear, flag, year, month, grid_1, gri
            cl_cn.code                                                                AS condition_code
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -538,7 +538,7 @@ create or replace view ros_analysis.v_ll_ef_sets(gear, flag, year, month, grid_1
            'SETS'::text                                                              AS effort_unit
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -559,7 +559,7 @@ create or replace view ros_analysis.v_ll_ef_raw(gear, flag, year, month, grid_1,
            'HOOKS'::text                                                             AS effort_unit
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -580,7 +580,7 @@ create or replace view ros_analysis.v_ll_ef_fd(gear, flag, year, month, grid_1, 
            'FDAYS'::text                                                             AS effort_unit
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -634,7 +634,7 @@ create or replace view ros_analysis.v_ll_ca(gear, flag, year, month, grid_1, gri
            'NO'::text                                                                AS catch_unit
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -789,7 +789,7 @@ create or replace view ros_analysis.v_ps_lw(gear, flag, year, month, grid_1, gri
            ew.unit                                                                   AS weight_unit
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
@@ -872,7 +872,7 @@ create or replace view ros_analysis.v_efforts_by_year_flag_and_gear(gear, flag, 
            'HOOK'::text                                            AS effort_unit
     FROM ros_ll.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
@@ -887,7 +887,7 @@ create or replace view ros_analysis.v_efforts_by_year_flag_and_gear(gear, flag, 
            'SET'::text                                             AS effort_unit
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvti ON od.trip_id = gvti.trip_id
-             JOIN ros_common.vessel_identification vi ON gvti.vessel_id = vi.id
+             JOIN ros_common.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
              LEFT JOIN refs_admin.fleet_to_flags_and_fisheries fl ON cl_co.code = fl.flag_code::bpchar
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id

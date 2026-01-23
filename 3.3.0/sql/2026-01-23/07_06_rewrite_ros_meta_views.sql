@@ -322,7 +322,7 @@ WITH ps_length_weight AS (SELECT 'PS'::text                                     
            lw.weight_unit
     FROM ros_ps.observer_data od
              JOIN ros_common.trip_vessel gvt ON od.trip_id = gvt.trip_id
-             LEFT JOIN ros_common.vessel_identification vi ON gvt.vessel_id = vi.id
+             LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
              JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
              JOIN ros_ps.setting_operations so ON fe.setting_operation_id = so.id
@@ -400,7 +400,7 @@ SELECT ps_o_d.source,
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
-             LEFT JOIN ros_common.vessel_identification vi ON gvt.vessel_id = vi.id
+             LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON ps_o_d.reporting_country_code = r.code
@@ -447,7 +447,7 @@ SELECT pl_o_d.source,
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
-             LEFT JOIN ros_common.vessel_identification vi ON gvt.vessel_id = vi.id
+             LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON pl_o_d.reporting_country_code = r.code
@@ -494,7 +494,7 @@ SELECT ll_o_d.source,
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
-             LEFT JOIN ros_common.vessel_identification vi ON gvt.vessel_id = vi.id
+             LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON ll_o_d.reporting_country_code = r.code
@@ -541,7 +541,7 @@ SELECT gn_o_d.source,
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
-             LEFT JOIN ros_common.vessel_identification vi ON gvt.vessel_id = vi.id
+             LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON gn_o_d.reporting_country_code = r.code
@@ -697,7 +697,7 @@ WITH ps AS (SELECT date_part('year'::text, s.start_setting_date_and_time)       
                          JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
                          JOIN ros_ps.fishing_events fe ON fe.observer_data_id = od.id
                          JOIN ros_ps.setting_operations s ON fe.setting_operation_id = s.id
-                         JOIN ros_common.vessel_identification vi ON gvt.vessel_id = vi.id
+                         JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
                          JOIN refs_admin.countries c ON vi.flag_code = c.code
                 GROUP BY c.code, (date_part('year'::text, s.start_setting_date_and_time))),
          ll AS (SELECT date_part('year'::text, s.start_setting_date_and_time)                                                                                      AS year,
@@ -709,7 +709,7 @@ WITH ps AS (SELECT date_part('year'::text, s.start_setting_date_and_time)       
                          JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
                          JOIN ros_ll.fishing_events fe ON fe.observer_data_id = od.id
                          JOIN ros_ll.setting_operations s ON fe.setting_operation_id = s.id
-                         JOIN ros_common.vessel_identification vi ON gvt.vessel_id = vi.id
+                         JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
                          JOIN refs_admin.countries c ON vi.flag_code = c.code
                 GROUP BY c.code, (date_part('year'::text, s.start_setting_date_and_time)))
     SELECT ps.year,
@@ -736,8 +736,8 @@ SELECT t.trip_id,
            s_t.code    AS target_species_code,
            s_t.name_en AS target_species
     FROM ros_meta.v_trips t
-             LEFT JOIN ros_common.vessel_identification vi ON t.vessel_info_id = vi.id
-             LEFT JOIN ros_common.vessel_identification_licensed_target_species vi2lts ON vi2lts.vessel_identification_id = vi.id
+             LEFT JOIN ros_common.vessel vi ON t.vessel_info_id = vi.id
+             LEFT JOIN ros_common.vessel_licensed_target_species vi2lts ON vi2lts.vessel_id = vi.id
              LEFT JOIN refs_biology.species s_t ON vi2lts.licensed_target_species_code::text = s_t.code::text;
 
 create view ros_meta.v_ps_effort_summary

@@ -54,7 +54,7 @@ order by a.id;
 create table if not exists ros_common.trip_vessel
 (
     trip_id                                                  integer not null,
-    vessel_id                                                integer not null references ros_common.vessel_identification,
+    vessel_id                                                integer not null references ros_common.vessel,
     number_of_active_fishing_days                            integer,
     number_of_conducted_fishing_events_with_observer_onboard integer,
     number_of_days_in_fishing_area                           integer,
@@ -89,7 +89,7 @@ create table if not exists ros_common.trip_vessel
     return_port_code                                         varchar(16),
     constraint pk_ros_common_trip_vessel primary key (trip_id),
     constraint fk_trip_vessel_trip_id foreign key (trip_id) references ros_common.trip(id),
-    constraint fk_trip_vessel_vessel_id foreign key (vessel_id) references ros_common.vessel_identification(id),
+    constraint fk_trip_vessel_vessel_id foreign key (vessel_id) references ros_common.vessel(id),
     constraint fk_trip_vessel_loa_id foreign key (loa_id) references ros_common.lengths(id),
     constraint fk_trip_vessel_autonomy_range_id foreign key (autonomy_range_id) references ros_common.ranges(id),
     constraint fk_trip_vessel_fish_storage_capacity_id foreign key (fish_storage_capacity_id) references ros_common.capacities(id),
