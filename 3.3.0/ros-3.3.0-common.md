@@ -93,3 +93,102 @@ All related tables around ```ros_common.vessel_attributes``` should be renamed t
 1. ```ros_common.vessel_attributes_fish_preservation_method``` will be renamed to ```ros_common.trip_vessel_fish_preservation_method```
 2. ```ros_common.vessel_attributes_fish_storage_type``` will be renamed to ```ros_common.trip_vessel_fish_storage_type```
 3. ```ros_common.vessel_attributes_main_engines``` will be renamed to ```ros_common.trip_vessel_main_engines```
+
+
+### Summary
+
+#### Table ```ros_common.trip```
+
+This is the entry point for the trip information, with two columns:
+
+| column name      | original table                      | original column  | comment |
+|------------------|-------------------------------------|------------------|---------|
+| id               | general_vessel_and_trip_information | id               |         |
+| trip_original_id | general_vessel_and_trip_information | trip_original_id |         |
+
+## Table ```ros_common.trip_observer```
+
+This is the entry point for the observer information on a trip, with six columns:
+
+| column name                | original table                      | original column            |
+|----------------------------|-------------------------------------|----------------------------|
+| trip_id                    | general_vessel_and_trip_information | id                         |
+| observer_id                | general_vessel_and_trip_information | observer_identification_id |
+| date_time_disembarkation   | observer_trip_details               | date_time_embarkation      |
+| date_time_embarkation      | observer_trip_details               | date_time_disembarkation   |
+| disembarkation_location_id | observer_trip_details               | embarkation_location_id    |
+| embarkation_location_id    | observer_trip_details               | disembarkation_location_id |
+
+## Table ```ros_common.trip_vessel```
+
+This is the entry point for the vessel information on a trip, with 34 columns:
+
+| column name                                              | original table                      | original column                                          |
+|----------------------------------------------------------|-------------------------------------|----------------------------------------------------------|
+| trip_id                                                  | general_vessel_and_trip_information | id                                                       |
+| vessel_id                                                | general_vessel_and_trip_information | vessel_identification_id                                 |
+| number_of_active_fishing_days                            | observed_trip_summary               | number_of_active_fishing_days                            |
+| number_of_conducted_fishing_events_with_observer_onboard | observed_trip_summary               | number_of_conducted_fishing_events_with_observer_onboard |
+| number_of_days_in_fishing_area                           | observed_trip_summary               | number_of_days_in_fishing_area                           |
+| number_of_days_lost                                      | observed_trip_summary               | number_of_days_lost                                      |
+| number_of_days_searching                                 | observed_trip_summary               | number_of_days_searching                                 |
+| number_of_days_transiting                                | observed_trip_summary               | number_of_days_transiting                                |
+| number_of_observed_fishing_events                        | observed_trip_summary               | number_of_observed_fishing_events                        |
+| loa_id                                                   | vessel_attributes                   | loa_id                                                   |
+| autonomy_range_id                                        | vessel_attributes                   | autonomy_range_id                                        |
+| fish_storage_capacity_id                                 | vessel_attributes                   | fish_storage_capacity_id                                 |
+| tonnage_id                                               | vessel_attributes                   | tonnage_id                                               |
+| hull_material_code                                       | vessel_attributes                   | hull_material_code                                       |
+| ais                                                      | vessel_electronics                  | ais                                                      |
+| gps                                                      | vessel_electronics                  | gps                                                      |
+| vms                                                      | vessel_electronics                  | vms                                                      |
+| depth_sounder                                            | vessel_electronics                  | depth_sounder                                            |
+| doppler_current_meter                                    | vessel_electronics                  | doppler_current_meter                                    |
+| expendable_bathythermographs                             | vessel_electronics                  | expendable_bathythermographs                             |
+| fisheries_information_services                           | vessel_electronics                  | fisheries_information_services                           |
+| hf_radios                                                | vessel_electronics                  | hf_radios                                                |
+| radars                                                   | vessel_electronics                  | radars                                                   |
+| satellite_communication_systems                          | vessel_electronics                  | satellite_communication_systems                          |
+| sonar                                                    | vessel_electronics                  | sonar                                                    |
+| track_plotter                                            | vessel_electronics                  | track_plotter                                            |
+| vhf_radios                                               | vessel_electronics                  | vhf_radios                                               |
+| number_of_crew                                           | vessel_owner_and_personnel          | number_of_crew                                           |
+| fishing_master_id                                        | vessel_owner_and_personnel          | fishing_master_id                                        |
+| skipper_id                                               | vessel_owner_and_personnel          | skipper_id                                               |
+| date_time_vessel_returned_to_port                        | vessel_trip_details                 | date_time_vessel_returned_to_port                        |
+| date_time_vessel_sailed                                  | vessel_trip_details                 | date_time_vessel_sailed                                  |
+| departure_port_code                                      | vessel_trip_details                 | departure_port_code                                      |
+| return_port_code                                         | vessel_trip_details                 | return_port_code                                         |
+
+#### Table ```ros_common.trip_vessel_fish_preservation_method```
+
+To replace ```ros_common.vessel_attributes_fish_preservation_method``` table.
+
+| column name                   | original table                             | original column               |
+|-------------------------------|--------------------------------------------|-------------------------------|
+| trip_id                       | general_vessel_and_trip_information        | id                            |
+| fish_preservation_method_code | vessel_attributes_fish_preservation_method | fish_preservation_method_code |
+
+#### Table ```ros_common.trip_vessel_fish_storage_type```
+
+To replace ```ros_common.vessel_attributes_fish_storage_type``` table.
+
+| column name            | original table                      | original column        |
+|------------------------|-------------------------------------|------------------------|
+| trip_id                | general_vessel_and_trip_information | id                     |
+| fish_storage_type_code | vessel_attributes_fish_storage_type | fish_storage_type_code |
+
+## Table ```ros_common.trip_vessel_main_engines```
+
+To replace ```ros_common.vessel_attributes_main_engines``` table.
+
+| column name    | original table                      | original column |
+|----------------|-------------------------------------|-----------------|
+| trip_id        | general_vessel_and_trip_information | id              |
+| main_engine_id | vessel_attributes_main_engines      | main_engine_id  |
+
+#### Adapt other tables
+
+In each subdomain ```observer_data``` tables, replace column ```vessel_and_trip_information_id``` by ```trip_id```.
+
+In table ```ros_common.reasons_for_days_lost```, replace column ```observed_trip_summary_id``` by ```trip_id```.
