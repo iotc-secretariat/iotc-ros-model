@@ -178,7 +178,7 @@ To replace ```ros_common.vessel_attributes_fish_storage_type``` table.
 | trip_id                | general_vessel_and_trip_information | id                     |
 | fish_storage_type_code | vessel_attributes_fish_storage_type | fish_storage_type_code |
 
-## Table ```ros_common.trip_vessel_main_engines```
+#### Table ```ros_common.trip_vessel_main_engines```
 
 To replace ```ros_common.vessel_attributes_main_engines``` table.
 
