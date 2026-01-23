@@ -14,4 +14,5 @@ drop table ros_common.observer_trip_details;
 drop table ros_common.vessel_owner_and_personnel;
 drop table ros_common.vessel_attributes;
 drop table ros_common.vessel_trip_details;
+drop table ros_common.vessel_electronics;
 drop table ros_common.observed_trip_summary;
