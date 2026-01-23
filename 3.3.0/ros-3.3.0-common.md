@@ -101,10 +101,10 @@ All related tables around ```ros_common.vessel_attributes``` should be renamed t
 
 This is the entry point for the trip information, with two columns:
 
-| column name      | original table                      | original column  | comment |
-|------------------|-------------------------------------|------------------|---------|
-| id               | general_vessel_and_trip_information | id               |         |
-| trip_original_id | general_vessel_and_trip_information | trip_original_id |         |
+| column name      | original table                      | original column  |
+|------------------|-------------------------------------|------------------|
+| id               | general_vessel_and_trip_information | id               |
+| trip_original_id | general_vessel_and_trip_information | trip_original_id |
 
 ## Table ```ros_common.trip_observer```
 
