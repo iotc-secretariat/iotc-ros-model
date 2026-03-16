@@ -7,7 +7,7 @@ SCRIPTS="./yo"
 SCRIPT=update-2025-11-13.psql
 rm -rf "$SCRIPTS"
 rm -rf "$SCRIPT"
-find -name "05_*.sql" -printf "%h/%f\\n" | sort >> "$SCRIPTS"
+find -name "06_*.sql" -printf "%h/%f\\n" | sort >> "$SCRIPTS"
 
 cat "$SCRIPTS"
 while read -r line; do
