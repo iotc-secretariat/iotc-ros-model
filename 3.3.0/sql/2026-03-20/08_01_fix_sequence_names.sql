@@ -1,0 +1,1 @@
+ALTER SEQUENCE ros_common.vessel_identification_id_seq RENAME TO vessel_id_seq;

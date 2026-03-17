@@ -1,0 +1,2 @@
+ALTER TABLE ros_common.locations ADD COLUMN port_code varchar(16);
+ALTER TABLE ros_common.locations ADD CONSTRAINT fk_ros_common_ports_port_code_locations FOREIGN KEY (port_code) REFERENCES refs_admin.ports (code);
