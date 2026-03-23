@@ -1,0 +1,35 @@
+drop table ros_ll.observer_data_properties;
+drop table ros_pl.observer_data_properties;
+drop table ros_pl.observer_data_daily_activities;
+drop  table ros_ps.observer_data_properties;
+drop  table ros_ps.observer_data_daily_activities;
+drop  table ros_gn.observer_data_properties;
+ALTER TABLE ros_ll.fishing_events DROP COLUMN observer_data_id;
+ALTER TABLE ros_ps.fishing_events DROP COLUMN observer_data_id;
+ALTER TABLE ros_gn.fishing_events DROP COLUMN observer_data_id;
+ALTER TABLE ros_pl.tuna_fishing_events DROP COLUMN observer_data_id;
+ALTER TABLE ros_pl.bait_fishing_events DROP COLUMN observer_data_id;
+drop table ros_ll.observer_data;
+drop table ros_pl.observer_data;
+drop  table ros_ps.observer_data;
+drop  table ros_gn.observer_data;
+ALTER TABLE ros_common.observer_data DROP COLUMN original_id;
+ALTER TABLE ros_common.trip_vessel DROP COLUMN departure_port_code;
+ALTER TABLE ros_common.trip_vessel DROP COLUMN return_port_code;
+
+ALTER TABLE ros_ll.gear_specifications DROP COLUMN special_equipment_id;
+ALTER TABLE ros_ll.gear_specifications DROP COLUMN general_gear_attributes_id;
+DROP TABLE ros_ll.general_gear_attributes;
+DROP TABLE ros_ll.special_equipment;
+ALTER TABLE ros_ps.gear_specifications DROP COLUMN special_equipment_id;
+ALTER TABLE ros_ps.gear_specifications DROP COLUMN general_gear_attributes_id;
+DROP TABLE ros_ps.general_gear_attributes;
+DROP TABLE ros_ps.special_equipment;
+ALTER TABLE ros_gn.gear_specifications DROP COLUMN special_equipment_id;
+DROP TABLE ros_gn.special_equipment;
+
+ALTER TABLE ros_pl.gear_specifications DROP COLUMN special_equipment_id;
+ALTER TABLE ros_pl.gear_specifications DROP COLUMN general_gear_attributes_id;
+ALTER TABLE ros_pl.lures_or_jiggers_by_type DROP COLUMN general_gear_attributes_id;
+DROP TABLE ros_pl.general_gear_attributes;
+DROP TABLE ros_pl.special_equipment;

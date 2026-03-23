@@ -3,7 +3,7 @@ create view ros_meta.v_ps_sets
              total_effort, effort_unit)
 as
     SELECT t.id                                                                      AS trip_id,
-           t.uid                                                                      AS trip_uid,
+           t.uid                                                                     AS trip_uid,
            so.id                                                                     AS set_id,
            'PS'::text                                                                AS fishing_operation_type,
            COALESCE(so.start_setting_date_and_time, so.time_start_brailing)          AS start_time,
@@ -24,7 +24,7 @@ create view ros_meta.v_ll_sets
              total_effort, effort_unit)
 as
     SELECT t.id                                                                     AS trip_id,
-           t.uid                                                                     AS trip_uid,
+           t.uid                                                                    AS trip_uid,
            so.id                                                                    AS set_id,
            'LL'::text                                                               AS fishing_operation_type,
            COALESCE(ho.start_hauling_date_and_time, so.start_setting_date_and_time) AS start_time,
@@ -86,7 +86,7 @@ as
 create view ros_meta.v_ps_fdays
     (trip_id, trip_uid, fishing_operation_type, year, month, grid_1, grid_5, effort, effort_unit) as
     SELECT t.id                                                                                                                                        AS trip_id,
-           t.uid                                                                                                                                        AS trip_uid,
+           t.uid                                                                                                                                       AS trip_uid,
            'PS'::text                                                                                                                                  AS fishing_operation_type,
            date_part('year'::text, s.start_setting_date_and_time)                                                                                      AS year,
            date_part('month'::text, s.start_setting_date_and_time)                                                                                     AS month,
@@ -106,7 +106,7 @@ create view ros_meta.v_ps_fdays
 create view ros_meta.v_ll_fdays
     (trip_id, trip_uid, fishing_operation_type, year, month, grid_1, grid_5, effort, effort_unit) as
     SELECT t.id                                                                                                                                        AS trip_id,
-           t.uid                                                                                                                                        AS trip_uid,
+           t.uid                                                                                                                                       AS trip_uid,
            'LL'::text                                                                                                                                  AS fishing_operation_type,
            date_part('year'::text, s.start_setting_date_and_time)                                                                                      AS year,
            date_part('month'::text, s.start_setting_date_and_time)                                                                                     AS month,
@@ -151,7 +151,7 @@ create view ros_meta.v_ll_hooks
              total_effort, effort_unit)
 as
     SELECT t.id                                                                     AS trip_id,
-           t.uid                                                                     AS trip_uid,
+           t.uid                                                                    AS trip_uid,
            so.id                                                                    AS set_id,
            'LL'::text                                                               AS fishing_operation_type,
            COALESCE(ho.start_hauling_date_and_time, so.start_setting_date_and_time) AS start_time,
@@ -216,7 +216,7 @@ create view ros_meta.v_ll_catches
              quantity_sampled, unit)
 as
     SELECT t.id                 AS trip_id,
-           t.uid                 AS trip_uid,
+           t.uid                AS trip_uid,
            fe.id                AS set_id,
            fe.event_original_id AS set_number,
            'LL'::text           AS fishing_operation_type,
@@ -381,43 +381,45 @@ create view ros_meta.v_ps_trips
              vessel_return_port, vessel_return_country)
 as
     SELECT od.source,
-           t.id                                  AS trip_id,
-           t.uid                                  AS trip_uid,
-           t.trip_original_id                    AS trip_number,
-           od.creation_time                    AS creation_date,
-           od.finalization_time                  AS finalization_date,
-           od.submission_time                    AS submission_date,
+           t.id                         AS trip_id,
+           t.uid                        AS trip_uid,
+           t.trip_original_id           AS trip_number,
+           od.creation_time             AS creation_date,
+           od.finalization_time         AS finalization_date,
+           od.submission_time           AS submission_date,
            CASE
                WHEN otd.trip_id IS NULL THEN 0
                ELSE 1
-               END                               AS has_observer_trip_info,
-           'PL'::text                            AS fishing_operation_type,
-           oi.iotc_observer_identifier           AS observer_iotc_number,
-           otd.date_time_embarkation             AS observer_imbarcation_date,
-           otd.date_time_disembarkation          AS observer_disembarcation_date,
-           vi.id                                 AS vessel_info_id,
-           vi.iotc_vessel_identifier             AS vessel_iotc_number,
-           g.code                                AS main_gear,
-           r.code                                AS reporting_flag,
-           f.code                                AS vessel_flag,
-           gvt.date_time_vessel_sailed           AS vessel_departure_date,
-           pd.name_en                            AS vessel_departure_port,
-           cd.code                               AS vessel_departure_country,
-           gvt.date_time_vessel_returned_to_port AS vessel_return_date,
-           pr.name_en                            AS vessel_return_port,
-           cr.code                               AS vessel_return_country
+               END                      AS has_observer_trip_info,
+           'PL'::text                   AS fishing_operation_type,
+           oi.iotc_observer_identifier  AS observer_iotc_number,
+           otd.date_time_embarkation    AS observer_imbarcation_date,
+           otd.date_time_disembarkation AS observer_disembarcation_date,
+           vi.id                        AS vessel_info_id,
+           vi.iotc_vessel_identifier    AS vessel_iotc_number,
+           g.code                       AS main_gear,
+           r.code                       AS reporting_flag,
+           f.code                       AS vessel_flag,
+           gvt.departure_timestamp      AS vessel_departure_date,
+           pd.name_en                   AS vessel_departure_port,
+           cd.code                      AS vessel_departure_country,
+           gvt.return_timestamp         AS vessel_return_date,
+           pr.name_en                   AS vessel_return_port,
+           cr.code                      AS vessel_return_country
     FROM ros_common.observer_data od
              JOIN ros_common.trip t ON od.id = t.observer_data_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
+             LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
+             LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON od.reporting_country_code = r.code
-             LEFT JOIN refs_admin.ports pd ON gvt.departure_port_code::text = pd.code::text
+             LEFT JOIN refs_admin.ports pd ON tvdl.port_code::text = pd.code::text
              LEFT JOIN refs_admin.countries cd ON pd.country_code::bpchar = cd.code
-             LEFT JOIN refs_admin.ports pr ON gvt.return_port_code::text = pr.code::text
+             LEFT JOIN refs_admin.ports pr ON tvrl.port_code::text = pr.code::text
              LEFT JOIN refs_admin.countries cr ON pr.country_code::bpchar = cr.code
     WHERE od.vessel_type_code = 'SP';
 
@@ -429,43 +431,45 @@ create view ros_meta.v_pl_trips
              vessel_return_port, vessel_return_country)
 as
     SELECT od.source,
-           t.id                                  AS trip_id,
-           t.uid                                  AS trip_uid,
-           t.trip_original_id                    AS trip_number,
-           od.creation_time                    AS creation_date,
-           od.finalization_time                  AS finalization_date,
-           od.submission_time                    AS submission_date,
+           t.id                         AS trip_id,
+           t.uid                        AS trip_uid,
+           t.trip_original_id           AS trip_number,
+           od.creation_time             AS creation_date,
+           od.finalization_time         AS finalization_date,
+           od.submission_time           AS submission_date,
            CASE
                WHEN otd.trip_id IS NULL THEN 0
                ELSE 1
-               END                               AS has_observer_trip_info,
-           'PL'::text                            AS fishing_operation_type,
-           oi.iotc_observer_identifier           AS observer_iotc_number,
-           otd.date_time_embarkation             AS observer_imbarcation_date,
-           otd.date_time_disembarkation          AS observer_disembarcation_date,
-           vi.id                                 AS vessel_info_id,
-           vi.iotc_vessel_identifier             AS vessel_iotc_number,
-           g.code                                AS main_gear,
-           r.code                                AS reporting_flag,
-           f.code                                AS vessel_flag,
-           gvt.date_time_vessel_sailed           AS vessel_departure_date,
-           pd.name_en                            AS vessel_departure_port,
-           cd.code                               AS vessel_departure_country,
-           gvt.date_time_vessel_returned_to_port AS vessel_return_date,
-           pr.name_en                            AS vessel_return_port,
-           cr.code                               AS vessel_return_country
+               END                      AS has_observer_trip_info,
+           'PL'::text                   AS fishing_operation_type,
+           oi.iotc_observer_identifier  AS observer_iotc_number,
+           otd.date_time_embarkation    AS observer_imbarcation_date,
+           otd.date_time_disembarkation AS observer_disembarcation_date,
+           vi.id                        AS vessel_info_id,
+           vi.iotc_vessel_identifier    AS vessel_iotc_number,
+           g.code                       AS main_gear,
+           r.code                       AS reporting_flag,
+           f.code                       AS vessel_flag,
+           gvt.departure_timestamp      AS vessel_departure_date,
+           pd.name_en                   AS vessel_departure_port,
+           cd.code                      AS vessel_departure_country,
+           gvt.return_timestamp         AS vessel_return_date,
+           pr.name_en                   AS vessel_return_port,
+           cr.code                      AS vessel_return_country
     FROM ros_common.observer_data od
              JOIN ros_common.trip t ON od.id = t.observer_data_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
+             LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
+             LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON od.reporting_country_code = r.code
-             LEFT JOIN refs_admin.ports pd ON gvt.departure_port_code::text = pd.code::text
+             LEFT JOIN refs_admin.ports pd ON tvdl.port_code::text = pd.code::text
              LEFT JOIN refs_admin.countries cd ON pd.country_code::bpchar = cd.code
-             LEFT JOIN refs_admin.ports pr ON gvt.return_port_code::text = pr.code::text
+             LEFT JOIN refs_admin.ports pr ON tvrl.port_code::text = pr.code::text
              LEFT JOIN refs_admin.countries cr ON pr.country_code::bpchar = cr.code
     WHERE od.vessel_type_code = 'LP';
 
@@ -477,43 +481,45 @@ create view ros_meta.v_ll_trips
              vessel_return_port, vessel_return_country)
 as
     SELECT od.source,
-           t.id                                  AS trip_id,
-           t.uid                                  AS trip_uid,
-           t.trip_original_id                    AS trip_number,
-           od.creation_time                    AS creation_date,
-           od.finalization_time                  AS finalization_date,
-           od.submission_time                    AS submission_date,
+           t.id                         AS trip_id,
+           t.uid                        AS trip_uid,
+           t.trip_original_id           AS trip_number,
+           od.creation_time             AS creation_date,
+           od.finalization_time         AS finalization_date,
+           od.submission_time           AS submission_date,
            CASE
                WHEN otd.trip_id IS NULL THEN 0
                ELSE 1
-               END                               AS has_observer_trip_info,
-           'LL'::text                            AS fishing_operation_type,
-           oi.iotc_observer_identifier           AS observer_iotc_number,
-           otd.date_time_embarkation             AS observer_imbarcation_date,
-           otd.date_time_disembarkation          AS observer_disembarcation_date,
-           vi.id                                 AS vessel_info_id,
-           vi.iotc_vessel_identifier             AS vessel_iotc_number,
-           g.code                                AS main_gear,
-           r.code                                AS reporting_flag,
-           f.code                                AS vessel_flag,
-           gvt.date_time_vessel_sailed           AS vessel_departure_date,
-           pd.name_en                            AS vessel_departure_port,
-           cd.code                               AS vessel_departure_country,
-           gvt.date_time_vessel_returned_to_port AS vessel_return_date,
-           pr.name_en                            AS vessel_return_port,
-           cr.code                               AS vessel_return_country
+               END                      AS has_observer_trip_info,
+           'LL'::text                   AS fishing_operation_type,
+           oi.iotc_observer_identifier  AS observer_iotc_number,
+           otd.date_time_embarkation    AS observer_imbarcation_date,
+           otd.date_time_disembarkation AS observer_disembarcation_date,
+           vi.id                        AS vessel_info_id,
+           vi.iotc_vessel_identifier    AS vessel_iotc_number,
+           g.code                       AS main_gear,
+           r.code                       AS reporting_flag,
+           f.code                       AS vessel_flag,
+           gvt.departure_timestamp      AS vessel_departure_date,
+           pd.name_en                   AS vessel_departure_port,
+           cd.code                      AS vessel_departure_country,
+           gvt.return_timestamp         AS vessel_return_date,
+           pr.name_en                   AS vessel_return_port,
+           cr.code                      AS vessel_return_country
     FROM ros_common.observer_data od
              JOIN ros_common.trip t ON od.id = t.observer_data_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
+             LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
+             LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON od.reporting_country_code = r.code
-             LEFT JOIN refs_admin.ports pd ON gvt.departure_port_code::text = pd.code::text
+             LEFT JOIN refs_admin.ports pd ON tvdl.port_code::text = pd.code::text
              LEFT JOIN refs_admin.countries cd ON pd.country_code::bpchar = cd.code
-             LEFT JOIN refs_admin.ports pr ON gvt.return_port_code::text = pr.code::text
+             LEFT JOIN refs_admin.ports pr ON tvrl.port_code::text = pr.code::text
              LEFT JOIN refs_admin.countries cr ON pr.country_code::bpchar = cr.code
     WHERE od.vessel_type_code = 'LL';
 
@@ -525,43 +531,45 @@ create view ros_meta.v_gn_trips
              vessel_return_port, vessel_return_country)
 as
     SELECT od.source,
-           t.id                                  AS trip_id,
-           t.uid                                  AS trip_uid,
-           t.trip_original_id                    AS trip_number,
-           od.creation_time                    AS creation_date,
-           od.finalization_time                  AS finalization_date,
-           od.submission_time                    AS submission_date,
+           t.id                         AS trip_id,
+           t.uid                        AS trip_uid,
+           t.trip_original_id           AS trip_number,
+           od.creation_time             AS creation_date,
+           od.finalization_time         AS finalization_date,
+           od.submission_time           AS submission_date,
            CASE
                WHEN otd.trip_id IS NULL THEN 0
                ELSE 1
-               END                               AS has_observer_trip_info,
-           'GN'::text                            AS fishing_operation_type,
-           oi.iotc_observer_identifier           AS observer_iotc_number,
-           otd.date_time_embarkation             AS observer_imbarcation_date,
-           otd.date_time_disembarkation          AS observer_disembarcation_date,
-           vi.id                                 AS vessel_info_id,
-           vi.iotc_vessel_identifier             AS vessel_iotc_number,
-           g.code                                AS main_gear,
-           r.code                                AS reporting_flag,
-           f.code                                AS vessel_flag,
-           gvt.date_time_vessel_sailed           AS vessel_departure_date,
-           pd.name_en                            AS vessel_departure_port,
-           cd.code                               AS vessel_departure_country,
-           gvt.date_time_vessel_returned_to_port AS vessel_return_date,
-           pr.name_en                            AS vessel_return_port,
-           cr.code                               AS vessel_return_country
+               END                      AS has_observer_trip_info,
+           'GN'::text                   AS fishing_operation_type,
+           oi.iotc_observer_identifier  AS observer_iotc_number,
+           otd.date_time_embarkation    AS observer_imbarcation_date,
+           otd.date_time_disembarkation AS observer_disembarcation_date,
+           vi.id                        AS vessel_info_id,
+           vi.iotc_vessel_identifier    AS vessel_iotc_number,
+           g.code                       AS main_gear,
+           r.code                       AS reporting_flag,
+           f.code                       AS vessel_flag,
+           gvt.departure_timestamp      AS vessel_departure_date,
+           pd.name_en                   AS vessel_departure_port,
+           cd.code                      AS vessel_departure_country,
+           gvt.return_timestamp         AS vessel_return_date,
+           pr.name_en                   AS vessel_return_port,
+           cr.code                      AS vessel_return_country
     FROM ros_common.observer_data od
              JOIN ros_common.trip t ON od.id = t.observer_data_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
+             LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
+             LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
              LEFT JOIN refs_admin.countries r ON od.reporting_country_code = r.code
-             LEFT JOIN refs_admin.ports pd ON gvt.departure_port_code::text = pd.code::text
+             LEFT JOIN refs_admin.ports pd ON tvdl.port_code::text = pd.code::text
              LEFT JOIN refs_admin.countries cd ON pd.country_code::bpchar = cd.code
-             LEFT JOIN refs_admin.ports pr ON gvt.return_port_code::text = pr.code::text
+             LEFT JOIN refs_admin.ports pr ON tvrl.port_code::text = pr.code::text
              LEFT JOIN refs_admin.countries cr ON pr.country_code::bpchar = cr.code
     WHERE od.vessel_type_code = 'GO';
 
