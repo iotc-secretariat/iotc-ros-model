@@ -33,3 +33,4 @@ ALTER TABLE ros_pl.gear_specifications DROP COLUMN general_gear_attributes_id;
 ALTER TABLE ros_pl.lures_or_jiggers_by_type DROP COLUMN general_gear_attributes_id;
 DROP TABLE ros_pl.general_gear_attributes;
 DROP TABLE ros_pl.special_equipment;
+ALTER TABLE ros_common.contact DROP COLUMN active;

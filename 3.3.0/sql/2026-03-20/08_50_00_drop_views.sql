@@ -73,3 +73,4 @@ drop view ros_views.v_alternate_ps_effort_fdays;
 drop view ros_views.v_alternate_ll_effort_fdays;
 drop view ros_views.v_ps_lw;
 drop view ros_views.v_ps_lw_raw;
+drop view ros_common.contact_with_observer;
