@@ -43,6 +43,9 @@ UPDATE ros_common.contact SET full_name = 'AL-ABDULLA SEDDICK FANNY' WHERE full_
 UPDATE ros_common.contact SET full_name = 'ANDREO IBANEZ JORGE' WHERE full_name = 'ANDREO IBAÑEZ JORGE';
 UPDATE ros_common.contact SET full_name = 'ANDRIANSYAH VERY' WHERE full_name = 'ANDRIANSYAH  VERY   ';
 
+UPDATE ros_common.contact SET full_name = 'KEMAT SLIMHANE' WHERE full_name = 'SLIMHANE KEMAT';
+INSERT INTO ros_common.contact_role(contact_id, role_code) VALUES((SELECT id FROM ros_common.contact WHERE  full_name = 'KEMAT SLIMHANE'), 'OB');
+INSERT INTO ros_common.observer(contact_id, iotc_observer_identifier) VALUES((SELECT id FROM ros_common.contact WHERE  full_name = 'KEMAT SLIMHANE'), 'IOTCROS0115');
 
 -- "IRMA SURYANI","ADE","IOTCROS0995" → already token by SATAMANA (contact_id=81) c'est un observateur'
 -- "KRISNA WIGUNA ","HARRI","IOTCROS0987" → already token by KESUMA SRI WENDA  (contact_id=86) ???

@@ -126,7 +126,6 @@ INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifi
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCTHA019', 'IOTCROS0755');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCTHA038', 'IOTCROS0774');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCTWN039', 'IOTCROS0341');
-INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCSYC027', 'IOTCROS0569');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCCHN022', 'IOTCROS0294');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCTWN045', 'IOTCROS0347');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCTHA011', 'IOTCROS0747');
@@ -297,7 +296,6 @@ INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifi
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCTHA037', 'IOTCROS0773');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCJPN003', 'IOTCROS0400');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCLKA018', 'IOTCROS0692');
-INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR120', 'IOTCROS0115');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR217', 'IOTCROS0116');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCAUS013', 'IOTCROS0264');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCKOR022', 'IOTCROS0457');
@@ -333,7 +331,6 @@ INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifi
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR219', 'IOTCROS0132');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR220', 'IOTCROS0133');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR046', 'IOTCROS0134');
-INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR039', 'IOTCROS0135');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCMUS013', 'IOTCROS0138');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR221', 'IOTCROS0139');
 INSERT INTO ros_common.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCEUR013', 'IOTCROS0140');
