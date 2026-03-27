@@ -851,31 +851,31 @@ create or replace view ros_analysis.v_ps_ce(gear, flag, year, month, grid_1, gri
            c.catch_unit
     FROM ros_analysis.v_ps_ef e
              LEFT JOIN ros_analysis.v_ps_ca c ON e.gear = c.gear AND e.flag::text = c.flag::text AND e.year = c.year AND e.month = c.month AND e.grid_1 = c.grid_1 AND e.grid_5 = c.grid_5;
-
-create or replace view ros_analysis.v_observers(iotc_number, flag_code, last_name, first_name, nationality_code, active) as
-    WITH obs AS (SELECT ob.iotc_number,
-                        f.code AS flag_code,
-                        ob.last_name,
-                        ob.first_name,
-                        n.code AS nationality_code,
-                        ob.active
-                 FROM ros_meta.observers ob
-                          JOIN ros_meta.observers_2_flags o2f ON ob.iotc_number = o2f.iotc_number
-                          JOIN refs_admin.countries f ON o2f.flag_code = f.code
-                          JOIN refs_admin.countries n ON ob.nationality_code = n.code)
-    SELECT DISTINCT iotc_number,
-                    CASE
-                        WHEN iotc_number ~~ '%EUR%'::text THEN 'EUR'::bpchar
-                        ELSE flag_code
-                        END AS flag_code,
-                    last_name,
-                    first_name,
-                    nationality_code,
-                    active
-    FROM obs
-    WHERE iotc_number !~~ '%DUM%'::text
-      AND last_name::text !~~ '%DUMMY%'::text
-      AND last_name::text !~~ '%KEN ROS%'::text;
+--
+-- create or replace view ros_analysis.v_observers(iotc_number, flag_code, last_name, first_name, nationality_code, active) as
+--     WITH obs AS (SELECT ob.iotc_number,
+--                         f.code AS flag_code,
+--                         ob.last_name,
+--                         ob.first_name,
+--                         n.code AS nationality_code,
+--                         ob.active
+--                  FROM ros_meta.observers ob
+--                           JOIN ros_meta.observers_2_flags o2f ON ob.iotc_number = o2f.iotc_number
+--                           JOIN refs_admin.countries f ON o2f.flag_code = f.code
+--                           JOIN refs_admin.countries n ON ob.nationality_code = n.code)
+--     SELECT DISTINCT iotc_number,
+--                     CASE
+--                         WHEN iotc_number ~~ '%EUR%'::text THEN 'EUR'::bpchar
+--                         ELSE flag_code
+--                         END AS flag_code,
+--                     last_name,
+--                     first_name,
+--                     nationality_code,
+--                     active
+--     FROM obs
+--     WHERE iotc_number !~~ '%DUM%'::text
+--       AND last_name::text !~~ '%DUMMY%'::text
+--       AND last_name::text !~~ '%KEN ROS%'::text;
 
 create or replace view ros_analysis.v_ll_ce(gear, flag, year, month, grid_1, grid_5, observed_effort, effort_unit, species, species_group_code, fate, observed_catch, catch_unit) as
     SELECT e.gear,

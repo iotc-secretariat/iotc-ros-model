@@ -34,3 +34,15 @@ ALTER TABLE ros_pl.lures_or_jiggers_by_type DROP COLUMN general_gear_attributes_
 DROP TABLE ros_pl.general_gear_attributes;
 DROP TABLE ros_pl.special_equipment;
 ALTER TABLE ros_common.contact DROP COLUMN active;
+
+DROP TABLE ros_common.contact_role;
+DROP TABLE ros_common.observer_identifier_mapping;
+DROP TABLE ros_common.observer;
+DROP TABLE ros_common.contact;
+DROP TABLE ros_meta.observers_2_flags;
+DROP TABLE ros_meta.observers;
+DROP TABLE ros_meta.observers_logins;
+DROP TABLE ros_meta.ros_user_requests;
+DROP TABLE ros_meta.focal_points;
+DROP TABLE ros_meta.focal_points_logins;
+DROP TABLE ros_meta.db_meta;

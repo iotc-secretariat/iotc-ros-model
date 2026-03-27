@@ -1,3 +1,15 @@
+create or replace view ros_meta.v_observer(id, full_name, iotc_observer_identifier, nationality_code, accreditation_year, accredited_by, deregistered_date) as
+    SELECT t.id,
+           t.full_name,
+           o.iotc_observer_identifier,
+           t.nationality_code,
+           o.accreditation_year,
+           o.accredited_by,
+           o.deregistered_date
+    FROM ros_meta.observer o
+    JOIN ros_meta.contact t ON t.id = o.contact_id
+    ORDER BY t.full_name;
+
 create view ros_meta.v_ps_sets
             (trip_id, trip_uid, set_id, fishing_operation_type, start_time, end_time, grid_1, grid_5, effort,
              total_effort, effort_unit)
@@ -412,7 +424,7 @@ as
              LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
              LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
-             LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
+             LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
@@ -462,7 +474,7 @@ as
              LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
              LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
-             LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
+             LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
@@ -512,7 +524,7 @@ as
              LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
              LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
-             LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
+             LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
@@ -562,7 +574,7 @@ as
              LEFT JOIN ros_common.locations tvdl ON tvdl.id = gvt.departure_location
              LEFT JOIN ros_common.locations tvrl ON tvdl.id = gvt.return_location
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
-             LEFT JOIN ros_common.observer oi ON otd.observer_id = oi.contact_id
+             LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
              LEFT JOIN ros_common.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_fishery_config.gears g ON vi.main_fishing_gear_code::text = g.code::text
              LEFT JOIN refs_admin.countries f ON vi.flag_code = f.code
