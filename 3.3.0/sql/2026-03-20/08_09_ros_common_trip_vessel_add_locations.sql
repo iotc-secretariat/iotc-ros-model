@@ -22,9 +22,9 @@ BEGIN
         WHERE t.departure_port_code IS NOT NULL
         ORDER BY t.trip_id
         LOOP
-            RAISE NOTICE 'Insert departure location on trip % for port code %...',
-                rec.mv_id,
-                rec.mv_port_code;
+--             RAISE NOTICE 'Insert departure location on trip % for port code %...',
+--                 rec.mv_id,
+--                 rec.mv_port_code;
             INSERT INTO ros_common.locations(port_code) VALUES (rec.mv_port_code);
             UPDATE ros_common.trip_vessel SET departure_location = (SELECT max(id) FROM ros_common.locations) WHERE trip_id = rec.mv_id;
         END LOOP;
@@ -36,9 +36,9 @@ BEGIN
         ORDER BY t.trip_id
         LOOP
 
-            RAISE NOTICE 'Insert return_port_code location on trip % for port code %...',
-                rec.mv_id,
-                rec.mv_port_code;
+--             RAISE NOTICE 'Insert return_port_code location on trip % for port code %...',
+--                 rec.mv_id,
+--                 rec.mv_port_code;
             INSERT INTO ros_common.locations(port_code) VALUES (rec.mv_port_code);
             UPDATE ros_common.trip_vessel SET return_location = (SELECT max(id) FROM ros_common.locations) WHERE trip_id = rec.mv_id;
         END LOOP;

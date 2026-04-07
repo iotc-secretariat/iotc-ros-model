@@ -287,8 +287,8 @@ UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROSX021' WHERE obser
 UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROSX022' WHERE observer.iotc_observer_identifier = 'IOTCROS0987';
 UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROSX024' WHERE observer.iotc_observer_identifier = 'IOTCROS0991';
 UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROSX025' WHERE observer.iotc_observer_identifier = 'IOTCROS0985';
-UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROS0409' WHERE contact_id = 381;
-UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROS0985' WHERE contact_id = 390;
+UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROS0409' WHERE contact_id = (select id from ros_meta.contact where full_name='SATMANA');
+UPDATE ros_meta.observer SET iotc_observer_identifier ='IOTCROS0985' WHERE contact_id = (select id from ros_meta.contact where full_name='SAFII MOCHAMAT');
 INSERT INTO ros_meta.observer_identifier_mapping(legacy_iotc_observer_identifier, iotc_observer_identifier) VALUES('IOTCJPN006', 'IOTCROS0409');
 
 UPDATE ros_meta.observer_identifier_mapping SET iotc_observer_identifier ='IOTCROSX024' WHERE iotc_observer_identifier = 'IOTCROS0989';
@@ -298,22 +298,22 @@ UPDATE ros_meta.observer_identifier_mapping SET iotc_observer_identifier ='IOTCR
 
 -- contact[1/6] full_name='ANDRIANSYAH VERY', nationality_code='IDN', iotc_observer_identifier='IOTCROS0989', national_observer_id=NULL, accreditation_year=2025, accredited_by='JPN', deregistered_date=NULL
 INSERT INTO ros_meta.contact(full_name, nationality_code) VALUES('ANDRIANSYAH VERY', 'IDN');
-INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) VALUES(1034, 'IOTCROS0989', NULL, 2025, 'JPN', NULL);
+INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) SELECT id, 'IOTCROS0989', NULL, 2025, 'JPN', NULL from ros_meta.contact WHERE full_name = 'ANDRIANSYAH VERY';
 -- contact[2/6] full_name='IRMA SURYANI ADE', nationality_code='IDN', iotc_observer_identifier='IOTCROS0995', national_observer_id=NULL, accreditation_year=2025, accredited_by='JPN', deregistered_date=NULL
 INSERT INTO ros_meta.contact(full_name, nationality_code) VALUES('IRMA SURYANI ADE', 'IDN');
-INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) VALUES(1035, 'IOTCROS0995', NULL, 2025, 'JPN', NULL);
+INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) SELECT id, 'IOTCROS0995', NULL, 2025, 'JPN',  NULL from ros_meta.contact WHERE full_name = 'IRMA SURYANI ADE';
 -- contact[3/6] full_name='KRISNA WIGUNA HARRI', nationality_code='IDN', iotc_observer_identifier='IOTCROS0987', national_observer_id=NULL, accreditation_year=2025, accredited_by='JPN', deregistered_date=NULL
 INSERT INTO ros_meta.contact(full_name, nationality_code) VALUES('KRISNA WIGUNA HARRI', 'IDN');
-INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) VALUES(1036, 'IOTCROS0987', NULL, 2025, 'JPN', NULL);
+INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) SELECT id, 'IOTCROS0987', NULL, 2025, 'JPN',  NULL from ros_meta.contact WHERE full_name = 'KRISNA WIGUNA HARRI';
 -- contact[4/6] full_name='PRIATNA NANA', nationality_code='IDN', iotc_observer_identifier='IOTCROS0991', national_observer_id=NULL, accreditation_year=2025, accredited_by='JPN', deregistered_date=NULL
 INSERT INTO ros_meta.contact(full_name, nationality_code) VALUES('PRIATNA NANA', 'IDN');
-INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) VALUES(1037, 'IOTCROS0991', NULL, 2025, 'JPN', NULL);
+INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) SELECT id, 'IOTCROS0991', NULL, 2025, 'JPN',  NULL from ros_meta.contact WHERE full_name = 'PRIATNA NANA';
 -- contact[5/6] full_name='SUHERLAN ANANG', nationality_code='IDN', iotc_observer_identifier='IOTCROS0983', national_observer_id=NULL, accreditation_year=2025, accredited_by='JPN', deregistered_date=NULL
 INSERT INTO ros_meta.contact(full_name, nationality_code) VALUES('SUHERLAN ANANG', 'IDN');
-INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) VALUES(1038, 'IOTCROS0983', NULL, 2025, 'JPN', NULL);
+INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) SELECT id, 'IOTCROS0983', NULL, 2025, 'JPN',  NULL from ros_meta.contact WHERE full_name = 'SUHERLAN ANANG';
 -- contact[6/6] full_name='TOIP ENCEP', nationality_code='IDN', iotc_observer_identifier='IOTCROS0994', national_observer_id=NULL, accreditation_year=2025, accredited_by='JPN', deregistered_date=NULL
 INSERT INTO ros_meta.contact(full_name, nationality_code) VALUES('TOIP ENCEP', 'IDN');
-INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) VALUES(1039, 'IOTCROS0994', NULL, 2025, 'JPN', NULL);
+INSERT INTO ros_meta.observer(contact_id, iotc_observer_identifier, national_observer_id, accreditation_year, accredited_by, deregistered_date) SELECT id, 'IOTCROS0994', NULL, 2025, 'JPN',  NULL from ros_meta.contact WHERE full_name = 'TOIP ENCEP';
 
 -- VESSEL_INFORMATION_OWNER_AND_PERSONNEL_FISHING_MASTER_FULL_NAME
 -- "Aitor Santiago Ortega",
