@@ -2,5 +2,4 @@
 /3.2.0/measurements-check/**/*
 /*-dump.sql
 /3.3.0/sql/2025-11-11/04_20_add_roles.sql
-/3.3.0/sql/2026-01-23/update-2026-01-23.psql
-/3.3.0/sql/2025-11-13/update-2025-11-13.psql
+/3.3.0/sql/**/update-*.psql
