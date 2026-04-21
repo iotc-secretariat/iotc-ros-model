@@ -35,14 +35,14 @@ add_missing_observers <- function(input_data, db_tables, output_file) {
   setkey(observer_table, contact_id)
   full_observer_table <- observer_table[contact_table, on = .(contact_id = id)]
   missing_contact <- unique(input_data[!full_name %in% full_observer_table$full_name], by = c("full_name", "iotc_observer_identifier", "nationality_code"))
-  print(sprintf("Found %s observer(s) to add in Ros database", get_row_count(missing_contact)))
+  print(sprintf("Found %s observer(s) to add in Ros database", nrow(missing_contact)))
   doublon_full_names <- missing_contact[, .N, .(full_name)][N > 1]
-  if (get_row_count(doublon_full_names) > 0) {
-    print(sprintf("Can't add %s new contact(s), there is some doublon on full name: %s", get_row_count(doublon_full_names), toString(doublon_full_names$full_name)))
+  if (nrow(doublon_full_names) > 0) {
+    print(sprintf("Can't add %s new contact(s), there is some doublon on full name: %s", nrow(doublon_full_names), toString(doublon_full_names$full_name)))
   }
   doublon_iotc_observer_identifier <- missing_contact[iotc_observer_identifier %in% db_tables$observer_table$iotc_observer_identifier]
-  if (get_row_count(doublon_iotc_observer_identifier) > 0) {
-    print(sprintf("Can't add %s new contact(s), their iotc_observer_identifier are already in database: %s", get_row_count(doublon_iotc_observer_identifier), toString(doublon_iotc_observer_identifier$iotc_observer_identifier)))
+  if (nrow(doublon_iotc_observer_identifier) > 0) {
+    print(sprintf("Can't add %s new contact(s), their iotc_observer_identifier are already in database: %s", nrow(doublon_iotc_observer_identifier), toString(doublon_iotc_observer_identifier$iotc_observer_identifier)))
     doublon_observer_table <- full_observer_table[iotc_observer_identifier %in% doublon_iotc_observer_identifier$iotc_observer_identifier, .(contact_id, full_name, iotc_observer_identifier, nationality_code)]
     link_table <- doublon_iotc_observer_identifier[, .(full_name, iotc_observer_identifier, nationality_code)][doublon_observer_table, on = .(iotc_observer_identifier = iotc_observer_identifier)]
     write_file(doublon_observer_table[, .(full_name, nationality_code)], "observers.csv")
@@ -52,7 +52,7 @@ add_missing_observers <- function(input_data, db_tables, output_file) {
   contact_sequence_value <- db_tables$contact_sequence_value
   added_count <- 0
   result <- list()
-  total_count <- get_row_count(missing_contact)
+  total_count <- nrow(missing_contact)
   if (total_count == 0) {
     return(result)
   }
@@ -96,7 +96,7 @@ add_missing_legacy_observer_identifiers <- function(input_data, ros_db_tables, a
   new_mapping <- input_data[, .(iotc_observer_identifier, legacy_iotc_observer_identifier)]
   result <- list()
   added_count <- 0
-  for (i in seq(1:get_row_count(new_mapping))) {
+  for (i in seq(1:nrow(new_mapping))) {
     input_row <- new_mapping[i]
     input_iotc_observer_identifier <- input_row$iotc_observer_identifier
     if (!input_iotc_observer_identifier %in% existing_identifiers) {
@@ -110,7 +110,7 @@ add_missing_legacy_observer_identifiers <- function(input_data, ros_db_tables, a
     }
     for (input_legacy_iotc_observer_identifier in str_split_1(input_legacy_iotc_observer_identifiers, "\\|")) {
       old_row <- old_mapping[legacy_iotc_observer_identifier == input_legacy_iotc_observer_identifier]
-      if (get_row_count(old_row) == 0) {
+      if (nrow(old_row) == 0) {
         # Need to add it
         added_count <- added_count + 1
         result[[input_legacy_iotc_observer_identifier]] <- input_iotc_observer_identifier
@@ -130,11 +130,11 @@ add_missing_contacts <- function(contacts_to_add, db_tables, output_file) {
   names(safe_full_names) <- c("full_name")
   contact_table <- db_tables$contact_table
   missing_contact <- safe_full_names[!full_name %in% contact_table$full_name]
-  print(sprintf("Found %s observer(s) to add in Ros database", get_row_count(missing_contact)))
+  print(sprintf("Found %s observer(s) to add in Ros database", nrow(missing_contact)))
   contact_sequence_value <- db_tables$contact_sequence_value
   added_count <- 0
   result <- list()
-  total_count <- get_row_count(missing_contact)
+  total_count <- nrow(missing_contact)
   if (total_count == 0) {
     return(result)
   }
