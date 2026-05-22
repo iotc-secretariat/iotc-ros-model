@@ -1,0 +1,22 @@
+---
+title: "ROS Database (version: `r db_metadata$version()`) - Domain `r db_metadata$domain()`"
+subtitle: "Last updated: `r db_metadata$last_update()`"
+author: "Author: [IOTC Secretariat](mailto:IOTC-Secretariat@fao.org)"
+output:
+  html_document:
+    mathjax: null
+    css: "../templates/html_template.css"
+    number_sections: FALSE
+    toc: yes
+    toc_float:
+      collapsed: FALSE
+    smooth_scroll: FALSE
+---
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(fig.width = 8, echo = FALSE, message = FALSE)
+```
+
+# Abstract
+
+This document describes the ***ROS*** database tables used by the domain ***`r db_metadata$domain()`***.
+

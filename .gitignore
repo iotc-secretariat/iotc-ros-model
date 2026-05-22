@@ -3,3 +3,5 @@
 /*-dump.sql
 /3.3.0/sql/2025-11-11/04_20_add_roles.sql
 /3.3.0/sql/**/update-*.psql
+/RMDs/ros_metatadata-LL.Rmd
+/RMDs/ros_metatadata-PS.Rmd

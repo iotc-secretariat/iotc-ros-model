@@ -16,10 +16,63 @@ This repository contains the SQL model of the _Ros_ database from version **3.1.
 # Sys.setenv(IOTC_ROS_DB_USER="xxx")
 # db user password
 # Sys.setenv(IOTC_ROS_DB_PWD="xxx")
+Sys.setenv(IOTC_ROS_DB_USER = "ros-admin", IOTC_ROS_DB_PWD = "a")
 # Load sources
+source("R/common_db_metadata.R")
 source("R/ros_db_metadata.R")
 # Update for LL domain
-ros_ll_queries <- apply_comments_on_db("LL")
+ros_ll_queries <- apply_comments_on_db("LL", connection_provider = connect_to_ros)
 # Update for PS domain
-ros_ps_queries <- apply_comments_on_db("PS")
+ros_ps_queries <- apply_comments_on_db("PS", connection_provider = connect_to_ros)
+```
+
+## Generate database metadata
+
+```{r, warning = FALSE}
+# Set up our database connection (if necessary)
+# address of the host
+# Sys.setenv(IOTC_ROS_DB_HOST="xxx")
+# db name
+# Sys.setenv(IOTC_ROS_DB_NAME=IOTC_ROS)
+# db port
+# Sys.setenv(IOTC_ROS_DB_PORT=5432)
+# db user name
+# Sys.setenv(IOTC_ROS_DB_USER="xxx")
+# db user password
+# Sys.setenv(IOTC_ROS_DB_PWD="xxx")
+Sys.setenv(IOTC_ROS_DB_USER = "ros-admin", IOTC_ROS_DB_PWD = "a")
+# Load sources
+source("R/common_db_metadata.R")
+source("R/ros_db_metadata.R")
+# Generate for LL domain
+generate_db_metadata("LL", extract_db_metadata(LL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+# Update for PS domain
+generate_db_metadata("PS", extract_db_metadata(PS_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+
+```
+## Update database metadata reports
+
+
+## Generate database metadata
+
+```{r, warning = FALSE}
+# Set up our database connection (if necessary)
+# address of the host
+# Sys.setenv(IOTC_ROS_DB_HOST="xxx")
+# db name
+# Sys.setenv(IOTC_ROS_DB_NAME=IOTC_ROS)
+# db port
+# Sys.setenv(IOTC_ROS_DB_PORT=5432)
+# db user name
+# Sys.setenv(IOTC_ROS_DB_USER="xxx")
+# db user password
+# Sys.setenv(IOTC_ROS_DB_PWD="xxx")
+Sys.setenv(IOTC_ROS_DB_USER = "ros-admin", IOTC_ROS_DB_PWD = "a")
+# Load sources
+source("R/common_db_metadata.R")
+source("R/ros_db_metadata.R")
+# Generate for LL domain
+generate_db_metadata_report("LL", timestamp = DEFAULT_TIME_STAMP)
+# Update for PS domain
+generate_db_metadata_report("PS", timestamp = DEFAULT_TIME_STAMP)
 ```
