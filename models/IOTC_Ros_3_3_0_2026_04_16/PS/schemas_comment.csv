@@ -1,0 +1,4 @@
+schema,comment
+ros_meta,Ros meta schema with registries (contact's and vessel's)
+ros_common,Ros common schema with neutral stuff
+ros_ps,Ros ps schema for Pure Seine data
