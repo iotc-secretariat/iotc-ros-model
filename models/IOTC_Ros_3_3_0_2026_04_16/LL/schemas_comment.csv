@@ -1,4 +1,4 @@
 schema,comment
-ros_meta,Ros meta schema with registries (contact's and vessel's)
+ros_meta,Ros meta schema with registries (contacts and vessels)
 ros_common,Ros common schema with neutral stuff
 ros_ll,Ros ll schema for Longline data
