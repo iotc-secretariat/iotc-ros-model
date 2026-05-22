@@ -16,7 +16,6 @@ This repository contains the SQL model of the _Ros_ database from version **3.1.
 # Sys.setenv(IOTC_ROS_DB_USER="xxx")
 # db user password
 # Sys.setenv(IOTC_ROS_DB_PWD="xxx")
-Sys.setenv(IOTC_ROS_DB_USER = "ros-admin", IOTC_ROS_DB_PWD = "a")
 # Load sources
 source("R/common_db_metadata.R")
 source("R/ros_db_metadata.R")
@@ -40,7 +39,6 @@ ros_ps_queries <- apply_comments_on_db("PS", connection_provider = connect_to_ro
 # Sys.setenv(IOTC_ROS_DB_USER="xxx")
 # db user password
 # Sys.setenv(IOTC_ROS_DB_PWD="xxx")
-Sys.setenv(IOTC_ROS_DB_USER = "ros-admin", IOTC_ROS_DB_PWD = "a")
 # Load sources
 source("R/common_db_metadata.R")
 source("R/ros_db_metadata.R")
@@ -67,7 +65,6 @@ generate_db_metadata("PS", extract_db_metadata(PS_SCHEMAS, connection_provider =
 # Sys.setenv(IOTC_ROS_DB_USER="xxx")
 # db user password
 # Sys.setenv(IOTC_ROS_DB_PWD="xxx")
-Sys.setenv(IOTC_ROS_DB_USER = "ros-admin", IOTC_ROS_DB_PWD = "a")
 # Load sources
 source("R/common_db_metadata.R")
 source("R/ros_db_metadata.R")
