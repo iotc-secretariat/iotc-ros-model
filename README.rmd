@@ -1,0 +1,25 @@
+# Abstract
+
+This repository contains the SQL model of the _Ros_ database from version **3.1.2** to nowadays.
+
+## Update comments on database
+
+```{r, warning = FALSE}
+# Set up our database connection (if necessary)
+# address of the host
+# Sys.setenv(IOTC_ROS_DB_HOST="xxx")
+# db name
+# Sys.setenv(IOTC_ROS_DB_NAME=IOTC_ROS)
+# db port
+# Sys.setenv(IOTC_ROS_DB_PORT=5432)
+# db user name
+# Sys.setenv(IOTC_ROS_DB_USER="xxx")
+# db user password
+# Sys.setenv(IOTC_ROS_DB_PWD="xxx")
+# Load sources
+source("R/ros_db_metadata.R")
+# Update for LL domain
+ros_ll_queries <- apply_comments_on_db("LL")
+# Update for PS domain
+ros_ps_queries <- apply_comments_on_db("PS")
+```
