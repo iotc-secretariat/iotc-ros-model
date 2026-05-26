@@ -1,0 +1,15 @@
+---
+output: html_fragment
+---
+
+## Dependencies
+
+Here is the dependency tree:
+
+```{r}
+schema_db_reverse_dependencies <- db_reverse_dependencies[[db_schema$schema()]]
+tree <- build_reverse_dependency_tree( schema_db_reverse_dependencies, entry_point = 'ros_common.observer_data', STANDALONE_TABLES )
+out_data_dependencies(tree, entry_point = 'ros_common.observer_data')
+```
+
+[Visit the dependency graph](`r sprintf('ROS_database_%s_dependencies_%s%s.html', db_metadata$domain(), db_schema$schema(), timestamp)`){target='_blank'}

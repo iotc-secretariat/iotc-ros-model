@@ -1,0 +1,608 @@
+schema,table,column,type,mandatory,comment,foreign_key
+ros_meta,contact,id,integer,YES,,
+ros_meta,contact,full_name,character varying(255),YES,,
+ros_meta,contact,nationality_code,character(3),NO,,refs_admin.countries→code
+ros_meta,focal_point,contact_id,integer,YES,,ros_meta.contact→id
+ros_meta,focal_point,email,character varying(255),NO,,
+ros_meta,focal_point,organisation_name,character varying(1024),NO,,
+ros_meta,focal_point,comment,character varying(1024),NO,,
+ros_meta,observer,contact_id,integer,YES,,ros_meta.contact→id
+ros_meta,observer,iotc_observer_identifier,character varying(255),YES,,
+ros_meta,observer,national_observer_id,character varying(255),NO,,
+ros_meta,observer_accreditation,observer_id,integer,YES,,ros_meta.observer→contact_id
+ros_meta,observer_accreditation,accreditation_year,integer,NO,,
+ros_meta,observer_accreditation,accredited_by,character varying(255),NO,,refs_admin.countries→code
+ros_meta,observer_accreditation,deregistered_date,date,NO,,
+ros_meta,observer_identifier_mapping,legacy_iotc_observer_identifier,character varying(16),YES,,
+ros_meta,observer_identifier_mapping,iotc_observer_identifier,character varying(16),YES,,ros_meta.observer→iotc_observer_identifier
+ros_meta,vessel,id,integer,YES,,
+ros_meta,vessel,imo_identifier,character varying(255),NO,,
+ros_meta,vessel,iotc_vessel_identifier,character varying(255),YES,,
+ros_meta,vessel,ircs_identifier,character varying(255),NO,,
+ros_meta,vessel,vessel_name,character varying(255),YES,,
+ros_meta,vessel,registration_identifier,character varying(255),NO,,
+ros_meta,vessel,main_fishing_gear_code,character varying(16),YES,,refs_fishery_config.gears→code
+ros_meta,vessel,flag_code,character(3),NO,,refs_admin.countries→code
+ros_meta,vessel,port_code,character varying(16),NO,,refs_admin.ports→code
+ros_meta,vessel_licensed_target_species,vessel_id,integer,YES,,ros_meta.vessel→id
+ros_meta,vessel_licensed_target_species,licensed_target_species_code,character varying(16),NO,,refs_biology.species→code
+ros_common,activity_details,id,integer,YES,,
+ros_common,activity_details,comments,text,NO,,
+ros_common,activity_details,time_of_day,timestamp(3) without time zone,NO,,
+ros_common,activity_details,latitude,double precision,NO,,
+ros_common,activity_details,longitude,double precision,NO,,
+ros_common,activity_details,daily_activity_id,integer,NO,,ros_common.daily_activities→id
+ros_common,activity_details,activity_code,character(2),NO,,refs_biology.bait_conditions→code
+ros_common,additional_details_on_non_target_species,id,integer,YES,,
+ros_common,additional_details_on_non_target_species,condition_at_capture_code,character varying(3),NO,,refs_biology.incidental_captures_conditions→code
+ros_common,additional_details_on_non_target_species,condition_at_release_code,character varying(3),NO,,refs_biology.incidental_captures_conditions→code
+ros_common,biometric_information,id,integer,YES,,
+ros_common,biometric_information,alternative_measured_length_id,integer,NO,,ros_common.measured_lengths→id
+ros_common,biometric_information,estimated_weight_id,integer,NO,,ros_common.estimated_weights→id
+ros_common,biometric_information,maturity_stage_id,integer,NO,,ros_common.maturity_stages→id
+ros_common,biometric_information,measured_length_id,integer,NO,,ros_common.measured_lengths→id
+ros_common,biometric_information,sample_collection_detail_id,integer,NO,,ros_common.sample_collection_details→id
+ros_common,biometric_information,bio_collection_sampling_method_code,character(2),NO,,refs_biology.sampling_methods_for_sampling_collections→code
+ros_common,biometric_information,sex_code,character(1),NO,,refs_biology.sex→code
+ros_common,capacities,id,integer,YES,,
+ros_common,capacities,unit,character varying(3),NO,,
+ros_common,capacities,value,double precision,NO,,
+ros_common,carrier_vessel_identification,id,integer,YES,,
+ros_common,carrier_vessel_identification,vessel_ircs,character varying(255),NO,,
+ros_common,carrier_vessel_identification,vessel_registration_original_id,character varying(255),NO,,
+ros_common,carrier_vessel_identification,vessel_name,character varying(255),NO,,
+ros_common,carrier_vessel_identification,vessel_flag_code,character(3),NO,,refs_admin.countries→code
+ros_common,carrier_vessel_identification,vessel_registration_port_code,character varying(16),NO,,refs_admin.ports→code
+ros_common,daily_activities,id,integer,YES,,
+ros_common,daily_activities,date,timestamp(3) without time zone,NO,,
+ros_common,depredation_details,id,integer,YES,,
+ros_common,depredation_details,depredation_source_code,character varying(3),NO,,refs_biology.scars→code
+ros_common,depredation_details,predator_observed_code,character varying(16),NO,,refs_biology.species→code
+ros_common,depths,id,integer,YES,,
+ros_common,depths,unit,character varying(3),NO,,
+ros_common,depths,value,double precision,NO,,
+ros_common,diameters,id,integer,YES,,
+ros_common,diameters,unit,character varying(3),NO,,
+ros_common,diameters,value,double precision,NO,,
+ros_common,distances,id,integer,YES,,
+ros_common,distances,unit,character varying(3),NO,,
+ros_common,distances,value,double precision,NO,,
+ros_common,engines,id,integer,YES,,
+ros_common,engines,make,character varying(255),NO,,
+ros_common,engines,unit,character varying(3),NO,,
+ros_common,engines,value,double precision,NO,,
+ros_common,estimated_weights,id,integer,YES,,
+ros_common,estimated_weights,unit,character varying(3),NO,,
+ros_common,estimated_weights,value,double precision,NO,,
+ros_common,estimated_weights,type_of_measurement_code,character(2),YES,,refs_biology.measurement_tools→type_of_measurement_code
+ros_common,estimated_weights,processing_type_code,character(2),NO,,refs_fishery.fish_processing_types→code
+ros_common,estimated_weights,weight_estimation_method_code,character(2),NO,,refs_biology.measurement_tools→code
+ros_common,heights,id,integer,YES,,
+ros_common,heights,unit,character varying(3),NO,,
+ros_common,heights,value,double precision,NO,,
+ros_common,lengths,id,integer,YES,,
+ros_common,lengths,unit,character varying(3),NO,,
+ros_common,lengths,value,double precision,NO,,
+ros_common,locations,id,integer,YES,,
+ros_common,locations,location_name,character varying(255),NO,,
+ros_common,locations,latitude,double precision,NO,,
+ros_common,locations,longitude,double precision,NO,,
+ros_common,locations,country_code,character(3),NO,,refs_admin.countries→code
+ros_common,locations,port_code,character varying(16),NO,,refs_admin.ports→code
+ros_common,maturity_stages,id,integer,YES,,
+ros_common,maturity_stages,maturity_level,integer,NO,,
+ros_common,maturity_stages,scale,character varying(255),NO,,
+ros_common,measured_lengths,id,integer,YES,,
+ros_common,measured_lengths,straight,boolean,NO,,
+ros_common,measured_lengths,unit,character varying(3),NO,,
+ros_common,measured_lengths,value,double precision,NO,,
+ros_common,measured_lengths,type_of_measurement_code,character(2),YES,,refs_biology.measurement_tools→type_of_measurement_code
+ros_common,measured_lengths,type_of_measurement_code,character(2),YES,,refs_biology.measurements→type_of_measurement_code
+ros_common,measured_lengths,measured_length_type_code,character(2),NO,,refs_biology.measurements→code
+ros_common,measured_lengths,length_measuring_tool_code,character(2),NO,,refs_biology.measurement_tools→code
+ros_common,observer_data,id,integer,YES,Technical identifier of the observer data,
+ros_common,observer_data,vessel_type_code,character(3),YES,,refs_fishery.vessel_types→code
+ros_common,observer_data,reporting_country_code,character(3),YES,,refs_admin.countries→code
+ros_common,observer_data,complete,boolean,YES,,
+ros_common,observer_data,creation_time,timestamp(6) without time zone,YES,,
+ros_common,observer_data,originator,character varying(255),YES,,
+ros_common,observer_data,originator_version,character varying(255),YES,,
+ros_common,observer_data,ros_codelists_version,character varying(255),YES,,
+ros_common,observer_data,ros_model_version,character varying(255),YES,,
+ros_common,observer_data,source,character varying(255),YES,,
+ros_common,observer_data,status,character varying(255),YES,,
+ros_common,observer_data,submission_time,timestamp(6) without time zone,NO,,
+ros_common,observer_data,finalization_time,timestamp(6) without time zone,NO,,
+ros_common,observer_data,submitter_id,integer,NO,,ros_meta.contact→id
+ros_common,powers,id,integer,YES,,
+ros_common,powers,unit,character varying(3),NO,,
+ros_common,powers,value,double precision,NO,,
+ros_common,properties,id,integer,YES,,
+ros_common,properties,NAME,character varying(255),NO,,
+ros_common,properties,value,text,NO,,
+ros_common,ranges,id,integer,YES,,
+ros_common,ranges,unit,character varying(3),NO,,
+ros_common,ranges,value,double precision,NO,,
+ros_common,reasons_for_days_lost,id,integer,YES,,
+ros_common,reasons_for_days_lost,reason,text,NO,,
+ros_common,reasons_for_days_lost,inoperativity_reason,character varying(255),NO,,refs_fishery.reasons_days_lost→code
+ros_common,reasons_for_days_lost,trip_id,integer,YES,,ros_common.trip→id
+ros_common,sample_collection_details,id,integer,YES,,
+ros_common,sample_collection_details,destination,character varying(255),NO,,
+ros_common,sample_collection_details,preservation_method,text,NO,,
+ros_common,sample_collection_details,sample_type,character varying(255),NO,,
+ros_common,sampling_details,id,integer,YES,,
+ros_common,sizes,id,integer,YES,,
+ros_common,sizes,unit,character varying(3),NO,,
+ros_common,sizes,value,double precision,NO,,
+ros_common,speeds,id,integer,YES,,
+ros_common,speeds,unit,character varying(3),YES,,
+ros_common,speeds,value,double precision,YES,,
+ros_common,thicknesses,id,integer,YES,,
+ros_common,thicknesses,unit,character varying(3),NO,,
+ros_common,thicknesses,value,double precision,NO,,
+ros_common,tonnages,id,integer,YES,,
+ros_common,tonnages,unit,character varying(3),NO,,
+ros_common,tonnages,value,double precision,NO,,
+ros_common,trip,id,integer,YES,,
+ros_common,trip,trip_original_id,character varying(255),YES,,
+ros_common,trip,observer_data_id,integer,YES,,ros_common.observer_data→id
+ros_common,trip,uid,character varying(255),YES,,
+ros_common,trip_daily_activities,trip_id,integer,YES,,ros_common.trip→id
+ros_common,trip_daily_activities,daily_activity_id,integer,YES,,ros_common.daily_activities→id
+ros_common,trip_observer,trip_id,integer,YES,,ros_common.trip→id
+ros_common,trip_observer,date_time_disembarkation,timestamp(6) without time zone,NO,,
+ros_common,trip_observer,date_time_embarkation,timestamp(6) without time zone,NO,,
+ros_common,trip_observer,disembarkation_location_id,integer,NO,,ros_common.locations→id
+ros_common,trip_observer,embarkation_location_id,integer,NO,,ros_common.locations→id
+ros_common,trip_observer,observer_id,integer,YES,,ros_meta.observer→contact_id
+ros_common,trip_vessel,trip_id,integer,YES,,ros_common.trip→id
+ros_common,trip_vessel,number_of_active_fishing_days,integer,NO,,
+ros_common,trip_vessel,number_of_conducted_fishing_events_with_observer_onboard,integer,NO,,
+ros_common,trip_vessel,number_of_days_in_fishing_area,integer,NO,,
+ros_common,trip_vessel,number_of_days_lost,integer,NO,,
+ros_common,trip_vessel,number_of_days_searching,integer,NO,,
+ros_common,trip_vessel,number_of_days_transiting,integer,NO,,
+ros_common,trip_vessel,number_of_observed_fishing_events,integer,NO,,
+ros_common,trip_vessel,loa_id,integer,NO,,ros_common.lengths→id
+ros_common,trip_vessel,autonomy_range_id,integer,NO,,ros_common.ranges→id
+ros_common,trip_vessel,fish_storage_capacity_id,integer,NO,,ros_common.capacities→id
+ros_common,trip_vessel,tonnage_id,integer,NO,,ros_common.tonnages→id
+ros_common,trip_vessel,hull_material_code,character(2),NO,,refs_fishery.hull_material_types→code
+ros_common,trip_vessel,ais,boolean,NO,,
+ros_common,trip_vessel,gps,boolean,NO,,
+ros_common,trip_vessel,vms,boolean,NO,,
+ros_common,trip_vessel,depth_sounder,boolean,NO,,
+ros_common,trip_vessel,doppler_current_meter,boolean,NO,,
+ros_common,trip_vessel,expendable_bathythermographs,boolean,NO,,
+ros_common,trip_vessel,fisheries_information_services,boolean,NO,,
+ros_common,trip_vessel,hf_radios,boolean,NO,,
+ros_common,trip_vessel,radars,boolean,NO,,
+ros_common,trip_vessel,satellite_communication_systems,boolean,NO,,
+ros_common,trip_vessel,sonar,boolean,NO,,
+ros_common,trip_vessel,track_plotter,boolean,NO,,
+ros_common,trip_vessel,vhf_radios,boolean,NO,,
+ros_common,trip_vessel,number_of_crew,integer,NO,,
+ros_common,trip_vessel,return_timestamp,timestamp(6) without time zone,NO,,
+ros_common,trip_vessel,departure_timestamp,timestamp(6) without time zone,NO,,
+ros_common,trip_vessel,departure_location,integer,NO,,ros_common.locations→id
+ros_common,trip_vessel,return_location,integer,NO,,ros_common.locations→id
+ros_common,trip_vessel,skipper_id,integer,NO,,ros_meta.contact→id
+ros_common,trip_vessel,fishing_master_id,integer,NO,,ros_meta.contact→id
+ros_common,trip_vessel,vessel_id,integer,NO,,ros_meta.vessel→id
+ros_common,trip_vessel_fish_preservation_method,trip_id,integer,YES,,ros_common.trip→id
+ros_common,trip_vessel_fish_preservation_method,fish_preservation_method_code,character(2),YES,,refs_fishery.fish_preservation_methods→code
+ros_common,trip_vessel_fish_storage_type,trip_id,integer,YES,,ros_common.trip→id
+ros_common,trip_vessel_fish_storage_type,fish_storage_type_code,character(2),YES,,refs_fishery.fish_storage_types→code
+ros_common,trip_vessel_main_engines,trip_id,integer,YES,,ros_common.trip→id
+ros_common,trip_vessel_main_engines,main_engines_id,integer,YES,,ros_common.engines→id
+ros_common,waste_managements,id,integer,YES,,
+ros_common,waste_managements,trip_id,integer,NO,,ros_common.trip→id
+ros_common,waste_managements,waste_storage_or_disposal_method_code,character(2),NO,,refs_fishery.waste_disposal_methods→code
+ros_common,waste_managements,waste_category_code,character(2),NO,,refs_fishery.waste_categories→code
+ros_common,weights,id,integer,YES,,
+ros_common,weights,unit,character varying(3),NO,,
+ros_common,weights,value,double precision,NO,,
+ros_ps,additional_catch_details_on_ssi,id,integer,YES,,
+ros_ps,additional_catch_details_on_ssi,brought_on_board,boolean,NO,,
+ros_ps,additional_catch_details_on_ssi,photo_id,character varying(255),NO,,
+ros_ps,additional_catch_details_on_ssi,revival,boolean,NO,,
+ros_ps,additional_catch_details_on_ssi,gear_interaction_code,character(2),NO,,refs_biology.gear_interactions→code
+ros_ps,additional_catch_details_on_ssi,handling_method_code,character(2),NO,,refs_biology.handling_methods→code
+ros_ps,catch_details,id,integer,YES,,
+ros_ps,catch_details,catch_detail_original_id,character varying(255),YES,,
+ros_ps,catch_details,comments,text,NO,,
+ros_ps,catch_details,estimated_catch_in_numbers,integer,NO,,
+ros_ps,catch_details,estimated_weight_id,integer,NO,,ros_common.estimated_weights→id
+ros_ps,catch_details,fishing_event_id,integer,NO,,ros_ps.fishing_events→id
+ros_ps,catch_details,type_of_fate_code,character(2),YES,,refs_biology.fates→type_of_fate_code
+ros_ps,catch_details,estimated_weight_sampling_method_code,character(2),NO,,refs_biology.sampling_methods_for_catch_estimation→code
+ros_ps,catch_details,fates_code,character(2),NO,,refs_biology.fates→code
+ros_ps,catch_details,species_code,character varying(16),NO,,refs_biology.species→code
+ros_ps,cetaceans_whale_shark_sightings,id,integer,YES,,
+ros_ps,cetaceans_whale_shark_sightings,caught_inside_the_net,boolean,NO,,
+ros_ps,cetaceans_whale_shark_sightings,number_sighted,integer,NO,,
+ros_ps,cetaceans_whale_shark_sightings,sighting_occurred_before_setting,boolean,NO,,
+ros_ps,cetaceans_whale_shark_sightings,setting_operation_id,integer,NO,,ros_ps.setting_operations→id
+ros_ps,cetaceans_whale_shark_sightings,species_code,character varying(16),NO,,refs_biology.species→code
+ros_ps,fishing_events,id,integer,YES,,
+ros_ps,fishing_events,comments,text,NO,,
+ros_ps,fishing_events,event_original_id,character varying(255),NO,,
+ros_ps,fishing_events,setting_operation_id,integer,NO,,ros_ps.setting_operations→id
+ros_ps,fishing_events,trip_id,integer,YES,,ros_common.trip→id
+ros_ps,gear_specifications,id,integer,YES,,
+ros_ps,gear_specifications,trip_id,integer,YES,,ros_common.trip→id
+ros_ps,gear_specifications,power_block,boolean,NO,,
+ros_ps,gear_specifications,purse_winch,boolean,NO,,
+ros_ps,gear_specifications,maximum_brail_capacity,double precision,NO,,
+ros_ps,gear_specifications,bunt_stretched_mesh_size_id,integer,NO,,ros_common.sizes→id
+ros_ps,gear_specifications,maximum_net_depth_id,integer,NO,,ros_common.depths→id
+ros_ps,gear_specifications,maximum_net_length_id,integer,NO,,ros_common.lengths→id
+ros_ps,gear_specifications,mid_net_stretched_mesh_size_id,integer,NO,,ros_common.sizes→id
+ros_ps,object_details,id,integer,YES,,
+ros_ps,object_details,equipped_with_artificial_lights_at_deploy,boolean,NO,,
+ros_ps,object_details,equipped_with_artificial_lights_on_retrieval,boolean,NO,,
+ros_ps,object_details,buoy_identifier,character varying(255),NO,,
+ros_ps,object_details,fad_raft_design_code,character(2),NO,,refs_fishery.fad_raft_designs→code
+ros_ps,object_details,fad_tail_design_code,character(2),NO,,refs_fishery.fad_tail_designs→code
+ros_ps,setting_operations,id,integer,YES,,
+ros_ps,setting_operations,maximum_closing_net_depth,double precision,NO,,
+ros_ps,setting_operations,school_size,double precision,NO,,
+ros_ps,setting_operations,start_setting_date_and_time,timestamp(6) without time zone,NO,,
+ros_ps,setting_operations,time_end_brailing,timestamp(6) without time zone,NO,,
+ros_ps,setting_operations,time_net_pursed,timestamp(6) without time zone,NO,,
+ros_ps,setting_operations,time_skiff_onboard,timestamp(6) without time zone,NO,,
+ros_ps,setting_operations,time_start_brailing,timestamp(6) without time zone,NO,,
+ros_ps,setting_operations,start_setting_latitude,double precision,NO,,
+ros_ps,setting_operations,start_setting_longitude,double precision,NO,,
+ros_ps,setting_operations,ps_object_detail_id,integer,NO,,ros_ps.object_details→id
+ros_ps,setting_operations,first_school_detection_method_code,character(2),NO,,refs_fishery.school_detection_methods→code
+ros_ps,setting_operations_cl_school_sighting_cues,setting_operation_id,integer,YES,,ros_ps.setting_operations→id
+ros_ps,setting_operations_cl_school_sighting_cues,school_sighting_cue_code,character(2),YES,,refs_fishery.school_sighting_cues→code
+ros_ps,specimens,id,integer,YES,,
+ros_ps,specimens,specimen_original_id,character varying(255),YES,,
+ros_ps,specimens,additional_catch_details_on_ssis_id,integer,NO,,ros_ps.additional_catch_details_on_ssi→id
+ros_ps,specimens,additional_specimen_details_non_target_species_id,integer,NO,,ros_common.additional_details_on_non_target_species→id
+ros_ps,specimens,biometric_information_id,integer,NO,,ros_common.biometric_information→id
+ros_ps,specimens,tag_detail_id,integer,NO,,ros_ps.tag_details→id
+ros_ps,specimens,catch_detail_id,integer,NO,,ros_ps.catch_details→id
+ros_ps,tag_details,id,integer,YES,,
+ros_ps,tag_details,alternate_tag_original_id,character varying(255),NO,,
+ros_ps,tag_details,tag_original_id,character varying(255),NO,,
+ros_ps,tag_details,tag_recovery,boolean,NO,,
+ros_ps,tag_details,tag_release,boolean,NO,,
+ros_ps,tag_details,well,integer,NO,,
+ros_ps,tag_details,tag_type_code,character(2),NO,,refs_biology.tag_types→code
+ros_ps,tag_details,tag_finder_id,integer,NO,,ros_meta.contact→id
+ros_ll,additional_catch_details_on_ssi,id,integer,YES,,
+ros_ll,additional_catch_details_on_ssi,bait_type,character varying(255),NO,,
+ros_ll,additional_catch_details_on_ssi,brought_on_board,boolean,NO,,
+ros_ll,additional_catch_details_on_ssi,light_attached_to_branchline,boolean,NO,,
+ros_ll,additional_catch_details_on_ssi,photo_id,character varying(255),NO,,
+ros_ll,additional_catch_details_on_ssi,revival,boolean,NO,,
+ros_ll,additional_catch_details_on_ssi,leader_thickness_id,integer,NO,,ros_common.thicknesses→id
+ros_ll,additional_catch_details_on_ssi,bait_condition_code,character(2),NO,,refs_biology.bait_conditions→code
+ros_ll,additional_catch_details_on_ssi,dehooker_device_code,character(2),NO,,refs_fishery.dehooker_types→code
+ros_ll,additional_catch_details_on_ssi,gear_interaction_code,character(2),NO,,refs_biology.gear_interactions→code
+ros_ll,additional_catch_details_on_ssi,handling_method_code,character(2),NO,,refs_biology.handling_methods→code
+ros_ll,additional_catch_details_on_ssi,leader_material_type_code,character(2),NO,,refs_fishery.line_material_types→code
+ros_ll,additional_catch_details_on_ssi,hook_type_code,character(3),NO,,refs_fishery.hook_types→code
+ros_ll,baits_by_conditions,id,integer,YES,,
+ros_ll,baits_by_conditions,dye_colour,character varying(255),NO,,
+ros_ll,baits_by_conditions,ratio,double precision,NO,,
+ros_ll,baits_by_conditions,setting_operations_id,integer,NO,,ros_ll.setting_operations→id
+ros_ll,baits_by_conditions,bait_condition_code,character(2),NO,,refs_biology.bait_conditions→code
+ros_ll,baits_by_conditions,species_code,character varying(16),NO,,refs_biology.species→code
+ros_ll,biteoffs_by_branchlines_set,id,integer,YES,,
+ros_ll,biteoffs_by_branchlines_set,branchline_configuration_number,integer,NO,,
+ros_ll,biteoffs_by_branchlines_set,number_of_biteoffs,integer,NO,,
+ros_ll,biteoffs_by_branchlines_set,hauling_operation_id,integer,NO,,ros_ll.hauling_operations→id
+ros_ll,branchline_configurations,id,integer,YES,,
+ros_ll,branchline_configurations,configuration_number,integer,NO,,
+ros_ll,branchline_configurations,gear_specifications_id,integer,NO,,ros_ll.gear_specifications→id
+ros_ll,branchline_configurations_storage,branchline_configuration_id,integer,YES,,ros_ll.branchline_configurations→id
+ros_ll,branchline_configurations_storage,branchline_storage_code,character(2),YES,,refs_fishery.branchline_storages→code
+ros_ll,branchline_sections,id,integer,YES,,
+ros_ll,branchline_sections,section_number,integer,NO,,
+ros_ll,branchline_sections,diameter_id,integer,NO,,ros_common.diameters→id
+ros_ll,branchline_sections,length_id,integer,NO,,ros_common.lengths→id
+ros_ll,branchline_sections,branchline_configuration_id,integer,NO,,ros_ll.branchline_configurations→id
+ros_ll,branchline_sections,branchline_material_type_code,character(2),NO,,refs_fishery.line_material_types→code
+ros_ll,branchlines_set,id,integer,YES,,
+ros_ll,branchlines_set,branchline_configuration_number,integer,NO,,
+ros_ll,branchlines_set,number_of_branchlines,integer,NO,,
+ros_ll,branchlines_set,setting_operations_id,integer,NO,,ros_ll.setting_operations→id
+ros_ll,catch_details,id,integer,YES,,
+ros_ll,catch_details,catch_detail_original_id,character varying(255),YES,,
+ros_ll,catch_details,comments,text,NO,,
+ros_ll,catch_details,estimated_catch_in_numbers,integer,NO,,
+ros_ll,catch_details,estimated_weight_id,integer,NO,,ros_common.estimated_weights→id
+ros_ll,catch_details,fishing_event_id,integer,NO,,ros_ll.fishing_events→id
+ros_ll,catch_details,type_of_fate_code,character(2),NO,,refs_biology.fates→type_of_fate_code
+ros_ll,catch_details,estimated_weight_sampling_method_code,character(2),NO,,refs_biology.sampling_methods_for_catch_estimation→code
+ros_ll,catch_details,fates_code,character(2),NO,,refs_biology.fates→code
+ros_ll,catch_details,species_code,character varying(16),NO,,refs_biology.species→code
+ros_ll,fishing_events,id,integer,YES,,
+ros_ll,fishing_events,comments,text,NO,,
+ros_ll,fishing_events,event_original_id,character varying(255),NO,,
+ros_ll,fishing_events,hauling_operation_id,integer,NO,,ros_ll.hauling_operations→id
+ros_ll,fishing_events,mitigation_measure_id,integer,NO,,ros_ll.mitigation_measures→id
+ros_ll,fishing_events,setting_operation_id,integer,NO,,ros_ll.setting_operations→id
+ros_ll,fishing_events,trip_id,integer,YES,,ros_common.trip→id
+ros_ll,floatlines,id,integer,YES,,
+ros_ll,floatlines,floatline_number,integer,NO,,
+ros_ll,floatlines,floatline_length_id,integer,NO,,ros_common.lengths→id
+ros_ll,floatlines,setting_operation_id,integer,NO,,ros_ll.setting_operations→id
+ros_ll,gear_specifications,id,integer,YES,,
+ros_ll,gear_specifications,storage,character varying(255),NO,,
+ros_ll,gear_specifications,tori_line_detail_id,integer,NO,,ros_ll.tori_line_details→id
+ros_ll,gear_specifications,trip_id,integer,YES,,ros_common.trip→id
+ros_ll,gear_specifications,bait_casting_machine,boolean,NO,,
+ros_ll,gear_specifications,line_hauler,boolean,NO,,
+ros_ll,gear_specifications,line_setter,boolean,NO,,
+ros_ll,gear_specifications_mitigation_device,gear_specification_id,integer,YES,,ros_ll.gear_specifications→id
+ros_ll,gear_specifications_mitigation_device,mitigation_device_code,character(2),YES,,refs_fishery.mitigation_devices→code
+ros_ll,hauling_offal_disposal_positions,hauling_operation_id,integer,YES,,ros_ll.hauling_operations→id
+ros_ll,hauling_offal_disposal_positions,offal_disposal_position,character varying(255),YES,,
+ros_ll,hauling_operations,id,integer,YES,,
+ros_ll,hauling_operations,bird_scaring_device_at_hauler,boolean,NO,,
+ros_ll,hauling_operations,end_hauling_date_and_time,timestamp(6) without time zone,NO,,
+ros_ll,hauling_operations,number_of_hooks_observed,integer,NO,,
+ros_ll,hauling_operations,offal_management,character varying(255),NO,,
+ros_ll,hauling_operations,start_hauling_date_and_time,timestamp(6) without time zone,NO,,
+ros_ll,hauling_operations,end_hauling_latitude,double precision,NO,,
+ros_ll,hauling_operations,end_hauling_longitude,double precision,NO,,
+ros_ll,hauling_operations,start_hauling_latitude,double precision,NO,,
+ros_ll,hauling_operations,start_hauling_longitude,double precision,NO,,
+ros_ll,hauling_operations,sampling_protocol_code,character(2),NO,,refs_biology.sampling_protocols→code
+ros_ll,hooks_by_type,id,integer,YES,,
+ros_ll,hooks_by_type,percentage_of_set,double precision,NO,,
+ros_ll,hooks_by_type,variations,character varying(255),NO,,
+ros_ll,hooks_by_type,setting_operations_id,integer,NO,,ros_ll.setting_operations→id
+ros_ll,hooks_by_type,hook_type_code,character(3),NO,,refs_fishery.hook_types→code
+ros_ll,leader_set,id,integer,YES,,
+ros_ll,leader_set,setting_operation_id,integer,YES,,
+ros_ll,leader_set,leader_material_type_code,character(2),YES,,refs_fishery.line_material_types→code
+ros_ll,leader_set,percentage_of_branchline,double precision,YES,,
+ros_ll,leader_set,total_branchline_minimum_length_id,integer,YES,,ros_common.lengths→id
+ros_ll,leader_set,total_branchline_maximum_length_id,integer,YES,,ros_common.lengths→id
+ros_ll,lights_by_type_and_colour,id,integer,YES,,
+ros_ll,lights_by_type_and_colour,number_of_lights_by_type_and_colour,integer,NO,,
+ros_ll,lights_by_type_and_colour,setting_operation_id,integer,NO,,ros_ll.setting_operations→id
+ros_ll,lights_by_type_and_colour,light_colour_code,character(2),NO,,refs_fishery.light_colours→code
+ros_ll,lights_by_type_and_colour,light_type_code,character(2),NO,,refs_fishery.light_types→code
+ros_ll,mitigation_measures,id,integer,YES,,
+ros_ll,mitigation_measures,branchline_weighted,boolean,NO,,
+ros_ll,mitigation_measures,hooks_set_between_dusk_and_dawn,boolean,NO,,
+ros_ll,mitigation_measures,minimum_deck_lighting_used,boolean,NO,,
+ros_ll,mitigation_measures,number_of_tori_lines_deployed,integer,NO,,
+ros_ll,mitigation_measures,percentage_of_branchlines_weighted,double precision,NO,,
+ros_ll,mitigation_measures,hooks_pods,boolean,NO,,
+ros_ll,mitigation_measures,average_sinker_weight_id,integer,NO,,ros_common.weights→id
+ros_ll,mitigation_measures,hook_sinker_distance_id,integer,NO,,ros_common.distances→id
+ros_ll,mitigation_measures_mitigation_devices,mitigation_measure_id,integer,YES,,ros_ll.mitigation_measures→id
+ros_ll,mitigation_measures_mitigation_devices,mitigation_device_code,character(2),YES,,refs_fishery.mitigation_devices→code
+ros_ll,setting_operations,id,integer,YES,,
+ros_ll,setting_operations,branchline_clip_on_time,double precision,NO,,
+ros_ll,setting_operations,buoys_clip_on_time,double precision,NO,,
+ros_ll,setting_operations,distance_between_branchlines,double precision,NO,,
+ros_ll,setting_operations,end_setting_date_and_time,timestamp(6) without time zone,NO,,
+ros_ll,setting_operations,number_of_hooks_set_between_floats,integer,NO,,
+ros_ll,setting_operations,number_of_shark_lines_set,integer,NO,,
+ros_ll,setting_operations,shark_lines_set,boolean,NO,,
+ros_ll,setting_operations,start_setting_date_and_time,timestamp(6) without time zone,NO,,
+ros_ll,setting_operations,total_number_of_floats_set,integer,NO,,
+ros_ll,setting_operations,total_number_of_hooks_set,integer,NO,,
+ros_ll,setting_operations,total_radio_dhan_buoys_set,integer,NO,,
+ros_ll,setting_operations,end_setting_latitude,double precision,NO,,
+ros_ll,setting_operations,end_setting_longitude,double precision,NO,,
+ros_ll,setting_operations,start_setting_latitude,double precision,NO,,
+ros_ll,setting_operations,start_setting_longitude,double precision,NO,,
+ros_ll,setting_operations,mainline_set_length_id,integer,NO,,ros_common.lengths→id
+ros_ll,setting_operations,vessel_speed_id,integer,NO,,ros_common.speeds→id
+ros_ll,setting_operations,line_setter_speed_id,integer,NO,,ros_common.speeds→id
+ros_ll,setting_operations_target_species,setting_operations_id,integer,YES,,ros_ll.setting_operations→id
+ros_ll,setting_operations_target_species,target_species_code,character varying(16),NO,,refs_biology.species→code
+ros_ll,specimens,id,integer,YES,,
+ros_ll,specimens,sampling_period,character varying(255),NO,,
+ros_ll,specimens,specimen_original_id,character varying(255),YES,,
+ros_ll,specimens,additional_catch_details_on_ssis_id,integer,NO,,ros_ll.additional_catch_details_on_ssi→id
+ros_ll,specimens,additional_specimen_details_non_target_species_id,integer,NO,,ros_common.additional_details_on_non_target_species→id
+ros_ll,specimens,biometric_information_id,integer,NO,,ros_common.biometric_information→id
+ros_ll,specimens,depredation_detail_id,integer,NO,,ros_common.depredation_details→id
+ros_ll,specimens,tag_detail_id,integer,NO,,ros_ll.tag_details→id
+ros_ll,specimens,catch_detail_id,integer,NO,,ros_ll.catch_details→id
+ros_ll,tag_details,id,integer,YES,,
+ros_ll,tag_details,alternate_tag_original_id,character varying(255),NO,,
+ros_ll,tag_details,tag_original_id,character varying(255),NO,,
+ros_ll,tag_details,tag_recovery,boolean,NO,,
+ros_ll,tag_details,tag_release,boolean,NO,,
+ros_ll,tag_details,tag_type_code,character(2),NO,,refs_biology.tag_types→code
+ros_ll,tag_details,tag_finder_id,integer,NO,,ros_meta.contact→id
+ros_ll,tori_line_details,id,integer,YES,,
+ros_ll,tori_line_details,number_of_streamers_per_line,integer,NO,,
+ros_ll,tori_line_details,streamer_type,character varying(255),NO,,
+ros_ll,tori_line_details,streamers_reach_surface,boolean,NO,,
+ros_ll,tori_line_details,towed_objects_number,integer,NO,,
+ros_ll,tori_line_details,towed_objects_type,character varying(255),NO,,
+ros_ll,tori_line_details,attached_height_id,integer,NO,,ros_common.heights→id
+ros_ll,tori_line_details,streamer_distance_id,integer,NO,,ros_common.distances→id
+ros_ll,tori_line_details,tori_line_length_id,integer,NO,,ros_common.lengths→id
+ros_ll,tori_line_details,streamer_line_length_max_id,integer,NO,,ros_common.lengths→id
+ros_ll,tori_line_details,streamer_line_length_min_id,integer,NO,,ros_common.lengths→id
+ros_pl,additional_catch_details_on_ssi,id,integer,YES,,
+ros_pl,additional_catch_details_on_ssi,brought_on_board,boolean,NO,,
+ros_pl,additional_catch_details_on_ssi,photo_id,character varying(255),NO,,
+ros_pl,additional_catch_details_on_ssi,revival,boolean,NO,,
+ros_pl,additional_catch_details_on_ssi,gear_interaction_code,character(2),NO,,refs_biology.gear_interactions→code
+ros_pl,additional_catch_details_on_ssi,handling_method_code,character(2),NO,,refs_biology.handling_methods→code
+ros_pl,bait_fishing_event_pl_catch_detail,bait_fishing_event_id,integer,YES,,ros_pl.bait_fishing_events→id
+ros_pl,bait_fishing_events,id,integer,YES,,
+ros_pl,bait_fishing_events,comments,text,NO,,
+ros_pl,bait_fishing_events,event_original_id,character varying(255),NO,,
+ros_pl,bait_fishing_events,bait_fishing_operation_id,integer,NO,,ros_pl.bait_fishing_operations→id
+ros_pl,bait_fishing_events,trip_id,integer,YES,,ros_common.trip→id
+ros_pl,bait_fishing_operations,id,integer,YES,,
+ros_pl,bait_fishing_operations,end_event_date_and_time,timestamp(6) without time zone,NO,,
+ros_pl,bait_fishing_operations,number_of_fishers,integer,NO,,
+ros_pl,bait_fishing_operations,start_event_date_and_time,timestamp(6) without time zone,NO,,
+ros_pl,bait_fishing_operations,start_event_latitude,double precision,NO,,
+ros_pl,bait_fishing_operations,start_event_longitude,double precision,NO,,
+ros_pl,bait_fishing_operations,event_depth_id,integer,NO,,ros_common.depths→id
+ros_pl,bait_fishing_operations,bait_fishing_method_code,character(2),NO,,refs_fishery.bait_fishing_methods→code
+ros_pl,bait_fishing_operations,sampling_protocol_code,character(2),NO,,refs_biology.sampling_protocols→code
+ros_pl,baits_and_conditions,id,integer,YES,,
+ros_pl,baits_and_conditions,bait_condition_code,character(2),NO,,refs_biology.bait_conditions→code
+ros_pl,baits_and_conditions,species_code,character varying(16),NO,,refs_biology.species→code
+ros_pl,catch_details,id,integer,YES,,
+ros_pl,catch_details,comments,text,NO,,
+ros_pl,catch_details,estimated_catch_in_numbers,integer,NO,,
+ros_pl,catch_details,estimated_weight_id,integer,NO,,ros_common.estimated_weights→id
+ros_pl,catch_details,type_of_fate_code,character(2),YES,,refs_biology.fates→type_of_fate_code
+ros_pl,catch_details,estimated_weight_sampling_method_code,character(2),NO,,refs_biology.sampling_methods_for_catch_estimation→code
+ros_pl,catch_details,fates_code,character(2),NO,,refs_biology.fates→code
+ros_pl,catch_details,species_code,character varying(16),NO,,refs_biology.species→code
+ros_pl,gear_specifications,id,integer,YES,,
+ros_pl,gear_specifications,trip_id,integer,YES,,ros_common.trip→id
+ros_pl,gear_specifications,live_bait_tanks_capacity,double precision,NO,,
+ros_pl,gear_specifications,number_of_automatic_poles,integer,NO,,
+ros_pl,gear_specifications,number_of_anglers,integer,NO,,
+ros_pl,gear_specifications,pole_material,character varying(255),NO,,
+ros_pl,gear_specifications,pole_material_description,text,NO,,
+ros_pl,gear_specifications,hook_type_code,character(3),NO,,refs_fishery.hook_types→code
+ros_pl,lures_or_jiggers_by_type,id,integer,YES,,
+ros_pl,lures_or_jiggers_by_type,lure_type,character varying(255),NO,,
+ros_pl,lures_or_jiggers_by_type,make,character varying(255),NO,,
+ros_pl,lures_or_jiggers_by_type,hook_type_code,character(3),NO,,refs_fishery.hook_types→code
+ros_pl,lures_or_jiggers_by_type,gear_specifications_id,integer,NO,,ros_pl.gear_specifications→id
+ros_pl,object_details,id,integer,YES,,
+ros_pl,object_details,buoy_identifier,character varying(255),NO,,
+ros_pl,specimens,id,integer,YES,,
+ros_pl,specimens,specimen_original_id,character varying(255),YES,,
+ros_pl,specimens,additional_catch_details_on_ssis_id,integer,NO,,ros_pl.additional_catch_details_on_ssi→id
+ros_pl,specimens,additional_specimen_details_non_target_species_id,integer,NO,,ros_common.additional_details_on_non_target_species→id
+ros_pl,specimens,biometric_information_id,integer,NO,,ros_common.biometric_information→id
+ros_pl,specimens,depredation_detail_id,integer,NO,,ros_common.depredation_details→id
+ros_pl,specimens,tag_detail_id,integer,NO,,ros_pl.tag_details→id
+ros_pl,specimens,catch_detail_id,integer,NO,,ros_pl.catch_details→id
+ros_pl,tag_details,id,integer,YES,,
+ros_pl,tag_details,alternate_tag_original_id,character varying(255),NO,,
+ros_pl,tag_details,tag_original_id,character varying(255),NO,,
+ros_pl,tag_details,tag_recovery,boolean,NO,,
+ros_pl,tag_details,tag_release,boolean,NO,,
+ros_pl,tag_details,tag_type_code,character(2),NO,,refs_biology.tag_types→code
+ros_pl,tag_details,tag_finder_id,integer,NO,,ros_meta.contact→id
+ros_pl,tuna_fishing_event_pl_catch_detail,tuna_fishing_event_id,integer,YES,,ros_pl.tuna_fishing_events→id
+ros_pl,tuna_fishing_event_pl_catch_detail,catch_detail_id,integer,YES,,ros_pl.catch_details→id
+ros_pl,tuna_fishing_events,id,integer,YES,,
+ros_pl,tuna_fishing_events,comments,text,NO,,
+ros_pl,tuna_fishing_events,event_original_id,character varying(255),NO,,
+ros_pl,tuna_fishing_events,object_detail_id,integer,NO,,ros_pl.object_details→id
+ros_pl,tuna_fishing_events,tuna_fishing_operation_id,integer,NO,,ros_pl.tuna_fishing_operations→id
+ros_pl,tuna_fishing_events,trip_id,integer,YES,,ros_common.trip→id
+ros_pl,tuna_fishing_operations,id,integer,YES,,
+ros_pl,tuna_fishing_operations,bait_used,boolean,NO,,
+ros_pl,tuna_fishing_operations,end_event_date_and_time,timestamp(6) without time zone,NO,,
+ros_pl,tuna_fishing_operations,maximum_lines_fishing_at_the_same_time,integer,NO,,
+ros_pl,tuna_fishing_operations,number_of_hooks_lost,integer,NO,,
+ros_pl,tuna_fishing_operations,start_event_date_and_time,timestamp(6) without time zone,NO,,
+ros_pl,tuna_fishing_operations,weight_of_bait_used,double precision,NO,,
+ros_pl,tuna_fishing_operations,start_event_latitude,double precision,NO,,
+ros_pl,tuna_fishing_operations,start_event_longitude,double precision,NO,,
+ros_pl,tuna_fishing_operations,bait_and_condition_id,integer,NO,,ros_pl.baits_and_conditions→id
+ros_pl,tuna_fishing_operations_cl_school_sighting_cues,fishing_operation_id,integer,YES,,ros_pl.tuna_fishing_operations→id
+ros_pl,tuna_fishing_operations_cl_school_sighting_cues,school_sighting_cue_code,character(2),YES,,refs_fishery.school_sighting_cues→code
+ros_pl,tuna_fishing_operations_target_species,tuna_fishing_operation_id2,integer,YES,,ros_pl.tuna_fishing_operations→id
+ros_pl,tuna_fishing_operations_target_species,target_species_code,character varying(16),NO,,refs_biology.species→code
+ros_gn,additional_catch_details_on_ssi,id,integer,YES,,
+ros_gn,additional_catch_details_on_ssi,brought_on_board,boolean,NO,,
+ros_gn,additional_catch_details_on_ssi,photo_id,character varying(255),NO,,
+ros_gn,additional_catch_details_on_ssi,revival,boolean,NO,,
+ros_gn,additional_catch_details_on_ssi,gear_interaction_code,character(2),NO,,refs_biology.gear_interactions→code
+ros_gn,additional_catch_details_on_ssi,handling_method_code,character(2),NO,,refs_biology.handling_methods→code
+ros_gn,catch_details,id,integer,YES,,
+ros_gn,catch_details,catch_detail_original_id,character varying(255),YES,,
+ros_gn,catch_details,comments,text,NO,,
+ros_gn,catch_details,estimated_catch_in_numbers,integer,NO,,
+ros_gn,catch_details,estimated_weight_id,integer,NO,,ros_common.estimated_weights→id
+ros_gn,catch_details,fishing_event_id,integer,NO,,ros_gn.fishing_events→id
+ros_gn,catch_details,type_of_fate_code,character(2),YES,,refs_biology.fates→type_of_fate_code
+ros_gn,catch_details,estimated_weight_sampling_method_code,character(2),NO,,refs_biology.sampling_methods_for_catch_estimation→code
+ros_gn,catch_details,fates_code,character(2),NO,,refs_biology.fates→code
+ros_gn,catch_details,species_code,character varying(16),NO,,refs_biology.species→code
+ros_gn,fishing_events,id,integer,YES,,
+ros_gn,fishing_events,comments,text,NO,,
+ros_gn,fishing_events,event_original_id,character varying(255),NO,,
+ros_gn,fishing_events,hauling_operation_id,integer,NO,,ros_gn.hauling_operations→id
+ros_gn,fishing_events,mitigation_measure_id,integer,NO,,ros_gn.mitigation_measures→id
+ros_gn,fishing_events,setting_operation_id,integer,NO,,ros_gn.setting_operations→id
+ros_gn,fishing_events,trip_id,integer,YES,,ros_common.trip→id
+ros_gn,gear_specifications,id,integer,YES,,
+ros_gn,gear_specifications,trip_id,integer,YES,,ros_common.trip→id
+ros_gn,gear_specifications,net_drum_hauler,boolean,NO,,
+ros_gn,gillnet_configuration,id,integer,YES,,
+ros_gn,gillnet_configuration,droplines_used,boolean,NO,,
+ros_gn,gillnet_configuration,gillnet_sequential_original_id,character varying(255),NO,,
+ros_gn,gillnet_configuration,hanging_ratio,double precision,NO,,
+ros_gn,gillnet_configuration,number_of_floats,integer,NO,,
+ros_gn,gillnet_configuration,panels_stacked,boolean,NO,,
+ros_gn,gillnet_configuration,total_number_of_panels,integer,NO,,
+ros_gn,gillnet_configuration,vertical_mesh_count,integer,NO,,
+ros_gn,gillnet_configuration,distance_between_floats_id,integer,NO,,ros_common.distances→id
+ros_gn,gillnet_configuration,droplines_length_id,integer,NO,,ros_common.lengths→id
+ros_gn,gillnet_configuration,net_depth_id,integer,NO,,ros_common.depths→id
+ros_gn,gillnet_configuration,net_length_id,integer,NO,,ros_common.lengths→id
+ros_gn,gillnet_configuration,gillnet_configuration_id,integer,NO,,ros_gn.gear_specifications→id
+ros_gn,gillnet_configuration,float_type_code,character(2),NO,,refs_fishery.float_types→code
+ros_gn,gillnet_configuration,gillnet_material_type_code,character(2),NO,,refs_fishery.gillnet_material_types→code
+ros_gn,gillnet_configuration_net_web_colours,gillnet_configuration_id_nwc,integer,YES,,ros_gn.gillnet_configuration→id
+ros_gn,gillnet_configuration_net_web_colours,net_colour_code,character(2),YES,,refs_fishery.net_colours→code
+ros_gn,gillnet_configuration_stretched_mesh_sizes,gillnet_configuration_id_sms,integer,YES,,ros_gn.gillnet_configuration→id
+ros_gn,gillnet_configuration_stretched_mesh_sizes,stretched_mesh_size_id,integer,YES,,ros_common.sizes→id
+ros_gn,hauling_operations,id,integer,YES,,
+ros_gn,hauling_operations,end_hauling_date_and_time,timestamp(6) without time zone,NO,,
+ros_gn,hauling_operations,number_of_net_panels_observed,integer,NO,,
+ros_gn,hauling_operations,number_of_net_panels_retrieved,integer,NO,,
+ros_gn,hauling_operations,start_hauling_date_and_time,timestamp(6) without time zone,NO,,
+ros_gn,hauling_operations,end_hauling_latitude,double precision,NO,,
+ros_gn,hauling_operations,end_hauling_longitude,double precision,NO,,
+ros_gn,hauling_operations,start_hauling_latitude,double precision,NO,,
+ros_gn,hauling_operations,start_hauling_longitude,double precision,NO,,
+ros_gn,hauling_operations,net_condition_code,character(2),NO,,refs_fishery.net_conditions→code
+ros_gn,hauling_operations,sampling_protocol_code,character(2),NO,,refs_biology.sampling_protocols→code
+ros_gn,mitigation_measures,id,integer,YES,,
+ros_gn,mitigation_measures,mitigation_measures,boolean,NO,,
+ros_gn,mitigation_measures_mitigation_devices,mitigation_measure_id,integer,YES,,ros_gn.mitigation_measures→id
+ros_gn,mitigation_measures_mitigation_devices,mitigation_device_code,character(2),YES,,refs_fishery.mitigation_devices→code
+ros_gn,setting_operations,id,integer,YES,,
+ros_gn,setting_operations,end_setting_date_and_time,timestamp(6) without time zone,NO,,
+ros_gn,setting_operations,gillnet_sequential_original_id,integer,NO,,
+ros_gn,setting_operations,start_setting_date_and_time,timestamp(6) without time zone,NO,,
+ros_gn,setting_operations,vessel_speed,double precision,NO,,
+ros_gn,setting_operations,end_setting_latitude,double precision,NO,,
+ros_gn,setting_operations,end_setting_longitude,double precision,NO,,
+ros_gn,setting_operations,start_setting_latitude,double precision,NO,,
+ros_gn,setting_operations,start_setting_longitude,double precision,NO,,
+ros_gn,setting_operations,net_configuration_code,character(2),NO,,refs_fishery.net_configurations→code
+ros_gn,setting_operations,net_deploy_depth_code,character(2),NO,,refs_fishery.net_deploy_depths→code
+ros_gn,setting_operations,net_setting_strategy_code,character(2),NO,,refs_fishery.net_setting_strategies→code
+ros_gn,sinkers_by_type,id,integer,YES,,
+ros_gn,sinkers_by_type,number,integer,NO,,
+ros_gn,sinkers_by_type,average_sinker_weight_id,integer,NO,,ros_common.weights→id
+ros_gn,sinkers_by_type,gillnet_configuration_id,integer,NO,,ros_gn.gillnet_configuration→id
+ros_gn,sinkers_by_type,sinker_material_type_code,character(2),NO,,refs_fishery.sinker_material_types→code
+ros_gn,specimens,id,integer,YES,,
+ros_gn,specimens,specimen_original_id,character varying(255),YES,,
+ros_gn,specimens,additional_catch_details_on_ssis_id,integer,NO,,ros_gn.additional_catch_details_on_ssi→id
+ros_gn,specimens,additional_specimen_details_non_target_species_id,integer,NO,,ros_common.additional_details_on_non_target_species→id
+ros_gn,specimens,biometric_information_id,integer,NO,,ros_common.biometric_information→id
+ros_gn,specimens,depredation_detail_id,integer,NO,,ros_common.depredation_details→id
+ros_gn,specimens,tag_detail_id,integer,NO,,ros_gn.tag_details→id
+ros_gn,specimens,catch_detail_id,integer,NO,,ros_gn.catch_details→id
+ros_gn,tag_details,id,integer,YES,,
+ros_gn,tag_details,alternate_tag_original_id,character varying(255),NO,,
+ros_gn,tag_details,tag_original_id,character varying(255),NO,,
+ros_gn,tag_details,tag_recovery,boolean,NO,,
+ros_gn,tag_details,tag_release,boolean,NO,,
+ros_gn,tag_details,tag_type_code,character(2),NO,,refs_biology.tag_types→code
+ros_gn,tag_details,tag_finder_id,integer,NO,,ros_meta.contact→id

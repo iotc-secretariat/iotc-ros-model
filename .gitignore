@@ -5,3 +5,7 @@
 /3.3.0/sql/**/update-*.psql
 /RMDs/ros_metatadata-LL.Rmd
 /RMDs/ros_metatadata-PS.Rmd
+/RMDs/ros_metatadata-ALL.Rmd
+/RMDs/ros_metatadata-GN.Rmd
+/RMDs/ros_metatadata-PL.Rmd
+ros-db.json

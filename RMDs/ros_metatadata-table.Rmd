@@ -6,10 +6,32 @@ output: html_fragment
 
 #### Description
 
-`r ifelse(is.na(db_table$table_comment()), '<p class="error">*Not filled*</p>', paste0('*', db_table$table_comment(), '*'))`
+`r ifelse(is.na(db_table$table_comment()), '<p class="error">Not filled</p>', paste0('*', db_table$table_comment(), '*'))`
 
 #### Columns
 
 ```{r}
-out_dt(db_table$table_columns())
+out_table_columns(db_table$table_columns())
+code_list_or_registries <- db_table$table_columns()[str_length(foreign_key) > 0 & foreign_key %like% "refs_.+|ros_meta.+"]
+data_dependencies <- db_table$data_dependencies()
+```
+```{r results = "asis"}
+if (nrow(code_list_or_registries) > 0) {
+  cat("#### Code lists or Ros registries")
+}
+```
+```{r}
+if (nrow(code_list_or_registries) > 0) {
+  out_table_code_list(code_list_or_registries)
+}
+```
+```{r results = "asis"}
+if (nrow(data_dependencies) > 0) {
+  cat("#### Data dependencies")
+}
+```
+```{r}
+if (nrow(data_dependencies) > 0) {
+  out_table_data_dependencies(data_dependencies)
+}
 ```
