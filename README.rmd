@@ -20,30 +20,31 @@ Create a *JSON* file named ```ros-db.json``` with content:
 
 ```{r, warning = FALSE}
 # Load sources
-source("R/common_db_metadata.R")
+source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 # Generate Ros dtabase metatadata files
-generate_db_metadata("ALL", extract_db_metadata(ALL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(domain = "ALL", extract_db_metadata(schemas = ROS_ALL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
 ```
 ## Update comments on database
 
 ```{r, warning = FALSE}
 # Load sources
-source("R/common_db_metadata.R")
+source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 # Update for the hole Ros database
-ros_update_queries <- apply_comments_on_db("ALL", connection_provider = connect_to_ros)
+ros_update_queries <- apply_comments_on_db(domain = "ALL", root_directory = DB_METADATA_DIRECTORY, connection_provider = connect_to_ros)
 ```
 ## Generate database metadata report
 
 ```{r, warning = FALSE}
 # Load sources
-source("R/common_db_metadata.R")
+source("R/common_db_utils.R")
+source("R/common_db_report.R")
 source("R/ros_db_metadata.R")
 # Generate documentation report of the hole Ros database
-generate_db_metadata_report("ALL", timestamp = DEFAULT_TIME_STAMP)
+ros_db_metadata_generate_report(domain = "ALL", timestamp = DEFAULT_TIME_STAMP)
 # Generate documentation report of the PS domain
-generate_db_metadata_report("PS", timestamp = DEFAULT_TIME_STAMP)
+ros_db_metadata_generate_report(domain = "PS", timestamp = DEFAULT_TIME_STAMP)
 # Generate documentation report of the LL domain
-generate_db_metadata_report("LL", timestamp = DEFAULT_TIME_STAMP)
+ros_db_metadata_generate_report(domain = "LL", timestamp = DEFAULT_TIME_STAMP)
 ```

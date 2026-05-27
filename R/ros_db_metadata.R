@@ -9,18 +9,17 @@ library(visNetwork)
 #'@export
 IOTC_ROS <- "IOTC_Ros_3_3_0_2026_04_16"
 
-
 #'The constants holding the name of all schemas of the Ros database
 #'@export
-ALL_SCHEMAS <- c("ros_meta", "ros_common", "ros_ps", "ros_ll", "ros_pl", "ros_gn")
+ROS_ALL_SCHEMAS <- c("ros_meta", "ros_common", "ros_ps", "ros_ll", "ros_pl", "ros_gn")
 
 #'The constants holding the name of schemas used by LL domain.
 #'@export
-LL_SCHEMAS <- c("ros_meta", "ros_common", "ros_ll")
+ROS_LL_SCHEMAS <- c("ros_meta", "ros_common", "ros_ll")
 
 #'The constants holding the name of schemas used by PS domain.
 #'@export
-PS_SCHEMAS <- c("ros_meta", "ros_common", "ros_ps")
+ROS_PS_SCHEMAS <- c("ros_meta", "ros_common", "ros_ps")
 
 #'The path of db models
 DB_METADATA_DIRECTORY <- file.path("./models", IOTC_ROS)
@@ -29,7 +28,7 @@ DB_METADATA_DIRECTORY <- file.path("./models", IOTC_ROS)
 #' @export
 DEFAULT_TIME_STAMP <- "-2026-05-22"
 
-STANDALONE_TABLES <- list(
+ROS_STANDALONE_TABLES <- list(
   "ros_common.capacities",
   "ros_common.depths",
   "ros_common.diameters",
@@ -53,212 +52,45 @@ STANDALONE_TABLES <- list(
   "ros_common.weights"
 )
 
-#' Load db metata files for the given domain.
-#'
-#' @param domain gear domain (could be LL, PS, GN, PL)
-#' @param root_directory root directory of files to load (defaults to \code{\link{DB_METADATA_DIRECTORY}})
-#' @return loaded files
-#' @export
-load_db_metadata <- function(domain, root_directory = DB_METADATA_DIRECTORY) {
-  output_directory <- file.path(root_directory, domain)
-  list(schemas_comment = fread(file.path(output_directory, "schemas_comment.csv")),
-       tables_comment = fread(file.path(output_directory, "tables_comment.csv")),
-       tables_columns = fread(file.path(output_directory, "tables_columns.csv")))
-}
-
-#' Generate SQL queries to update comments on database, at schema, table and column level.
-#'
-#' @param domain gear domain (could be LL, PS, GN, PL)
-#' @param root_directory root directory of files to load (defaults to \code{\link{DB_METADATA_DIRECTORY}})
-#' @param connection_supplier function to get the connection (defaults to \code{\link{connect_to_ros}})
-#' @param apply flag to apply generated sql queries on database (defaults to \code{TRUE})
-#' @return generated sql queries
-#' @export
-apply_comments_on_db <- function(domain, root_directory = DB_METADATA_DIRECTORY, connection_provider = connect_to_ros, apply = TRUE) {
+ros_db_metadata_create <- function(domain,
+                                   version = IOTC_ROS,
+                                   root_directory = DB_METADATA_DIRECTORY) {
   files <- load_db_metadata(domain, root_directory)
-  use_connection(connection_provider, function(connection) {
-    # apply on schemas
-    queries <- data.table(files$schemas_comment)[!is.na(comment) & str_length(comment) > 0, sql := sprintf("COMMENT ON SCHEMA %s IS %s;", schema, dbQuoteString(connection, comment))][!is.na(sql)]$sql
-    # apply on tables
-    queries <- append(queries, data.table(files$tables_comment)[!is.na(comment) & str_length(comment) > 0, sql := sprintf("COMMENT ON TABLE %s.%s IS %s;", schema, table, dbQuoteString(connection, comment))][!is.na(sql)]$sql)
-    # apply on columns
-    queries <- append(queries, data.table(files$tables_columns)[!is.na(comment) & str_length(comment) > 0, sql := sprintf("COMMENT ON COLUMN %s.%s.%s IS %s;", schema, table, column, dbQuoteString(connection, comment))][!is.na(sql)]$sql)
-    if (apply) {
-      # Run all queries
-      dbWithTransaction(connection, { lapply(queries, function(x) { dbExecute(connection, x) }) })
-    }
-    queries
+  db_metadata$new(domain,
+                  version,
+                  withr::with_locale(c(LC_TIME = "C"), format(Sys.time(), '%d %B %Y %H:%M %Z')),
+                  files$schemas_comment,
+                  files$tables_comment,
+                  files$tables_columns,
+                  function(foreign_key) { str_length(foreign_key) > 0 & foreign_key %like% "refs_.+|ros_meta.+" },
+                  function(foreign_key) { str_length(foreign_key) > 0 & !foreign_key %like% "refs_.+|ros_meta.+" },
+                  ROS_STANDALONE_TABLES)
+}
+
+ros_extra_report_generator <- function(db_metadata, export_directory, timestamp, report_prefix) {
+  deps <- db_metadata$data_dependencies_tables()
+  schema_names <- db_metadata$schema_names()
+  db_reverse_dependencies <- lapply(schema_names, function(x) {
+    if (x %like% "ros_common|ros_meta") { return(NULL) }
+    pattern <- sprintf("ros_common.+|%s.+", x)
+    deps[origin %like% pattern]
   })
-}
+  names(db_reverse_dependencies) <- schema_names
+  db_reverse_dependencies <- Filter(Negate(is.null), db_reverse_dependencies)
 
-out_table_columns <- function(data) {
-  datatable(data[, `:=`(comment = fifelse(is.na(comment) | comment == "", "Not filled", comment), schema = NULL, table = NULL, foreign_key = NULL)],
-            autoHideNavigation = TRUE,
-            rownames = FALSE,
-            lazyRender = TRUE,
-            fillContainer = FALSE,
-            options = list(dom = "t", ordering = FALSE,
-                           columnDefs = list(
-                             list(
-                               targets = "comment",
-                               createdCell = JS(
-                                 "function(td, cellData) {",
-                                 "  if(cellData === 'Not filled') {",
-                                 "    $(td).css({'color': 'red', 'font-style':'italic'});",
-                                 "  }",
-                                 "}"
-                               )
-                             ))))
-}
-
-out_table_code_list <- function(data) {
-  datatable(data[, `:=`(schema = NULL, table = NULL, type = NULL, foreign_key = NULL, code_list = lapply(foreign_key, function(x) { column_location$new(x)$table()$gav() }))],
-            autoHideNavigation = TRUE,
-            rownames = FALSE,
-            lazyRender = TRUE,
-            fillContainer = FALSE,
-            options = list(dom = "t", ordering = FALSE))
-}
-
-out_table_data_dependencies <- function(data) {
-  datatable(data[, `:=`(schema = NULL, table = NULL, foreign_key = NULL, data_dependency = lapply(foreign_key, function(x) { column_location$new(x)$table()$gav() }))],
-            autoHideNavigation = TRUE,
-            rownames = FALSE,
-            lazyRender = TRUE,
-            fillContainer = FALSE,
-            options = list(dom = "t", ordering = FALSE))
-}
-
-out_data_dependencies <- function(data, entry_point) {
-  data[
-    ,
-    tree_view := paste0(
-      strrep("&nbsp;&nbsp;&nbsp;&nbsp;", level),
-      ifelse(level == 0, "", "└── "),
-      table
-    )
-  ]
-  datatable(
-    data[
-      ,
-      .(
-        Level = level,
-        Tree = tree_view
-        # , Parent = parent
-        , Path = path
-      )
-    ],
-    escape = FALSE,
-    rownames = FALSE,
-    options = list(dom = "t", ordering = FALSE, autoWidth = FALSE)
-  ) %>%
-    DT::formatStyle(
-      "Tree",
-      target = "row",
-      fontWeight = DT::styleEqual(
-        entry_point,
-        "bold"
-      )
-    ) %>%
-    htmlwidgets::onRender("
-    function(el,x){
-      $(el).find('thead').remove();
+  for (schema_name in names(db_reverse_dependencies)) {
+    graph_location <- file.path(export_directory, sprintf("%s_%s_dependencies_%s%s.html", report_prefix, db_metadata$domain(), schema_name, timestamp))
+    out_data_dependencies_graph(schema_name, db_reverse_dependencies[[schema_name]], graph_location, "ros_common.observer_data")
+    # Remove generated files we do not want
+    files_location <- file.path(export_directory, sprintf("%s_%s_dependencies_%s%s_files", report_prefix, db_metadata$domain(), schema_name, timestamp))
+    if (dir.exists(files_location)) {
+      unlink(files_location, recursive = TRUE, force = TRUE)
     }
-  ")
+  }
+  list(db_reverse_dependencies = db_reverse_dependencies)
 }
 
-out_data_dependencies_graph <- function(schema_name, data, output_file) {
-
-  deps <- as.data.frame(data)
-  # Force character vectors
-  deps$origin <- as.character(deps$origin)
-  deps$target <- as.character(deps$target)
-
-  # Create node vector ONCE
-  nodes_vec <- unique(c(deps$origin, deps$target))
-
-  # Build nodes
-  nodes <- data.frame(
-    id = nodes_vec,
-    label = nodes_vec,
-    stringsAsFactors = FALSE
-  )
-
-  # Build edges
-  edges <- data.frame(
-    from = deps$origin,
-    to = deps$target,
-    stringsAsFactors = FALSE
-  )
-
-  # Reset row names
-  rownames(nodes) <- NULL
-  rownames(edges) <- NULL
-
-  # Default selected node
-  default_node <- "ros_common.observer_data"
-
-
-  graph <- visNetwork(
-    nodes,
-    edges,
-    width = '100%',
-    height = '1500px'
-  ) %>%
-    visNodes(
-      shape = 'dot',
-      size = 15
-    ) %>%
-    visEdges(
-      smooth = TRUE,
-      length = 200
-    ) %>%
-    visPhysics(
-      solver = 'barnesHut',
-      stabilization = list(
-        enabled = TRUE,
-        iterations = 1000
-      ),
-      barnesHut = list(
-        gravitationalConstant = -8000,
-        springLength = 180,
-        springConstant = 0.04,
-        damping = 0.09
-      )
-    ) %>%
-    visInteraction(
-      navigationButtons = TRUE,
-      dragNodes = TRUE,
-      zoomView = TRUE
-    ) %>%
-    visOptions(
-      highlightNearest = list(
-        enabled = TRUE,
-        hover = TRUE
-      ),
-      nodesIdSelection = list(
-        enabled = TRUE,
-        selected = default_node
-      )
-    ) %>%
-    visEvents(
-      stabilized = "
-      function () {
-
-        // Find generated combo-box
-        var select = document.querySelector('select.dropdown');
-        if(select){
-          // Increase width
-          select.style.width = '600px';
-          select.style.minWidth = '600px';
-        }
-      }
-    "
-    )
-  htmlwidgets::saveWidget(graph, output_file, title = sprintf("Dependency tree for schema %s", schema_name), selfcontained = TRUE, libdir = NULL)
-}
-
-generate_db_metadata_template <- function(db_metadata, export_directory, template = "./RMDs/ros_metatadata.Rmd") {
+ros_db_metadata_report_template_supplier <- function(db_metadata, export_directory = "./RMDs", template = "./RMDs/ros_metatadata.Rmd") {
   file_location <- file.path(export_directory, sprintf("ros_metatadata-%s.Rmd", db_metadata$domain()))
   if (file.exists(file_location)) {
     file.remove(file_location)
@@ -291,41 +123,24 @@ db_table <- db_schema$table('%s')
   file_location
 }
 
-load_db_metadata_object <- function(domain,
-                                    version = IOTC_ROS,
-                                    root_directory = DB_METADATA_DIRECTORY) {
-  files <- load_db_metadata(domain, root_directory)
-  db_metadata$new(domain, version, withr::with_locale(c(LC_TIME = "C"), format(Sys.time(), '%d %B %Y %H:%M %Z')), files$schemas_comment, files$tables_comment, files$tables_columns)
+ros_db_metadata_generate_report <- function(domain,
+                                            version = IOTC_ROS,
+                                            timestamp = DEFAULT_TIME_STAMP,
+                                            root_directory = DB_METADATA_DIRECTORY,
+                                            export_directory = DB_METADATA_DIRECTORY) {
+  generate_db_metadata_report(domain = domain,
+                              version = version,
+                              timestamp = timestamp,
+                              root_directory = root_directory,
+                              export_directory = export_directory,
+                              db_metadata_supplier = ros_db_metadata_create,
+                              db_metadata_report_template_supplier = ros_db_metadata_report_template_supplier,
+                              extra_report_generator = ros_extra_report_generator,
+                              report_prefix = "ROS_database")
 }
 
-generate_db_metadata_report <- function(domain,
-                                        version = IOTC_ROS,
-                                        root_directory = DB_METADATA_DIRECTORY,
-                                        export_directory = DB_METADATA_DIRECTORY,
-                                        timestamp = format_timestamp(Sys.time())) {
-  files <- load_db_metadata(domain, root_directory)
-  db_metadata <- db_metadata$new(domain, version, withr::with_locale(c(LC_TIME = "C"), format(Sys.time(), '%d %B %Y %H:%M %Z')), files$schemas_comment, files$tables_comment, files$tables_columns)
-  template <- generate_db_metadata_template(db_metadata, "./RMDs")
-  options(DT.options = list(pageLength = -1))
-  file_location <- file.path(export_directory, sprintf("ROS_database_%s%s.html", db_metadata$domain(), timestamp))
-  db_reverse_dependencies <- db_metadata$data_dependencies_tables_per_schema()
-  for (schema_name in names(db_reverse_dependencies)) {
-    if (!is.null(db_reverse_dependencies[[schema_name]])) {
-      graph_location <- file.path(export_directory, sprintf("ROS_database_%s_dependencies_%s%s.html", db_metadata$domain(), schema_name, timestamp))
-      out_data_dependencies_graph(schema_name, db_reverse_dependencies[[schema_name]], graph_location)
-      # Remove generated files we do not want
-      files_location <- file.path(export_directory, sprintf("ROS_database_%s_dependencies_%s%s_files", db_metadata$domain(), schema_name, timestamp))
-      if (dir.exists(files_location)) {
-        unlink(files_location, recursive = TRUE, force = TRUE)
-      }
-    }
-  }
-  render(template,
-         output_format = "html_document",
-         output_file = basename(file_location),
-         output_dir = dirname(file_location))
-}
+ll_model <- ros_db_metadata_create(domain = "LL", version = IOTC_ROS, root_directory = DB_METADATA_DIRECTORY)
 
-# ll_deps <- load_db_metadata_object("LL")$data_dependencies_tables()
-# tree1 <- build_reverse_dependency_tree(ll_deps, "ros_common.observer_data")
+ll_deps <- ll_model$data_dependencies_tables()
+ll_tree <- tree <- build_reverse_dependency_tree(ll_deps, 'ros_common.observer_data', ll_model$standalone_tables())
 # print(tree1$path)
