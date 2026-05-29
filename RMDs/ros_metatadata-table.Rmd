@@ -2,48 +2,38 @@
 output: html_fragment
 ---
 
-## Table `r db_table$table()`
-
+```{r echo=FALSE, results='asis'}
+cat(sprintf(
+  "## Table %s {#%s}\n",
+  db_table$table(),
+  paste0(db_table$schema(), "_", db_table$table())
+))
+```
 #### Description
 
 `r ifelse(is.na(db_table$table_comment()), '<p class="error">Not filled</p>', paste0('*', db_table$table_comment(), '*'))`
 
-#### Columns
+#### Definition {.tabset}
+
+##### Columns
 
 ```{r}
 db_table_columns <- db_table$columns()
 out_table_columns(db_table_columns)
-db_code_list_dependencies <- db_table_columns[db_metadata$is_column_code_list_function()(foreign_key)]
-db_registry_dependencies <- db_table_columns[db_metadata$is_column_registry_function()(foreign_key)]
-db_data_dependencies <- db_table_columns[db_metadata$is_column_data_function()(foreign_key)]
+db_table_dependencies <- db_table$dependencies(file_location,
+                                               db_metadata$is_column_code_list_function(),
+                                               db_metadata$is_column_registry_function(),
+                                               db_metadata$is_column_data_function())
+with_depedencies <- nrow(db_table_dependencies) > 0
 ```
-```{r results = "asis"}
-if (nrow(db_code_list_dependencies) > 0) {
-  cat("#### Code lists dependencies")
-}
-```
+##### Dependencies {.tabset}
+
+`r if (!with_depedencies) { "NO DATA" }`
 ```{r}
-if (nrow(db_code_list_dependencies) > 0) {
-  out_table_code_list_dependencies(db_code_list_dependencies)
+if (with_depedencies) {
+  out_table_dependencies(db_table_dependencies)
 }
 ```
-```{r results = "asis"}
-if (nrow(db_registry_dependencies) > 0) {
-  cat("#### Ros registries dependencies")
-}
-```
-```{r}
-if (nrow(db_registry_dependencies) > 0) {
-  out_table_registry_dependencies(db_registry_dependencies)
-}
-```
-```{r results = "asis"}
-if (nrow(db_data_dependencies) > 0) {
-  cat("#### Data dependencies")
-}
-```
-```{r}
-if (nrow(db_data_dependencies) > 0) {
-  out_table_data_dependencies(db_data_dependencies)
-}
-```
+##### Usages {.tabset}
+
+NO DATA

@@ -5,6 +5,8 @@ author: "Author: [IOTC Secretariat](mailto:IOTC-Secretariat@fao.org)"
 output:
   html_document:
     mathjax: null
+    includes:
+      in_header: "../templates/html_template_header.html"
     css: "../templates/html_template.css"
     number_sections: FALSE
     toc: yes

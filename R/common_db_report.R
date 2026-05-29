@@ -25,26 +25,9 @@ out_table_columns <- function(data) {
                              ))))
 }
 
-out_table_code_list_dependencies <- function(data) {
-  datatable(data.table(data)[, `:=`(schema = NULL, table = NULL, type = NULL, comment = NULL, foreign_key = NULL, code_list_dependency = foreign_key)],
-            autoHideNavigation = TRUE,
-            rownames = FALSE,
-            lazyRender = TRUE,
-            fillContainer = FALSE,
-            options = list(dom = "t", ordering = FALSE))
-}
-
-out_table_registry_dependencies <- function(data) {
-  datatable(data.table(data)[, `:=`(schema = NULL, table = NULL, type = NULL, comment = NULL, foreign_key = NULL, registry_dependency = foreign_key)],
-            autoHideNavigation = TRUE,
-            rownames = FALSE,
-            lazyRender = TRUE,
-            fillContainer = FALSE,
-            options = list(dom = "t", ordering = FALSE))
-}
-
-out_table_data_dependencies <- function(data) {
-  datatable(data.table(data)[, `:=`(schema = NULL, table = NULL, type = NULL, comment = NULL, foreign_key = NULL, data_dependency = foreign_key)],
+out_table_dependencies <- function(data) {
+  datatable(data,
+            escape = FALSE,
             autoHideNavigation = TRUE,
             rownames = FALSE,
             lazyRender = TRUE,

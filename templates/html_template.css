@@ -149,3 +149,9 @@ pre {
   color:red;
   font-style:italic;
 }
+
+.nav-tabs .disabled {
+  pointer-events: auto;
+  cursor:not-allowed;
+  opacity: 0.5;
+}

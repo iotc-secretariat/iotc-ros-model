@@ -1,0 +1,63 @@
+<script>
+
+    window.addEventListener("load", function() {
+
+      setTimeout(function() {
+        document.querySelectorAll(".tab-content").forEach(function(tabContent) {
+          let maxHeight = 0;
+          tabContent.querySelectorAll(".tab-pane").forEach(function(tabPane) {
+            const previousDisplay = tabPane.style.display;
+            const previousVisibility = tabPane.style.visibility;
+            const previousPosition = tabPane.style.position;
+
+            tabPane.style.visibility = "hidden";
+            tabPane.style.display = "block";
+            tabPane.style.position = "absolute";
+
+            maxHeight = Math.max(
+              maxHeight,
+              tabPane.scrollHeight
+            );
+            tabPane.style.display = previousDisplay;
+            tabPane.style.visibility = previousVisibility;
+            tabPane.style.position = previousPosition;
+          });
+          tabContent.style.minHeight = maxHeight + "px";
+        });
+
+
+      document.querySelectorAll(".tab-pane").forEach(function(pane) {
+
+        const text = pane.textContent.trim();
+
+        if(text === "NO DATA") {
+
+          pane.innerHTML = ""
+          const paneId = pane.id;
+
+          const tab = document.querySelector(
+            '.nav-tabs a[href="#' + paneId + '"]'
+          );
+
+          if(tab) {
+            tab.classList.add("disabled");
+            tab.style.pointerEvents = "auto";
+            tab.style.cursor = "not-allowed";
+            tab.style.opacity = "0.5";
+            if (/usages/.test(paneId)) {
+              tab.setAttribute("title", "There is no usage of this table");
+            } else if (/dependencies/.test(paneId)) {
+              tab.setAttribute("title", "The table has no dependency");
+            } else {
+              tab.setAttribute("title", "Disabled because there is no data");
+            }
+            tab.addEventListener("click", function(event) {
+              event.preventDefault();
+              event.stopPropagation();
+            });
+          }
+        }
+      });
+      }, 500);
+    });
+</script>
