@@ -1,0 +1,2 @@
+ALTER TABLE ros_common.reasons_for_days_lost RENAME TO trip_reasons_for_days_lost;
+ALTER TABLE ros_common.waste_managements RENAME TO trip_waste_managements;
