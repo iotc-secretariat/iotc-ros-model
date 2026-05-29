@@ -353,20 +353,6 @@ db_metadata_table <- R6Class(
                             is_column_code_list_function,
                             is_column_registry_function,
                             is_column_data_function) {
-
-      dependency_table_function <- function(x) {
-        table <- column_location$new(x)
-        if (is_column_code_list_function(x)) {
-          #TODO Find a nice way to have https://data.iotc.org/reference/latest/domain url from db table gav
-          # return(sprintf("<a target='_iotc_code_lists' href='https://data.iotc.org/reference/latest/domain/%s#%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
-          return(table$table_gav())
-        }
-        if (is_column_registry_function(x) | is_column_data_function(x)) {
-          return(sprintf("<a href='./%s#%s_%s'>%s</a>", basename(file_location), table$schema(), table$table(), table$table_gav()))
-        }
-        NA_character_
-      }
-
       data.table(self$columns())[is_column_code_list_function(foreign_key) |
                                    is_column_registry_function(foreign_key) |
                                    is_column_data_function(foreign_key)][, `:=`(schema = NULL,
@@ -389,7 +375,18 @@ db_metadata_table <- R6Class(
                                                                                   }
                                                                                   NA_character_
                                                                                 }),
-                                                                                dependency_table = sapply(foreign_key, dependency_table_function),
+                                                                                dependency_table = sapply(foreign_key, function(x) {
+                                                                                  table <- column_location$new(x)
+                                                                                  if (is_column_code_list_function(x)) {
+                                                                                    #TODO Find a nice way to have https://data.iotc.org/reference/latest/domain url from db table gav
+                                                                                    # return(sprintf("<a target='_iotc_code_lists' href='https://data.iotc.org/reference/latest/domain/%s#%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
+                                                                                    return(table$table_gav())
+                                                                                  }
+                                                                                  if (is_column_registry_function(x) | is_column_data_function(x)) {
+                                                                                    return(sprintf("<a href='./%s#%s_%s'>%s</a>", basename(file_location), table$schema(), table$table(), table$table_gav()))
+                                                                                  }
+                                                                                  NA_character_
+                                                                                }),
                                                                                 dependency_column = sapply(foreign_key, function(x) { column_location$new(x)$column() }))]
     }
   ),
