@@ -21,6 +21,14 @@ ROS_LL_SCHEMAS <- c("ros_meta", "ros_common", "ros_ll")
 #'@export
 ROS_PS_SCHEMAS <- c("ros_meta", "ros_common", "ros_ps")
 
+#'The constants holding the name of schemas used by PL domain.
+#'@export
+ROS_PL_SCHEMAS <- c("ros_meta", "ros_common", "ros_pl")
+
+#'The constants holding the name of schemas used by GN domain.
+#'@export
+ROS_GN_SCHEMAS <- c("ros_meta", "ros_common", "ros_gn")
+
 #' Default time-stamp used to suffix any generated files
 #' @export
 DEFAULT_TIME_STAMP <- "2026-05-29"

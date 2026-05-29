@@ -1,0 +1,4 @@
+schema,comment
+ros_meta,Ros meta schema with registries (contacts and vessels)
+ros_common,Ros common schema with neutral stuff
+ros_gn,Ros gn schema for Gillnet data

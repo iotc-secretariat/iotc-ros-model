@@ -25,6 +25,8 @@ source("R/ros_db_metadata.R")
 generate_db_metadata(domain = "ALL", extract_db_metadata(schemas = ROS_ALL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
 generate_db_metadata(domain = "LL", extract_db_metadata(schemas = ROS_LL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
 generate_db_metadata(domain = "PS", extract_db_metadata(schemas = ROS_PS_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(domain = "PL", extract_db_metadata(schemas = ROS_PL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(domain = "GN", extract_db_metadata(schemas = ROS_GN_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
 ```
 ## Update comments on database
 
@@ -48,4 +50,8 @@ ros_db_metadata_generate_report(domain = "ALL", timestamp = DEFAULT_TIME_STAMP)
 ros_db_metadata_generate_report(domain = "PS", timestamp = DEFAULT_TIME_STAMP)
 # Generate documentation report of the LL domain
 ros_db_metadata_generate_report(domain = "LL", timestamp = DEFAULT_TIME_STAMP)
+# Generate documentation report of the PL domain
+ros_db_metadata_generate_report(domain = "PL", timestamp = DEFAULT_TIME_STAMP)
+# Generate documentation report of the GN domain
+ros_db_metadata_generate_report(domain = "GN", timestamp = DEFAULT_TIME_STAMP)
 ```
