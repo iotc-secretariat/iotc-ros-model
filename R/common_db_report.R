@@ -25,8 +25,17 @@ out_table_columns <- function(data) {
                              ))))
 }
 
-out_table_code_list <- function(data) {
+out_table_code_list_dependencies <- function(data) {
   datatable(data.table(data)[, `:=`(schema = NULL, table = NULL, type = NULL, comment = NULL, foreign_key = NULL, code_list = foreign_key)],
+            autoHideNavigation = TRUE,
+            rownames = FALSE,
+            lazyRender = TRUE,
+            fillContainer = FALSE,
+            options = list(dom = "t", ordering = FALSE))
+}
+
+out_table_registry_dependencies <- function(data) {
+  datatable(data.table(data)[, `:=`(schema = NULL, table = NULL, type = NULL, comment = NULL, foreign_key = NULL, registry_dependency = foreign_key)],
             autoHideNavigation = TRUE,
             rownames = FALSE,
             lazyRender = TRUE,
@@ -44,33 +53,49 @@ out_table_data_dependencies <- function(data) {
 }
 
 out_data_dependencies <- function(data, entry_point) {
-  data[
-    ,
-    tree_view := paste0(
-      strrep("&nbsp;&nbsp;&nbsp;&nbsp;", level),
-      ifelse(level == 0, "", "└── "),
-      table
-    )
-  ]
+  data <- data.table(data[,
+                       tree_view := mapply(
+                         function(level, table, table_column, parent_table, parent_column, link_type) {
+                           result <- sprintf("%s%s%s",
+                                             strrep("&nbsp;&nbsp;&nbsp;&nbsp;", level),
+                                             ifelse(level == 0, "", "└── "),
+                                             table)
+                           ifelse(level == 0,
+                                  result,
+                                  ifelse(link_type == "←",
+                                         sprintf("%s (%s.%s %s %s.%s)",
+                                                 result,
+                                                 table,
+                                                 table_column,
+                                                 link_type,
+                                                 parent_table,
+                                                 parent_column),
+                                         sprintf("%s (%s.%s %s %s.%s)",
+                                                 result,
+                                                 parent_table,
+                                                 parent_column,
+                                                 link_type,
+                                                 table,
+                                                 table_column)))
+                         },
+                         level,
+                         table,
+                         table_column,
+                         parent_table,
+                         parent_column,
+                         link_type
+                       )])[, .(tree_view)]
   datatable(
-    data[
-      ,
-      .(
-        # Level = level,
-        Tree = tree_view
-        # , Parent = parent
-        , Path = path
-      )
-    ],
+    data,
     escape = FALSE,
     rownames = FALSE,
     options = list(dom = "t", ordering = FALSE, autoWidth = FALSE)
   ) %>%
     DT::formatStyle(
-      "Tree",
+      "tree_view",
       target = "row",
       fontWeight = DT::styleEqual(
-        entry_point,
+        column_location$new(entry_point)$table_gav(),
         "bold"
       )
     ) %>%
@@ -81,7 +106,7 @@ out_data_dependencies <- function(data, entry_point) {
   ")
 }
 
-out_data_dependencies_graph <- function(schema_name, data, output_file, entry_point) {
+out_data_dependencies_graph <- function(schema_name, data, output_file = NULL, entry_point) {
 
   deps <- as.data.frame(data)
   # Force character vectors
@@ -168,7 +193,29 @@ out_data_dependencies_graph <- function(schema_name, data, output_file, entry_po
       }
     "
     )
+  if (is.null(output_file)) {
+    return(graph)
+  }
   htmlwidgets::saveWidget(graph, output_file, title = sprintf("Dependency tree for schema %s", schema_name), selfcontained = TRUE, libdir = NULL)
+}
+
+generate_db_metadata_dependencies <- function(db_metadata, export_directory, report_prefix) {
+
+  db_reverse_dependencies <- db_metadata$db_reverse_dependencies()
+  #TODO Use the tree to generate the graph with labels on edges
+  db_reverse_dependencies_tree <- db_metadata$db_reverse_dependencies_tree()
+
+  for (schema_name in names(db_reverse_dependencies)) {
+    graph_location <- file.path(export_directory, sprintf("%s_%s_dependencies_%s.html", report_prefix, db_metadata$domain(), schema_name))
+    db_schema_reverse_dependencies <- data.table(db_reverse_dependencies[[schema_name]])[,
+      `:=`(origin = lapply(origin, function(x) { column_location$new(x)$table_gav() }), target = lapply(target, function(x) { column_location$new(x)$table_gav() }))]
+    out_data_dependencies_graph(schema_name, db_schema_reverse_dependencies, graph_location, column_location$new(db_metadata$entry_point())$table_gav())
+    # Remove generated files we do not want
+    files_location <- file.path(export_directory, sprintf("%s_%s_dependencies_%s_files", report_prefix, db_metadata$domain(), schema_name))
+    if (dir.exists(files_location)) {
+      unlink(files_location, recursive = TRUE, force = TRUE)
+    }
+  }
 }
 
 generate_db_metadata_report <- function(domain,
@@ -178,13 +225,21 @@ generate_db_metadata_report <- function(domain,
                                         timestamp = format_timestamp(Sys.time()),
                                         db_metadata_supplier,
                                         db_metadata_report_template_supplier,
-                                        extra_report_generator,
-                                        report_prefix) {
+                                        report_prefix,
+                                        remove_unused_tables = FALSE) {
   db_metadata <- db_metadata_supplier(domain, version, root_directory)
+  db_metadata$generate_dependencies()
+  if (remove_unused_tables) {
+    db_metadata$remove_unused_tables()
+  }
   template <- db_metadata_report_template_supplier(db_metadata)
+  export_directory <- file.path(export_directory, timestamp)
+  if (!dir.exists(export_directory)) {
+    dir.create(export_directory, recursive = TRUE)
+  }
+  generate_db_metadata_dependencies(db_metadata, export_directory, report_prefix)
   options(DT.options = list(pageLength = -1))
-  db_extra_data <- extra_report_generator(db_metadata, export_directory, timestamp, report_prefix)
-  file_location <- file.path(export_directory, sprintf("%s_%s%s.html", report_prefix, db_metadata$domain(), timestamp))
+  file_location <- file.path(export_directory, sprintf("%s_%s.html", report_prefix, db_metadata$domain()))
   render(template,
          output_format = "html_document",
          output_file = basename(file_location),

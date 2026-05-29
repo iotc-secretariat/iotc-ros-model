@@ -1,5 +1,5 @@
 ---
-title: "ROS Database (version: `r db_metadata$version()`) - Domain `r db_metadata$domain()`"
+title: "ROS Database (version: `r db_metadata$version()``r timestamp` ) - Domain `r db_metadata$domain()`"
 subtitle: "Last updated: `r db_metadata$last_update()`"
 author: "Author: [IOTC Secretariat](mailto:IOTC-Secretariat@fao.org)"
 output:

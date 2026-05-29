@@ -10,7 +10,6 @@ Create a *JSON* file named ```ros-db.json``` with content:
 {
   "host": "localhost",
   "port": "5432",
-  "dbname": "IOTC_Ros_3_3_0_2026_04_16",
   "user": "xxx",
   "password": "xxx"
 }
@@ -24,6 +23,8 @@ source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 # Generate Ros dtabase metatadata files
 generate_db_metadata(domain = "ALL", extract_db_metadata(schemas = ROS_ALL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(domain = "LL", extract_db_metadata(schemas = ROS_LL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(domain = "PS", extract_db_metadata(schemas = ROS_PS_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
 ```
 ## Update comments on database
 

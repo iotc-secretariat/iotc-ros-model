@@ -7,9 +7,7 @@ output: html_fragment
 Here is the dependency tree:
 
 ```{r}
-db_schema_reverse_dependencies <- db_extra_data$db_reverse_dependencies[[db_schema$schema()]]
-tree <- build_reverse_dependency_tree(db_schema_reverse_dependencies, 'ros_common.observer_data', db_metadata$standalone_tables())
-out_data_dependencies(tree, 'ros_common.observer_data')
+out_data_dependencies(db_metadata$db_reverse_dependencies_tree()[[db_schema$schema()]], db_metadata$entry_point())
 ```
 
-[Visit the dependency graph](`r sprintf('ROS_database_%s_dependencies_%s%s.html', db_metadata$domain(), db_schema$schema(), timestamp)`){target='_blank'}
+[Visit the dependency graph](`r sprintf('ROS_database_%s_dependencies_%s.html', db_metadata$domain(), db_schema$schema())`){target='_blank'}

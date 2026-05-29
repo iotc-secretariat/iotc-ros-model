@@ -5,24 +5,6 @@ library(jsonlite)
 library(DBI)
 library(RPostgres)
 
-#' Connects to an instance of \code{Ros} on a given server machine
-#'
-#' @param config_file location of the json config file
-#' @param client_encoding The character set used by the client (defaults to \code{UTF-8})
-#' @return An Sql connection to \code{Ros} database
-#' @export
-connect_to_ros <- function(config_file = file.path("./ros-db.json"), client_encoding = "UTF-8") {
-  config <- fromJSON(config_file)
-
-  DBI::dbConnect(drv = RPostgres::Postgres(),
-                 host = config$host,
-                 dbname = config$dbname,
-                 port = config$ort,
-                 user = config$user,
-                 password = config$password,
-                 client_encoding = client_encoding)
-}
-
 #' Performs and SQL query through a provided JDBC connection and return its results as a \code{data.table}
 #'
 #' @param connection An JDBC connection to a RDBMS server
@@ -41,11 +23,11 @@ query <- function(connection, query, params = NULL) {
 #'
 #' The connection is released after the code is executed.
 #'
-#' @param connection_supplier function to get the connection (defaults to \code{\link{connect_to_ros}})
+#' @param connection_supplier function to get the connection
 #' @param code_to_execute the code to execute
 #' @return the \code{\link{code_to_execute}} result
 #' @export
-use_connection <- function(connection_supplier = connect_to_ros, code_to_execute) {
+use_connection <- function(connection_supplier, code_to_execute) {
   connection <- NULL
   tryCatch({
     connection <- do.call(connection_supplier, args = list())
@@ -66,12 +48,8 @@ write_file <- function(content, output_file) {
   fwrite(content, file = output_file, sep = ",", sep2 = c("", "\"", ""), quote = "auto", encoding = "UTF-8")
 }
 
-split_table_location <- function(value) {
+split_location <- function(value) {
   unlist(strsplit(value, "\\."))
-}
-
-split_column_location <- function(value) {
-  unlist(strsplit(value, "→"))
 }
 
 get_schemas_comment <- function(schema_names, connection_provider) {
@@ -125,7 +103,7 @@ SELECT
 --    fk.constraint_name,
     CASE
         WHEN fk.target_schema IS NULL THEN NULL
-        ELSE concat(fk.target_schema, '.', fk.target_table, '→', fk.target_column)
+        ELSE concat(fk.target_schema, '.', fk.target_table, '.', fk.target_column)
     END AS foreign_key
 --    fk.target_schema,
 --    fk.target_table,
@@ -250,150 +228,20 @@ apply_comments_on_db <- function(domain, root_directory, connection_provider, ap
   })
 }
 
-
-build_dependency_tree <- function(deps, entry_point) {
-
-  result <- data.table(
-    level = integer(),
-    parent = character(),
-    table = character(),
-    path = character()
-  )
-
-  visited <- character()
-
-  recurse <- function(current, parent = NA_character_, level = 0, path = current) {
-
-    result <<- rbind(
-      result,
-      data.table(
-        level = level,
-        parent = parent,
-        table = current,
-        path = path
-      )
-    )
-
-    # Avoid infinite loops
-    if (current %in% visited) {
-      return(NULL)
-    }
-
-    visited <<- c(visited, current)
-
-    children <- deps[
-      origin == current,
-      target
-    ]
-
-    for (child in children) {
-
-      recurse(
-        current = child,
-        parent = current,
-        level = level + 1,
-        path = paste(path, child, sep = " -> ")
-      )
-
-    }
-
-  }
-
-  recurse(entry_point)
-
-  result
-}
-
-build_reverse_dependency_tree <- function(deps, entry_point, standalone_tables) {
-
-  result <- data.table(
-    level = integer(),
-    parent = character(),
-    table = character(),
-    path = character()
-  )
-
-  visited <- character()
-
-  recurse <- function(current,
-                      parent = NA_character_,
-                      level = 0,
-                      path = current) {
-
-    result <<- rbind(
-      result,
-      data.table(
-        level = level,
-        parent = parent,
-        table = current,
-        path = path
-      )
-    )
-
-    # Prevent cycles
-    if (current %in% visited) {
-      return(NULL)
-    }
-    # Never add a standalone table (could be used by more than one data table)
-    if (current %in% standalone_tables) {
-      return(NULL)
-    }
-
-    visited <<- c(visited, current)
-
-    # Find tables depending on current
-    children <- deps[
-      target == current &
-        !origin %in% visited &
-        !str_ilike(path, paste0("% ", origin, "%")),
-      origin
-    ]
-
-    for (child in children) {
-      recurse(
-        current = child,
-        parent = current,
-        level = level + 1,
-        path = paste(path, child, sep = " ← ")
-      )
-    }
-
-    # Find tables depended by current
-    children <- deps[
-      origin == current &
-        !target %in% visited &
-        !str_ilike(target, paste0("% ", origin, "%")),
-      target
-    ]
-
-    for (child in children) {
-      recurse(
-        current = child,
-        parent = current,
-        level = level + 1,
-        path = paste(path, child, sep = " → ")
-      )
-    }
-  }
-
-  recurse(entry_point)
-  unique(result)
-}
-
 table_location <- R6Class(
   "TableLocation",
   public = list(
     initialize = function(gav) {
       stopifnot(!is.na(gav), is.character(gav), nchar(gav) > 0, gav %like% ".+\\..+")
-      split2 <- split_table_location(gav)
+      split2 <- split_location(gav)
       private$.schema <- split2[[1]]
       private$.table <- split2[[2]]
     },
-    table = function() {
-      private$.table
-    },
     schema = function() {
       private$.schema
+    },
+    table = function() {
+      private$.table
     },
     table_equals = function(table) {
       table == private$table
@@ -420,10 +268,14 @@ column_location <- R6Class(
   "ColumnLocation",
   public = list(
     initialize = function(gav) {
-      stopifnot(!is.na(gav), is.character(gav), nchar(gav) > 0, gav %like% ".+\\..+→.+")
-      split <- split_column_location(gav)
-      private$.table <- table_location$new(split[[1]])
-      private$.column <- split[[2]]
+      stopifnot(!is.na(gav), is.character(gav), nchar(gav) > 0, gav %like% ".+\\..+\\..+")
+      split <- split_location(gav)
+      private$.schema <- split[[1]]
+      private$.table <- split[[2]]
+      private$.column <- split[[3]]
+    },
+    schema = function() {
+      private$.schema
     },
     table = function() {
       private$.table
@@ -432,26 +284,40 @@ column_location <- R6Class(
       private$.column
     },
     table_equals = function(table) {
-      table == private$table$table_equals(table)
+      table == private$table
     },
     schema_equals = function(schema) {
-      schema == private$.table$schema_equals(schema)
+      schema == private$.schema
+    },
+    table_gav = function() {
+      sprintf("%s.%s", self$schema(), self$table())
     },
     gav = function() {
-      sprintf("%s→%s", self$table()$gav(), self$column())
-    },
-    print = function() {
-      cat(self$gav())
+      sprintf("%s.%s.%s", self$schema(), self$table(), self$column())
     }
+    # ,
+    # print = function(...) {
+    #   cat(self$gav())
+    #   invisible(self)
+    # }
   ),
   private = list(
-    # schema + table name
+    # schema name
+    .schema = NULL,
+    # table name
     .table = NULL,
     # column name
     .column = NULL
   )
 )
 
+as.character.TableLocation <- function(x, ...) {
+  x$gav()
+}
+
+as.character.ColumnLocation <- function(x, ...) {
+  x$gav()
+}
 
 db_metadata_table <- R6Class(
   "DbMetadataTable",
@@ -527,6 +393,10 @@ db_metadata_schema <- R6Class(
     },
     columns = function() {
       rbindlist(lapply(self$all_tables(), function(x) { x$columns() }))
+    },
+    remove_unused_tables = function(tables_to_remove) {
+      private$.tables <- Filter(function(x) { !x$table() %in% tables_to_remove }, private$.tables)
+      invisible(self)
     }
   ),
   private = list(
@@ -542,14 +412,28 @@ db_metadata_schema <- R6Class(
 db_metadata <- R6Class(
   "DbMetadata",
   public = list(
-    initialize = function(domain, version, last_update, schemas_comment, tables_comment, tables_columns, is_column_code_list_function, is_column_data_function, standalone_tables) {
+    initialize = function(domain,
+                          version,
+                          last_update,
+                          schemas_comment,
+                          tables_comment,
+                          tables_columns,
+                          is_column_code_list_function,
+                          is_column_registry_function,
+                          is_column_data_function,
+                          standalone_tables,
+                          entry_point,
+                          generate_dependencies_tree_function) {
       stopifnot(!is.na(domain), is.character(domain), nchar(domain) > 0)
       private$.domain <- domain
       private$.version <- version
       private$.last_update <- last_update
       private$.is_column_code_list_function <- is_column_code_list_function
+      private$.is_column_registry_function <- is_column_registry_function
       private$.is_column_data_function <- is_column_data_function
       private$.standalone_tables <- standalone_tables
+      private$.entry_point <- entry_point
+      private$.generate_dependencies_tree_function <- generate_dependencies_tree_function
       schema_names <- schemas_comment$schema
       private$.schemas <- lapply(schema_names, function(schema_name) {
         comment <- schemas_comment[schema == schema_name]$comment
@@ -579,8 +463,20 @@ db_metadata <- R6Class(
     is_column_data_function = function() {
       private$.is_column_data_function
     },
+    is_column_registry_function = function() {
+      private$.is_column_registry_function
+    },
     standalone_tables = function() {
       private$.standalone_tables
+    },
+    entry_point = function() {
+      private$.entry_point
+    },
+    db_reverse_dependencies = function() {
+      private$.db_reverse_dependencies
+    },
+    db_reverse_dependencies_tree = function() {
+      private$.db_reverse_dependencies_tree
     },
     all_schemas = function() {
       private$.schemas
@@ -605,8 +501,38 @@ db_metadata <- R6Class(
       rbindlist(lapply(self$all_schemas(), function(x) { x$columns() }))
     },
     data_dependencies_tables = function() {
-      data_dependencies <- self$columns()[self$is_column_data_function()(foreign_key)]
-      unique(data_dependencies[, `:=`(origin = paste0(schema, ".", table), target = unlist(lapply(foreign_key, function(x) { column_location$new(x)$table()$gav() })))][, .(origin, target)], by = c("origin", "target"))
+      data_dependencies <- self$columns()[self$is_column_data_function()(foreign_key) | self$is_column_registry_function()(foreign_key)]
+      unique(data_dependencies[, `:=`(origin = paste0(schema, ".", table, ".", column), target = foreign_key)][, .(origin, target)], by = c("origin", "target"))
+    },
+    generate_dependencies = function() {
+      deps <- self$data_dependencies_tables()
+      schema_names <- self$schema_names()
+      private$.db_reverse_dependencies <- lapply(schema_names, function(x) {
+        private$.generate_dependencies_tree_function(x, deps)
+      })
+      names(private$.db_reverse_dependencies) <- schema_names
+      private$.db_reverse_dependencies <- Filter(Negate(is.null), private$.db_reverse_dependencies)
+
+      schema_names <- names(private$.db_reverse_dependencies)
+
+      private$.db_reverse_dependencies_tree <- lapply(schema_names, function(x) {
+        private$.build_reverse_dependency_tree(private$.db_reverse_dependencies[[x]])
+      })
+      names(private$.db_reverse_dependencies_tree) <- schema_names
+    },
+    remove_unused_tables = function() {
+      stopifnot(!is.null(private$.db_reverse_dependencies_tree))
+      table_names_to_keep <- unique(unlist(lapply(private$.db_reverse_dependencies_tree, function(x) {
+        unique(append(x[!is.na(parent_table)]$parent_table, x$table))
+      })))
+      tables_to_keep <- lapply(table_names_to_keep, table_location$new)
+      names(tables_to_keep) <- table_names_to_keep
+      lapply(self$all_schemas(), function(schema) {
+        tables_to_remove <- Filter(function(x) { !paste0(schema$schema(), ".", x) %in% table_names_to_keep }, schema$table_names())
+        schema$remove_unused_tables(tables_to_remove)
+        tables_to_remove
+      }
+      )
     }
   ),
   private = list(
@@ -620,9 +546,112 @@ db_metadata <- R6Class(
     .schemas = NULL,
     # funtion to test if a table column is a foreign key pointing to a code list
     .is_column_code_list_function = NULL,
+    # funtion to test if a table column is a foreign key pointing to a registry table
+    .is_column_registry_function = NULL,
     # function to test if a table column is a foreign key pointing to a data table
     .is_column_data_function = NULL,
     # standalone tables
-    .standalone_tables = NULL
+    .standalone_tables = NULL,
+    # entry point
+    .entry_point = NULL,
+    # function to generate dependencies tree
+    .generate_dependencies_tree_function = NULL,
+    # computed dependencies for each schema
+    .db_reverse_dependencies = NULL,
+    # computed dependencies tree for each schema
+    .db_reverse_dependencies_tree = NULL,
+    .build_reverse_dependency_tree = function(deps) {
+      # print(sprintf("yoyoyo %s", entry_point))
+      entry_point <- self$entry_point()
+      standalone_tables <- self$standalone_tables()
+      result <- data.table(
+        level = integer(),
+        parent_table = character(),
+        parent_column = character(),
+        table = character(),
+        table_column = character(),
+        link_type = character(),
+        path = character()
+      )
+
+      visited <- character()
+
+      recurse <- function(current,
+                          parent = NA_character_,
+                          link_type = NA_character_,
+                          level = 0,
+                          path = "") {
+
+        current_gav <- column_location$new(current)
+        current_table_gav <- current_gav$table_gav()
+
+        result <<- rbind(
+          result,
+          data.table(
+            level = level,
+            link_type = link_type,
+            parent_table = ifelse(is.na(parent), NA_character_, column_location$new(parent)$table_gav()),
+            parent_column = ifelse(is.na(parent), NA_character_, column_location$new(parent)$column()),
+            table = current_table_gav,
+            table_column = current_gav$column(),
+            path = path
+          )
+        )
+        # cat(sprintf("%s → %s\n", parent, current))
+        # Prevent cycles
+        if (current_table_gav %in% visited) {
+          return(NULL)
+        }
+        # Never add a standalone table (could be used by more than one data table)
+        if (current_table_gav %in% standalone_tables) {
+          return(NULL)
+        }
+
+        visited <<- c(visited, current_table_gav)
+
+        # Find tables depending on current
+        children <- deps[
+          mapply(function(origin, target) {
+            origin_table_gav <- column_location$new(origin)$table_gav()
+            target_table_gav <- column_location$new(target)$table_gav()
+            target_table_gav == current_table_gav &
+              !origin_table_gav %in% visited &
+              !str_ilike(path, paste0("% ", origin_table_gav, "%"))
+          }, origin, target)]
+        link_type <- "←"
+        mapply(function(origin, target) {
+          recurse(
+            current = origin,
+            parent = target,
+            level = level + 1,
+            link_type = link_type,
+            path = sprintf("%s (%s%s%s)", path, target, link_type, origin)
+          )
+        }, children$origin, children$target)
+
+        # Find tables depended by current
+        children <- deps[
+          mapply(function(origin, target) {
+            origin_table_gav <- column_location$new(origin)$table_gav()
+            target_table_gav <- column_location$new(target)$table_gav()
+            origin_table_gav == current_table_gav &
+              !target_table_gav %in% visited &
+              !str_ilike(target_table_gav, paste0("% ", origin_table_gav, "%"))
+          }, origin, target)]
+        link_type <- "→"
+        mapply(function(origin, target) {
+          recurse(
+            current = target,
+            parent = origin,
+            level = level + 1,
+            link_type = link_type,
+            path = sprintf("%s (%s%s%s)", path, target, link_type, origin)
+          )
+        }, children$origin, children$target)
+      }
+
+      recurse(entry_point)
+      unique(result)
+    }
   )
 )
