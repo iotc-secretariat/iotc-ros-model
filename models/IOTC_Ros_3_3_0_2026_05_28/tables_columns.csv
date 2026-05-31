@@ -72,7 +72,7 @@ ros_common,observer_data,source,character varying(255),YES,,
 ros_common,observer_data,status,character varying(255),YES,,
 ros_common,observer_data,submission_time,timestamp(6) without time zone,NO,,
 ros_common,observer_data,finalization_time,timestamp(6) without time zone,NO,,
-ros_common,observer_data,submitter_id,integer,NO,,ros_meta.focal_point.contact_id
+ros_common,observer_data,submitter_id,integer,YES,,ros_meta.focal_point.contact_id
 ros_common,trip,id,integer,YES,,
 ros_common,trip,trip_original_id,character varying(255),YES,,
 ros_common,trip,observer_data_id,integer,YES,,ros_common.observer_data.id
@@ -160,7 +160,7 @@ ros_common,trip_vessel_main_engines,main_engines_make,character varying(255),NO,
 ros_common,trip_vessel_main_engines,main_engines_value,double precision,YES,,
 ros_common,trip_vessel_main_engines,main_engines_unit,character varying(3),YES,,
 ros_common,trip_waste_managements,id,integer,YES,,
-ros_common,trip_waste_managements,trip_id,integer,NO,,ros_common.trip.id
+ros_common,trip_waste_managements,trip_id,integer,YES,,ros_common.trip.id
 ros_common,trip_waste_managements,waste_storage_or_disposal_method_code,character(2),NO,,refs_fishery.waste_disposal_methods.code
 ros_common,trip_waste_managements,waste_category_code,character(2),NO,,refs_fishery.waste_categories.code
 ros_ps,additional_catch_details_on_ssi,id,integer,YES,,
@@ -173,7 +173,7 @@ ros_ps,catch_details,id,integer,YES,,
 ros_ps,catch_details,catch_detail_original_id,character varying(255),YES,,
 ros_ps,catch_details,comments,text,NO,,
 ros_ps,catch_details,estimated_catch_in_numbers,integer,NO,,
-ros_ps,catch_details,fishing_event_id,integer,NO,,ros_ps.fishing_events.id
+ros_ps,catch_details,fishing_event_id,integer,YES,,ros_ps.fishing_events.id
 ros_ps,catch_details,type_of_fate_code,character(2),YES,,refs_biology.fates.type_of_fate_code
 ros_ps,catch_details,estimated_weight_sampling_method_code,character(2),NO,,refs_biology.sampling_methods_for_catch_estimation.code
 ros_ps,catch_details,fates_code,character(2),NO,,refs_biology.fates.code
@@ -187,7 +187,7 @@ ros_ps,cetaceans_whale_shark_sightings,id,integer,YES,,
 ros_ps,cetaceans_whale_shark_sightings,caught_inside_the_net,boolean,NO,,
 ros_ps,cetaceans_whale_shark_sightings,number_sighted,integer,NO,,
 ros_ps,cetaceans_whale_shark_sightings,sighting_occurred_before_setting,boolean,NO,,
-ros_ps,cetaceans_whale_shark_sightings,setting_operation_id,integer,NO,,ros_ps.setting_operations.id
+ros_ps,cetaceans_whale_shark_sightings,setting_operation_id,integer,YES,,ros_ps.setting_operations.id
 ros_ps,cetaceans_whale_shark_sightings,species_code,character varying(16),NO,,refs_biology.species.code
 ros_ps,fishing_events,id,integer,YES,,
 ros_ps,fishing_events,comments,text,NO,,
@@ -259,21 +259,21 @@ ros_ll,additional_catch_details_on_ssi,leader_thickness_unit,character varying(3
 ros_ll,baits_by_conditions,id,integer,YES,,
 ros_ll,baits_by_conditions,dye_colour,character varying(255),NO,,
 ros_ll,baits_by_conditions,ratio,double precision,NO,,
-ros_ll,baits_by_conditions,setting_operations_id,integer,NO,,ros_ll.setting_operations.id
+ros_ll,baits_by_conditions,setting_operation_id,integer,YES,,ros_ll.setting_operations.id
 ros_ll,baits_by_conditions,bait_condition_code,character(2),NO,,refs_biology.bait_conditions.code
 ros_ll,baits_by_conditions,species_code,character varying(16),NO,,refs_biology.species.code
 ros_ll,biteoffs_by_branchlines_set,id,integer,YES,,
 ros_ll,biteoffs_by_branchlines_set,branchline_configuration_number,integer,NO,,
 ros_ll,biteoffs_by_branchlines_set,number_of_biteoffs,integer,NO,,
-ros_ll,biteoffs_by_branchlines_set,hauling_operation_id,integer,NO,,ros_ll.hauling_operations.id
+ros_ll,biteoffs_by_branchlines_set,hauling_operation_id,integer,YES,,ros_ll.hauling_operations.id
 ros_ll,branchline_configurations,id,integer,YES,,
 ros_ll,branchline_configurations,configuration_number,integer,NO,,
-ros_ll,branchline_configurations,gear_specifications_id,integer,NO,,ros_ll.gear_specifications.id
+ros_ll,branchline_configurations,gear_specification_id,integer,YES,,ros_ll.gear_specifications.id
 ros_ll,branchline_configurations_storage,branchline_configuration_id,integer,YES,,ros_ll.branchline_configurations.id
 ros_ll,branchline_configurations_storage,branchline_storage_code,character(2),YES,,refs_fishery.branchline_storages.code
 ros_ll,branchline_sections,id,integer,YES,,
 ros_ll,branchline_sections,section_number,integer,NO,,
-ros_ll,branchline_sections,branchline_configuration_id,integer,NO,,ros_ll.branchline_configurations.id
+ros_ll,branchline_sections,branchline_configuration_id,integer,YES,,ros_ll.branchline_configurations.id
 ros_ll,branchline_sections,branchline_material_type_code,character(2),NO,,refs_fishery.line_material_types.code
 ros_ll,branchline_sections,diameter_value,double precision,NO,,
 ros_ll,branchline_sections,diameter_unit,character varying(3),NO,,
@@ -282,7 +282,7 @@ ros_ll,branchline_sections,length_unit,character varying(3),NO,,
 ros_ll,branchlines_set,id,integer,YES,,
 ros_ll,branchlines_set,branchline_configuration_number,integer,NO,,
 ros_ll,branchlines_set,number_of_branchlines,integer,NO,,
-ros_ll,branchlines_set,setting_operations_id,integer,NO,,ros_ll.setting_operations.id
+ros_ll,branchlines_set,setting_operation_id,integer,YES,,ros_ll.setting_operations.id
 ros_ll,catch_details,id,integer,YES,,
 ros_ll,catch_details,catch_detail_original_id,character varying(255),YES,,
 ros_ll,catch_details,comments,text,NO,,
@@ -306,7 +306,7 @@ ros_ll,fishing_events,setting_operation_id,integer,NO,,ros_ll.setting_operations
 ros_ll,fishing_events,trip_id,integer,YES,,ros_common.trip.id
 ros_ll,floatlines,id,integer,YES,,
 ros_ll,floatlines,floatline_number,integer,NO,,
-ros_ll,floatlines,setting_operation_id,integer,NO,,ros_ll.setting_operations.id
+ros_ll,floatlines,setting_operation_id,integer,YES,,ros_ll.setting_operations.id
 ros_ll,floatlines,floatline_length_value,double precision,NO,,
 ros_ll,floatlines,floatline_length_unit,character varying(3),NO,,
 ros_ll,gear_specifications,id,integer,YES,,
@@ -334,7 +334,7 @@ ros_ll,hauling_operations,sampling_protocol_code,character(2),NO,,refs_biology.s
 ros_ll,hooks_by_type,id,integer,YES,,
 ros_ll,hooks_by_type,percentage_of_set,double precision,NO,,
 ros_ll,hooks_by_type,variations,character varying(255),NO,,
-ros_ll,hooks_by_type,setting_operations_id,integer,NO,,ros_ll.setting_operations.id
+ros_ll,hooks_by_type,setting_operation_id,integer,YES,,ros_ll.setting_operations.id
 ros_ll,hooks_by_type,hook_type_code,character(3),NO,,refs_fishery.hook_types.code
 ros_ll,leader_set,id,integer,YES,,
 ros_ll,leader_set,setting_operation_id,integer,YES,,ros_ll.setting_operations.id
@@ -346,7 +346,7 @@ ros_ll,leader_set,total_branchline_maximum_length_value,double precision,YES,,
 ros_ll,leader_set,total_branchline_maximum_length_unit,character varying(3),YES,,
 ros_ll,lights_by_type_and_colour,id,integer,YES,,
 ros_ll,lights_by_type_and_colour,number_of_lights_by_type_and_colour,integer,NO,,
-ros_ll,lights_by_type_and_colour,setting_operation_id,integer,NO,,ros_ll.setting_operations.id
+ros_ll,lights_by_type_and_colour,setting_operation_id,integer,YES,,ros_ll.setting_operations.id
 ros_ll,lights_by_type_and_colour,light_colour_code,character(2),NO,,refs_fishery.light_colours.code
 ros_ll,lights_by_type_and_colour,light_type_code,character(2),NO,,refs_fishery.light_types.code
 ros_ll,mitigation_measures,id,integer,YES,,
@@ -384,8 +384,8 @@ ros_ll,setting_operations,vessel_speed_value,double precision,NO,,
 ros_ll,setting_operations,vessel_speed_unit,character varying(3),NO,,
 ros_ll,setting_operations,line_setter_speed_value,double precision,NO,,
 ros_ll,setting_operations,line_setter_speed_unit,character varying(3),NO,,
-ros_ll,setting_operations_target_species,setting_operations_id,integer,YES,,ros_ll.setting_operations.id
-ros_ll,setting_operations_target_species,target_species_code,character varying(16),NO,,refs_biology.species.code
+ros_ll,setting_operations_target_species,setting_operation_id,integer,YES,,ros_ll.setting_operations.id
+ros_ll,setting_operations_target_species,target_species_code,character varying(16),YES,,refs_biology.species.code
 ros_ll,specimens,id,integer,YES,,
 ros_ll,specimens,sampling_period,character varying(255),NO,,
 ros_ll,specimens,specimen_original_id,character varying(255),YES,,
@@ -467,7 +467,7 @@ ros_pl,lures_or_jiggers_by_type,id,integer,YES,,
 ros_pl,lures_or_jiggers_by_type,lure_type,character varying(255),NO,,
 ros_pl,lures_or_jiggers_by_type,make,character varying(255),NO,,
 ros_pl,lures_or_jiggers_by_type,hook_type_code,character(3),NO,,refs_fishery.hook_types.code
-ros_pl,lures_or_jiggers_by_type,gear_specifications_id,integer,NO,,ros_pl.gear_specifications.id
+ros_pl,lures_or_jiggers_by_type,gear_specification_id,integer,YES,,ros_pl.gear_specifications.id
 ros_pl,object_details,id,integer,YES,,
 ros_pl,object_details,buoy_identifier,character varying(255),NO,,
 ros_pl,specimens,id,integer,YES,,
@@ -477,7 +477,7 @@ ros_pl,specimens,additional_specimen_details_non_target_species_id,integer,NO,,r
 ros_pl,specimens,biometric_information_id,integer,NO,,ros_common.biometric_information.id
 ros_pl,specimens,depredation_detail_id,integer,NO,,ros_common.depredation_details.id
 ros_pl,specimens,tag_detail_id,integer,NO,,ros_pl.tag_details.id
-ros_pl,specimens,catch_detail_id,integer,NO,,ros_pl.catch_details.id
+ros_pl,specimens,catch_detail_id,integer,YES,,ros_pl.catch_details.id
 ros_pl,tag_details,id,integer,YES,,
 ros_pl,tag_details,alternate_tag_original_id,character varying(255),NO,,
 ros_pl,tag_details,tag_original_id,character varying(255),NO,,
@@ -505,8 +505,8 @@ ros_pl,tuna_fishing_operations,start_event_longitude,double precision,NO,,
 ros_pl,tuna_fishing_operations,bait_and_condition_id,integer,NO,,ros_pl.baits_and_conditions.id
 ros_pl,tuna_fishing_operations_cl_school_sighting_cues,fishing_operation_id,integer,YES,,ros_pl.tuna_fishing_operations.id
 ros_pl,tuna_fishing_operations_cl_school_sighting_cues,school_sighting_cue_code,character(2),YES,,refs_fishery.school_sighting_cues.code
-ros_pl,tuna_fishing_operations_target_species,tuna_fishing_operation_id2,integer,YES,,ros_pl.tuna_fishing_operations.id
-ros_pl,tuna_fishing_operations_target_species,target_species_code,character varying(16),NO,,refs_biology.species.code
+ros_pl,tuna_fishing_operations_target_species,tuna_fishing_operation_id,integer,YES,,ros_pl.tuna_fishing_operations.id
+ros_pl,tuna_fishing_operations_target_species,target_species_code,character varying(16),YES,,refs_biology.species.code
 ros_gn,additional_catch_details_on_ssi,id,integer,YES,,
 ros_gn,additional_catch_details_on_ssi,brought_on_board,boolean,NO,,
 ros_gn,additional_catch_details_on_ssi,photo_id,character varying(255),NO,,
