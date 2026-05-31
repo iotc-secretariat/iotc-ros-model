@@ -174,23 +174,19 @@ extract_db_metadata <- function(schemas, connection_provider) {
        tables_columns = get_tables_columns(schemas, connection_provider))
 }
 
-generate_db_metadata <- function(domain, db_metadata, root_directory) {
-  output_directory <- file.path(root_directory, domain)
+generate_db_metadata <- function(db_metadata, output_directory) {
   if (!dir.exists(output_directory)) {
     dir.create(output_directory, recursive = TRUE)
   }
-  lapply(names(db_metadata), function(x) { write_file(db_metadata[[x]], file.path(output_directory, sprintf("%s.csv", x))) })
-  invisible()
+  invisible(lapply(names(db_metadata), function(x) { write_file(db_metadata[[x]], file.path(output_directory, sprintf("%s.csv", x))) }))
 }
 
-#' Load db metata files for the given domain.
+#' Load all db metata files.
 #'
-#' @param domain gear domain (could be LL, PS, GN, PL)
 #' @param root_directory root directory of files to load
 #' @return loaded files
 #' @export
-load_db_metadata <- function(domain, root_directory) {
-  output_directory <- file.path(root_directory, domain)
+load_db_metadata <- function(output_directory) {
   list(schemas_comment = fread(file.path(output_directory, "schemas_comment.csv")),
        tables_comment = fread(file.path(output_directory, "tables_comment.csv")),
        tables_columns = fread(file.path(output_directory, "tables_columns.csv")))
@@ -205,14 +201,13 @@ load_db_metadata_object <- function(domain,
 
 #' Generate SQL queries to update comments on database, at schema, table and column level.
 #'
-#' @param domain gear domain (could be LL, PS, GN, PL)
 #' @param root_directory root directory of files to load
 #' @param connection_supplier function to get the connection
 #' @param apply flag to apply generated sql queries on database (defaults to \code{TRUE})
 #' @return generated sql queries
 #' @export
-apply_comments_on_db <- function(domain, root_directory, connection_provider, apply = TRUE) {
-  files <- load_db_metadata(domain, root_directory)
+apply_comments_on_db <- function(root_directory, connection_provider, apply = TRUE) {
+  files <- load_db_metadata(root_directory)
   use_connection(connection_provider, function(connection) {
     # apply on schemas
     queries <- data.table(files$schemas_comment)[!is.na(comment) & str_length(comment) > 0, sql := sprintf("COMMENT ON SCHEMA %s IS %s;", schema, dbQuoteString(connection, comment))][!is.na(sql)]$sql
@@ -348,46 +343,6 @@ db_metadata_table <- R6Class(
     },
     columns = function() {
       private$.columns
-    },
-    dependencies = function(file_location,
-                            is_column_code_list_function,
-                            is_column_registry_function,
-                            is_column_data_function) {
-      data.table(self$columns())[is_column_code_list_function(foreign_key) |
-                                   is_column_registry_function(foreign_key) |
-                                   is_column_data_function(foreign_key)][, `:=`(schema = NULL,
-                                                                                table = NULL,
-                                                                                type = NULL,
-                                                                                comment = NULL,
-                                                                                foreign_key = NULL,
-                                                                                dependency_type = sapply(foreign_key, function(x) {
-                                                                                  if (is.na(x)) {
-                                                                                    return(NA_character_)
-                                                                                  }
-                                                                                  if (is_column_code_list_function(x)) {
-                                                                                    return("Code list")
-                                                                                  }
-                                                                                  if (is_column_registry_function(x)) {
-                                                                                    return("Ros registry")
-                                                                                  }
-                                                                                  if (is_column_data_function(x)) {
-                                                                                    return("Ros data")
-                                                                                  }
-                                                                                  NA_character_
-                                                                                }),
-                                                                                dependency_table = sapply(foreign_key, function(x) {
-                                                                                  table <- column_location$new(x)
-                                                                                  if (is_column_code_list_function(x)) {
-                                                                                    #TODO Find a nice way to have https://data.iotc.org/reference/latest/domain url from db table gav
-                                                                                    # return(sprintf("<a target='_iotc_code_lists' href='https://data.iotc.org/reference/latest/domain/%s#%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
-                                                                                    return(table$table_gav())
-                                                                                  }
-                                                                                  if (is_column_registry_function(x) | is_column_data_function(x)) {
-                                                                                    return(sprintf("<a href='./%s#%s_%s'>%s</a>", basename(file_location), table$schema(), table$table(), table$table_gav()))
-                                                                                  }
-                                                                                  NA_character_
-                                                                                }),
-                                                                                dependency_column = sapply(foreign_key, function(x) { column_location$new(x)$column() }))]
     }
   ),
   private = list(
@@ -425,8 +380,12 @@ db_metadata_schema <- R6Class(
     tables = function(schema) {
       Filter(function(x) { x$schema() == schema }, private$.tables)
     },
-    all_tables = function() {
-      private$.tables
+    all_tables = function(tables_names = NULL) {
+      if (is.null(tables_names)) {
+        private$.tables }
+      else {
+        Filter(function(x) {x$table_gav() %in% tables_names}, private$.tables)
+      }
     },
     table = function(table) {
       unlist(Filter(function(x) { x$table() == table }, private$.tables))[[1]]
@@ -494,6 +453,9 @@ db_metadata <- R6Class(
     domain = function() {
       private$.domain
     },
+    to_domain_report = function() {
+      ifelse(private$.domain == "ALL", "", paste0("_", private$.domain))
+    },
     version = function() {
       private$.version
     },
@@ -515,6 +477,9 @@ db_metadata <- R6Class(
     entry_point = function() {
       private$.entry_point
     },
+    entry_point_table_gav = function() {
+      column_location$new(self$entry_point())$table_gav()
+    },
     db_reverse_dependencies = function() {
       private$.db_reverse_dependencies
     },
@@ -523,6 +488,9 @@ db_metadata <- R6Class(
     },
     all_schemas = function() {
       private$.schemas
+    },
+    all_tables = function(tables_names = NULL) {
+      unlist(lapply(self$all_schemas(), function(x) { x$all_tables(tables_names) }))
     },
     schema = function(schema_name) {
       Filter(function(x) { x$schema() == schema_name }, private$.schemas)[[1]]
@@ -574,8 +542,7 @@ db_metadata <- R6Class(
         tables_to_remove <- Filter(function(x) { !paste0(schema$schema(), ".", x) %in% table_names_to_keep }, schema$table_names())
         schema$remove_unused_tables(tables_to_remove)
         tables_to_remove
-      }
-      )
+      })
     }
   ),
   private = list(

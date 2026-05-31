@@ -22,11 +22,7 @@ Create a *JSON* file named ```ros-db.json``` with content:
 source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 # Generate Ros dtabase metatadata files
-generate_db_metadata(domain = "ALL", extract_db_metadata(schemas = ROS_ALL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
-generate_db_metadata(domain = "LL", extract_db_metadata(schemas = ROS_LL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
-generate_db_metadata(domain = "PS", extract_db_metadata(schemas = ROS_PS_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
-generate_db_metadata(domain = "PL", extract_db_metadata(schemas = ROS_PL_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
-generate_db_metadata(domain = "GN", extract_db_metadata(schemas = ROS_GN_SCHEMAS, connection_provider = connect_to_ros), root_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(extract_db_metadata(schemas = ROS_SCHEMAS$ALL, connection_provider = connect_to_ros), output_directory = DB_METADATA_DIRECTORY)
 ```
 ## Update comments on database
 
@@ -35,7 +31,7 @@ generate_db_metadata(domain = "GN", extract_db_metadata(schemas = ROS_GN_SCHEMAS
 source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 # Update for the hole Ros database
-ros_update_queries <- apply_comments_on_db(domain = "ALL", root_directory = DB_METADATA_DIRECTORY, connection_provider = connect_to_ros)
+ros_update_queries <- apply_comments_on_db(root_directory = DB_METADATA_DIRECTORY, connection_provider = connect_to_ros)
 ```
 ## Generate database metadata report
 
@@ -54,4 +50,11 @@ ros_db_metadata_generate_report(domain = "LL", timestamp = DEFAULT_TIME_STAMP)
 ros_db_metadata_generate_report(domain = "PL", timestamp = DEFAULT_TIME_STAMP)
 # Generate documentation report of the GN domain
 ros_db_metadata_generate_report(domain = "GN", timestamp = DEFAULT_TIME_STAMP)
+```
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/common_db_report.R")
+source("R/ros_db_metadata.R")
+ros_db_metadata_generate_report(domain = "LL", timestamp = DEFAULT_TIME_STAMP)
 ```

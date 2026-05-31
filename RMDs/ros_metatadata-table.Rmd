@@ -2,12 +2,15 @@
 output: html_fragment
 ---
 
+```{r}
+db_table_columns <- db_tables_columns[[db_table$table_gav()]]
+db_table_dependencies <- db_tables_dependencies[[db_table$table_gav()]]
+db_table_usages <- db_tables_usages[[db_table$table_gav()]]
+with_depedencies <- nrow(db_table_dependencies) > 0
+with_usages <- nrow(db_table_usages) > 0
+```
 ```{r echo=FALSE, results='asis'}
-cat(sprintf(
-  "## Table %s {#%s}\n",
-  db_table$table(),
-  paste0(db_table$schema(), "_", db_table$table())
-))
+cat(sprintf("## Table %1$s {#%2$s.%1$s}\n", db_table$table(), db_table$schema()))
 ```
 #### Description
 
@@ -18,13 +21,7 @@ cat(sprintf(
 ##### Columns
 
 ```{r}
-db_table_columns <- db_table$columns()
 out_table_columns(db_table_columns)
-db_table_dependencies <- db_table$dependencies(file_location,
-                                               db_metadata$is_column_code_list_function(),
-                                               db_metadata$is_column_registry_function(),
-                                               db_metadata$is_column_data_function())
-with_depedencies <- nrow(db_table_dependencies) > 0
 ```
 ##### Dependencies {.tabset}
 
@@ -36,4 +33,9 @@ if (with_depedencies) {
 ```
 ##### Usages {.tabset}
 
-NO DATA
+`r if (!with_usages) { "NO DATA" }`
+```{r}
+if (with_usages) {
+  out_table_usages(db_table_usages)
+}
+```

@@ -10,4 +10,4 @@ Here is the dependency tree:
 out_data_dependencies(db_metadata$db_reverse_dependencies_tree()[[db_schema$schema()]], db_metadata$entry_point())
 ```
 
-[Visit the dependency graph](`r sprintf('ROS_database_%s_dependencies_%s.html', db_metadata$domain(), db_schema$schema())`){target='_blank'}
+[Visit the dependency graph](`r sprintf('ROS_database%s_dependencies_%s.html', db_metadata$to_domain_report(), db_schema$schema())`){target='_blank'}

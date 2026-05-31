@@ -1,0 +1,38 @@
+---
+title: "ROS Database dependency graph (version: `r paste0(db_metadata$version(), ' ', timestamp)` ) - Domain `r str_to_upper(str_sub(schema_name, 5))`"
+subtitle: "Last updated: `r db_metadata$last_update()`"
+author: "Author: [IOTC Secretariat](mailto:IOTC-Secretariat@fao.org)"
+output:
+  html_document:
+    theme: flatly
+    css: "../templates/graph_template.css"
+    includes:
+      in_header: "../templates/generated-graph.js"
+    self_contained: true
+    mathjax: null
+    number_sections: false
+    toc: false
+---
+
+<div class="container-fluid">
+<div class="row">
+<!-- LEFT PANEL -->
+<div class="col-md-8">
+<div id="graph">
+
+```{r echo=FALSE}
+out_data_graph(graph_data)
+```
+
+</div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="col-md-4 details-panel">
+<h2>Table details</h2>
+<div id="table-details" class="details">
+<p>Select a node in the graph.</p>
+</div>
+</div>
+</div>
+</div>

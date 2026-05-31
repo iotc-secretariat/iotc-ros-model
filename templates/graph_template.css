@@ -1,0 +1,114 @@
+/* ================================
+   FULL SCREEN RESET
+================================ */
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* removes scroll gaps */
+}
+
+/* ================================
+   REMOVE BOOTSTRAP CONSTRAINTS
+================================ */
+
+.container-fluid {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.section.level1 {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.details-panel {
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+#table-details {
+    width: 100%;
+}
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+.details th,
+.details td {
+    width: 1%;
+    white-space: nowrap;
+    padding: 4px 8px;
+}
+
+.details {
+  border-left: 1px solid #cccccc;
+  padding: 10px;
+  overflow-y: auto;
+  font-family: Arial;
+}
+
+.details h3 {
+  margin-top: 0;
+}
+
+.details table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#table-details table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+div.details-panel {
+  font-size: 1rem;
+}
+
+div.details-panel h2 {
+  font-size: 2rem;
+}
+div.details-panel h3,
+div.details-panel h4 {
+  font-size: 1.5rem;
+}
+
+#table-details th,
+#table-details td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+#table-details th {
+  width: 30%;
+  font-weight: 600;
+}
+
+#table-details tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+#table-details tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+#table-details tbody tr:hover {
+  background-color: #f0f0f0;
+}
+#table-details tbody tr.mandatory {
+   background-color: #fff8e1 !important;
+  font-weight: bold;
+}
+
+.error {
+  color:red;
+  font-style:italic;
+}
