@@ -1,0 +1,16 @@
+ALTER TABLE ros_ll.branchline_configurations ALTER COLUMN gear_specification_id SET NOT NULL;
+ALTER TABLE ros_ll.branchline_sections ALTER COLUMN branchline_configuration_id SET NOT NULL;
+ALTER TABLE ros_ll.setting_operations_target_species ALTER COLUMN target_species_code SET NOT NULL;
+ALTER TABLE ros_ll.branchlines_set ALTER COLUMN setting_operation_id SET NOT NULL;
+ALTER TABLE ros_ll.lights_by_type_and_colour ALTER COLUMN setting_operation_id SET NOT NULL;
+ALTER TABLE ros_ll.hooks_by_type ALTER COLUMN setting_operation_id SET NOT NULL;
+ALTER TABLE ros_ll.floatlines ALTER COLUMN setting_operation_id SET NOT NULL;
+ALTER TABLE ros_ll.baits_by_conditions ALTER COLUMN setting_operation_id SET NOT NULL;
+ALTER TABLE ros_ll.biteoffs_by_branchlines_set ALTER COLUMN hauling_operation_id SET NOT NULL;
+ALTER TABLE ros_common.trip_waste_managements ALTER COLUMN trip_id SET NOT NULL;
+ALTER TABLE ros_ps.cetaceans_whale_shark_sightings ALTER COLUMN setting_operation_id SET NOT NULL;
+ALTER TABLE ros_ps.catch_details ALTER COLUMN fishing_event_id SET NOT NULL;
+ALTER TABLE  ros_pl.lures_or_jiggers_by_type ALTER COLUMN gear_specification_id SET NOT NULL;
+ALTER TABLE  ros_pl.tuna_fishing_operations_target_species ALTER COLUMN target_species_code SET NOT NULL;
+ALTER TABLE  ros_pl.specimens ALTER COLUMN catch_detail_id SET NOT NULL;
+ALTER TABLE  ros_common.observer_data ALTER COLUMN submitter_id SET NOT NULL;

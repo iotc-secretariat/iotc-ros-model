@@ -1,0 +1,7 @@
+ALTER TABLE ros_ll.baits_by_conditions RENAME setting_operations_id TO setting_operation_id;
+ALTER TABLE ros_ll.branchlines_set RENAME setting_operations_id TO setting_operation_id;
+ALTER TABLE ros_ll.hooks_by_type RENAME setting_operations_id TO setting_operation_id;
+ALTER TABLE ros_ll.branchline_configurations RENAME gear_specifications_id TO gear_specification_id;
+ALTER TABLE ros_ll.setting_operations_target_species RENAME setting_operations_id TO setting_operation_id;
+ALTER TABLE ros_pl.lures_or_jiggers_by_type RENAME gear_specifications_id TO gear_specification_id;
+ALTER TABLE  ros_pl.tuna_fishing_operations_target_species RENAME tuna_fishing_operation_id2 TO tuna_fishing_operation_id;
