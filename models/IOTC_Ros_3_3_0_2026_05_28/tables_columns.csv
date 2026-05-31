@@ -192,7 +192,7 @@ ros_ps,cetaceans_whale_shark_sightings,species_code,character varying(16),NO,,re
 ros_ps,fishing_events,id,integer,YES,,
 ros_ps,fishing_events,comments,text,NO,,
 ros_ps,fishing_events,event_original_id,character varying(255),NO,,
-ros_ps,fishing_events,setting_operation_id,integer,NO,,ros_ps.setting_operations.id
+ros_ps,fishing_events,setting_operation_id,integer,YES,,ros_ps.setting_operations.id
 ros_ps,fishing_events,trip_id,integer,YES,,ros_common.trip.id
 ros_ps,gear_specifications,id,integer,YES,,
 ros_ps,gear_specifications,trip_id,integer,YES,,ros_common.trip.id
