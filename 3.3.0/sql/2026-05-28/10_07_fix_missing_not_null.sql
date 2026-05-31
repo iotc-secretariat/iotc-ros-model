@@ -14,3 +14,4 @@ ALTER TABLE  ros_pl.lures_or_jiggers_by_type ALTER COLUMN gear_specification_id 
 ALTER TABLE  ros_pl.tuna_fishing_operations_target_species ALTER COLUMN target_species_code SET NOT NULL;
 ALTER TABLE  ros_pl.specimens ALTER COLUMN catch_detail_id SET NOT NULL;
 ALTER TABLE  ros_common.observer_data ALTER COLUMN submitter_id SET NOT NULL;
+ALTER TABLE  ros_ps.fishing_events ALTER COLUMN setting_operation_id SET NOT NULL;
