@@ -7,7 +7,7 @@ library(visNetwork)
 library(jsonlite)
 
 out_table_columns <- function(data) {
-  real_data <- data.table(data)[, `:=`(comment = fifelse(is.na(comment) | comment == "", "Not filled", comment), schema = NULL, table = NULL, foreign_key = NULL)]
+  real_data <- data.table(data)[, `:=`(description = fifelse(is.na(description) | description == "", "Not filled", description), schema = NULL, table = NULL, foreign_key = NULL)]
   datatable(real_data,
             autoHideNavigation = TRUE,
             rownames = FALSE,
@@ -17,7 +17,7 @@ out_table_columns <- function(data) {
                            columnDefs = list(
                              list(visible = FALSE, targets = which(names(real_data) == "mandatory") - 1),
                              list(
-                               targets = "comment",
+                               targets = "description",
                                createdCell = JS(
                                  "function(td, cellData) {",
                                  "  if(cellData === 'Not filled') {",

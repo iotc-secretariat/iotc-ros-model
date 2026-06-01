@@ -1,4 +1,4 @@
-schema,table,column,type,mandatory,comment,foreign_key
+schema,table,column,type,mandatory,description,foreign_key
 ros_meta,contact,id,integer,YES,,
 ros_meta,contact,full_name,character varying(255),YES,,
 ros_meta,contact,nationality_code,character(3),NO,,refs_admin.countries.code

@@ -52,12 +52,12 @@ split_location <- function(value) {
   unlist(strsplit(value, "\\."))
 }
 
-get_schemas_comment <- function(schema_names, connection_provider) {
+get_schemas_description <- function(schema_names, connection_provider) {
   use_connection(connection_provider, function(connection) {
     sql <- "
 SELECT
     n.nspname AS schema,
-    d.description AS comment
+    d.description AS description
 FROM pg_namespace n
 LEFT JOIN pg_description d
        ON d.objoid = n.oid
@@ -70,13 +70,13 @@ ORDER BY n.nspname
   })
 }
 
-get_tables_comment <- function(schema_names, connection_provider) {
+get_tables_description <- function(schema_names, connection_provider) {
   use_connection(connection_provider, function(connection) {
     sql <- "
 SELECT
     t.table_schema AS schema,
      t.table_name AS table,
-    obj_description(c.oid, 'pg_class') AS comment
+    obj_description(c.oid, 'pg_class') AS description
 FROM information_schema.tables t
 JOIN pg_class c ON c.relname = t.table_name
 JOIN pg_namespace n ON n.oid = c.relnamespace AND n.nspname = t.table_schema
@@ -99,7 +99,7 @@ SELECT
         WHEN (NOT cols.is_nullable::boolean) THEN 'YES'
         ELSE 'NO'
     END AS mandatory,
-        pgd.description AS comment,
+        pgd.description AS description,
 --    fk.constraint_name,
     CASE
         WHEN fk.target_schema IS NULL THEN NULL
@@ -169,8 +169,8 @@ ORDER BY cols.table_schema, cols.table_name, cols.ordinal_position"
 }
 
 extract_db_metadata <- function(schemas, connection_provider) {
-  list(schemas_comment = get_schemas_comment(schemas, connection_provider),
-       tables_comment = get_tables_comment(schemas, connection_provider),
+  list(schemas_description = get_schemas_description(schemas, connection_provider),
+       tables_description = get_tables_description(schemas, connection_provider),
        tables_columns = get_tables_columns(schemas, connection_provider))
 }
 
@@ -187,8 +187,8 @@ generate_db_metadata <- function(db_metadata, output_directory) {
 #' @return loaded files
 #' @export
 load_db_metadata <- function(output_directory) {
-  list(schemas_comment = fread(file.path(output_directory, "schemas_comment.csv")),
-       tables_comment = fread(file.path(output_directory, "tables_comment.csv")),
+  list(schemas_description = fread(file.path(output_directory, "schemas_description.csv")),
+       tables_description = fread(file.path(output_directory, "tables_description.csv")),
        tables_columns = fread(file.path(output_directory, "tables_columns.csv")))
 }
 
@@ -210,11 +210,11 @@ apply_comments_on_db <- function(root_directory, connection_provider, apply = TR
   files <- load_db_metadata(root_directory)
   use_connection(connection_provider, function(connection) {
     # apply on schemas
-    queries <- data.table(files$schemas_comment)[!is.na(comment) & str_length(comment) > 0, sql := sprintf("COMMENT ON SCHEMA %s IS %s;", schema, dbQuoteString(connection, comment))][!is.na(sql)]$sql
+    queries <- data.table(files$schemas_description)[!is.na(description) & str_length(description) > 0, sql := sprintf("COMMENT ON SCHEMA %s IS %s;", schema, dbQuoteString(connection, description))][!is.na(sql)]$sql
     # apply on tables
-    queries <- append(queries, data.table(files$tables_comment)[!is.na(comment) & str_length(comment) > 0, sql := sprintf("COMMENT ON TABLE %s.%s IS %s;", schema, table, dbQuoteString(connection, comment))][!is.na(sql)]$sql)
+    queries <- append(queries, data.table(files$tables_description)[!is.na(description) & str_length(description) > 0, sql := sprintf("COMMENT ON TABLE %s.%s IS %s;", schema, table, dbQuoteString(connection, description))][!is.na(sql)]$sql)
     # apply on columns
-    queries <- append(queries, data.table(files$tables_columns)[!is.na(comment) & str_length(comment) > 0, sql := sprintf("COMMENT ON COLUMN %s.%s.%s IS %s;", schema, table, column, dbQuoteString(connection, comment))][!is.na(sql)]$sql)
+    queries <- append(queries, data.table(files$tables_columns)[!is.na(description) & str_length(description) > 0, sql := sprintf("COMMENT ON COLUMN %s.%s.%s IS %s;", schema, table, column, dbQuoteString(connection, description))][!is.na(sql)]$sql)
     if (apply) {
       # Run all queries
       dbWithTransaction(connection, { lapply(queries, function(x) { dbExecute(connection, x) }) })
@@ -317,17 +317,17 @@ as.character.ColumnLocation <- function(x, ...) {
 db_metadata_table <- R6Class(
   "DbMetadataTable",
   public = list(
-    initialize = function(schema, table, comment, columns) {
+    initialize = function(schema, table, description, columns) {
       stopifnot(!is.na(schema), is.character(schema), nchar(schema) > 0)
       stopifnot(!is.na(table), is.character(table), nchar(table) > 0)
       private$.schema <- schema
       private$.table <- table
       private$.table_location <- table_location$new(sprintf("%s.%s", schema, table))
-      private$.comment <- ifelse(str_length(comment) == 0, NA, comment)
+      private$.description <- ifelse(str_length(description) == 0, NA, description)
       private$.columns <- columns
     },
-    table_comment = function() {
-      private$.comment
+    table_description = function() {
+      private$.description
     },
     schema = function() {
       private$.schema
@@ -352,8 +352,8 @@ db_metadata_table <- R6Class(
     .table = NULL,
     # table location object
     .table_location = NULL,
-    # comment
-    .comment = NULL,
+    # description
+    .description = NULL,
     # columns
     .columns = NULL
   )
@@ -362,17 +362,17 @@ db_metadata_table <- R6Class(
 db_metadata_schema <- R6Class(
   "DbMetadataSchema",
   public = list(
-    initialize = function(schema, comment, tables) {
+    initialize = function(schema, description, tables) {
       stopifnot(!is.na(schema), is.character(schema), nchar(schema) > 0)
       private$.schema <- schema
-      private$.comment <- ifelse(str_length(comment) == 0, NA, comment)
+      private$.description <- ifelse(str_length(description) == 0, NA, description)
       private$.tables <- tables
     },
     schema = function() {
       private$.schema
     },
-    schema_comment = function() {
-      private$.comment
+    schema_description = function() {
+      private$.description
     },
     table_names = function() {
       names(private$.tables)
@@ -390,8 +390,8 @@ db_metadata_schema <- R6Class(
     table = function(table) {
       unlist(Filter(function(x) { x$table() == table }, private$.tables))[[1]]
     },
-    to_table_comments = function() {
-      rbindlist(lapply(self$all_tables(), function(x) { data.table(schema = x$schema(), table = x$table(), comment = ifelse(is.null(x$table_comment()), NA, x$table_comment())) }))
+    to_table_descriptions = function() {
+      rbindlist(lapply(self$all_tables(), function(x) { data.table(schema = x$schema(), table = x$table(), description = ifelse(is.null(x$table_description()), NA, x$table_description())) }))
     },
     columns = function() {
       rbindlist(lapply(self$all_tables(), function(x) { x$columns() }))
@@ -404,8 +404,8 @@ db_metadata_schema <- R6Class(
   private = list(
     # schema
     .schema = NULL,
-    # comment
-    .comment = NULL,
+    # description
+    .description = NULL,
     # tables
     .tables = NULL
   )
@@ -417,8 +417,8 @@ db_metadata <- R6Class(
     initialize = function(domain,
                           version,
                           last_update,
-                          schemas_comment,
-                          tables_comment,
+                          schemas_description,
+                          tables_description,
                           tables_columns,
                           is_column_code_list_function,
                           is_column_registry_function,
@@ -436,17 +436,17 @@ db_metadata <- R6Class(
       private$.standalone_tables <- standalone_tables
       private$.entry_point <- entry_point
       private$.generate_dependencies_tree_function <- generate_dependencies_tree_function
-      schema_names <- schemas_comment$schema
+      schema_names <- schemas_description$schema
       private$.schemas <- lapply(schema_names, function(schema_name) {
-        comment <- schemas_comment[schema == schema_name]$comment
-        table_comment <- tables_comment[schema == schema_name]
-        table_names <- table_comment$table
+        description <- schemas_description[schema == schema_name]$description
+        table_description <- tables_description[schema == schema_name]
+        table_names <- table_description$table
         columns <- tables_columns[schema == schema_name]
         columns <- lapply(table_names, function(table_name) {
-          db_metadata_table$new(schema_name, table_name, table_comment[table == table_name]$comment, columns[table == table_name])
+          db_metadata_table$new(schema_name, table_name, table_description[table == table_name]$description, columns[table == table_name])
         })
         names(columns) <- table_names
-        db_metadata_schema$new(schema_name, comment, columns)
+        db_metadata_schema$new(schema_name, description, columns)
       })
       names(private$.schemas) <- schema_names
     },
@@ -498,15 +498,15 @@ db_metadata <- R6Class(
     schema_names = function() {
       names(private$.schemas)
     },
-    to_schema_comments = function() {
+    to_schema_descriptions = function() {
       schemas <- self$all_schemas()
-      data <- lapply(schemas, function(x) { ifelse(is.null(x$schema_comment()), NA, x$schema_comment()) })
+      data <- lapply(schemas, function(x) { ifelse(is.null(x$schema_description()), NA, x$schema_description()) })
       data <- data.table(names(data), data)
-      names(data) <- c("schema", "comment")
+      names(data) <- c("schema", "description")
       data
     },
-    to_table_comments = function() {
-      rbindlist(lapply(self$all_schemas(), function(x) { x$to_table_comments() }))
+    to_table_descriptions = function() {
+      rbindlist(lapply(self$all_schemas(), function(x) { x$to_table_descriptions() }))
     },
     columns = function() {
       rbindlist(lapply(self$all_schemas(), function(x) { x$columns() }))

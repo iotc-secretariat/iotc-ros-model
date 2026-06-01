@@ -54,7 +54,7 @@ function generate_table_columns(nodeId, data) {
     <tr${datum.mandatory === 'YES' ? ' class="mandatory"' : ''}>
       <td>${datum.column}</td>
       <td>${datum.type}</td>
-      <td>${datum.comment === '' ? '<p class="error">Not filled</p>' : datum.comment}</td>
+      <td>${datum.description === '' ? '<p class="error">Not filled</p>' : datum.description}</td>
     </tr>
   `).join('');
 
@@ -96,7 +96,7 @@ function generate_table_dependencies(nodeId, data) {
       <thead>
         <tr>
           <th>Column</th>
-          <th>Dependency type</th>
+          <th>Relation type</th>
           <th>Dependency table</th>
           <th>Dependency column</th>
         </tr>
@@ -131,7 +131,7 @@ function generate_table_usages(nodeId, data) {
       <thead>
         <tr>
           <th>Column</th>
-          <th>Usage type</th>
+          <th>Relation type</th>
           <th>Usage table</th>
           <th>Usage column</th>
         </tr>

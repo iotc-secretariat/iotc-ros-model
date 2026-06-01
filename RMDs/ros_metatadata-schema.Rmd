@@ -6,4 +6,4 @@ output: html_fragment
 
 #### Description
 
-`r ifelse(is.na(db_schema$schema_comment()), '<p class="error">Not filled</p>', paste0('*', db_schema$schema_comment(), '*'))`
+`r ifelse(is.na(db_schema$schema_description()), '<p class="error">Not filled</p>', paste0('*', db_schema$schema_description(), '*'))`

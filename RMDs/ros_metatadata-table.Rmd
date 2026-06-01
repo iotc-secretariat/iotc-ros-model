@@ -14,7 +14,7 @@ cat(sprintf("## Table %1$s {#%2$s.%1$s}\n", db_table$table(), db_table$schema())
 ```
 #### Description
 
-`r ifelse(is.na(db_table$table_comment()), '<p class="error">Not filled</p>', paste0('*', db_table$table_comment(), '*'))`
+`r ifelse(is.na(db_table$table_description()), '<p class="error">Not filled</p>', paste0('*', db_table$table_description(), '*'))`
 
 #### Definition {.tabset}
 
