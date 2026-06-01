@@ -36,14 +36,14 @@ ros_common,biometric_information,estimated_weight_value,double precision,NO,,
 ros_common,biometric_information,estimated_weight_unit,character varying(3),NO,,
 ros_common,biometric_information,estimated_weight_type_of_measurement_code,character(2),NO,,
 ros_common,biometric_information,estimated_weight_processing_type_code,character(2),NO,,
-ros_common,biometric_information,estimated_weight_weight_estimation_method_code,character(2),NO,,
+ros_common,biometric_information,estimated_weight_method_code,character(2),NO,,
 ros_common,biometric_information,maturity_stage_level,integer,NO,,
 ros_common,biometric_information,maturity_stage_scale,character varying(255),NO,,
 ros_common,biometric_information,alternative_measured_length_value,double precision,NO,,
 ros_common,biometric_information,alternative_measured_length_unit,character varying(3),NO,,
 ros_common,biometric_information,alternative_measured_length_straight,boolean,NO,,
-ros_common,biometric_information,alternative_measured_length_type_of_measurement_code,character(2),NO,,refs_biology.measurements.type_of_measurement_code
 ros_common,biometric_information,alternative_measured_length_type_of_measurement_code,character(2),NO,,refs_biology.measurement_tools.type_of_measurement_code
+ros_common,biometric_information,alternative_measured_length_type_of_measurement_code,character(2),NO,,refs_biology.measurements.type_of_measurement_code
 ros_common,biometric_information,alternative_measured_length_measured_length_type_code,character(2),NO,,refs_biology.measurements.code
 ros_common,biometric_information,alternative_measured_length_length_measuring_tool_code,character(2),NO,,refs_biology.measurement_tools.code
 ros_common,biometric_information,measured_length_value,double precision,NO,,
@@ -59,23 +59,23 @@ ros_common,biometric_information,sample_collection_detail_sample_type,character 
 ros_common,depredation_details,id,integer,YES,,
 ros_common,depredation_details,depredation_source_code,character varying(3),NO,,refs_biology.scars.code
 ros_common,depredation_details,predator_observed_code,character varying(16),NO,,refs_biology.species.code
-ros_common,observer_data,id,integer,YES,Technical identifier of the observer data,
-ros_common,observer_data,vessel_type_code,character(3),YES,,refs_fishery.vessel_types.code
-ros_common,observer_data,reporting_country_code,character(3),YES,,refs_admin.countries.code
-ros_common,observer_data,complete,boolean,YES,,
-ros_common,observer_data,creation_time,timestamp(6) without time zone,YES,,
-ros_common,observer_data,originator,character varying(255),YES,,
-ros_common,observer_data,originator_version,character varying(255),YES,,
-ros_common,observer_data,ros_codelists_version,character varying(255),YES,,
-ros_common,observer_data,ros_model_version,character varying(255),YES,,
-ros_common,observer_data,source,character varying(255),YES,,
-ros_common,observer_data,status,character varying(255),YES,,
-ros_common,observer_data,submission_time,timestamp(6) without time zone,NO,,
-ros_common,observer_data,finalization_time,timestamp(6) without time zone,NO,,
-ros_common,observer_data,submitter_id,integer,YES,,ros_meta.focal_point.contact_id
+ros_common,observation_dataset,id,integer,YES,Technical identifier of the observer data,
+ros_common,observation_dataset,vessel_type_code,character(3),YES,,refs_fishery.vessel_types.code
+ros_common,observation_dataset,reporting_country_code,character(3),YES,,refs_admin.countries.code
+ros_common,observation_dataset,complete,boolean,YES,,
+ros_common,observation_dataset,creation_time,timestamp(6) without time zone,YES,,
+ros_common,observation_dataset,originator,character varying(255),YES,,
+ros_common,observation_dataset,originator_version,character varying(255),YES,,
+ros_common,observation_dataset,ros_codelists_version,character varying(255),YES,,
+ros_common,observation_dataset,ros_model_version,character varying(255),YES,,
+ros_common,observation_dataset,source,character varying(255),YES,,
+ros_common,observation_dataset,status,character varying(255),YES,,
+ros_common,observation_dataset,submission_time,timestamp(6) without time zone,NO,,
+ros_common,observation_dataset,finalization_time,timestamp(6) without time zone,NO,,
+ros_common,observation_dataset,submitter_id,integer,YES,,ros_meta.focal_point.contact_id
 ros_common,trip,id,integer,YES,,
 ros_common,trip,trip_original_id,character varying(255),YES,,
-ros_common,trip,observer_data_id,integer,YES,,ros_common.observer_data.id
+ros_common,trip,observation_dataset_id,integer,YES,,ros_common.observation_dataset.id
 ros_common,trip,uid,character varying(255),YES,,
 ros_common,trip_daily_activities,trip_id,integer,YES,,ros_common.trip.id
 ros_common,trip_daily_activities,id,integer,YES,,
@@ -182,7 +182,7 @@ ros_ps,catch_details,estimated_weight_value,double precision,NO,,
 ros_ps,catch_details,estimated_weight_unit,character varying(3),NO,,
 ros_ps,catch_details,estimated_weight_type_of_measurement_code,character(2),NO,,
 ros_ps,catch_details,estimated_weight_processing_type_code,character(2),NO,,
-ros_ps,catch_details,estimated_weight_weight_estimation_method_code,character(2),NO,,
+ros_ps,catch_details,estimated_weight_method_code,character(2),NO,,
 ros_ps,cetaceans_whale_shark_sightings,id,integer,YES,,
 ros_ps,cetaceans_whale_shark_sightings,caught_inside_the_net,boolean,NO,,
 ros_ps,cetaceans_whale_shark_sightings,number_sighted,integer,NO,,
@@ -296,7 +296,7 @@ ros_ll,catch_details,estimated_weight_value,double precision,NO,,
 ros_ll,catch_details,estimated_weight_unit,character varying(3),NO,,
 ros_ll,catch_details,estimated_weight_type_of_measurement_code,character(2),NO,,
 ros_ll,catch_details,estimated_weight_processing_type_code,character(2),NO,,
-ros_ll,catch_details,estimated_weight_weight_estimation_method_code,character(2),NO,,
+ros_ll,catch_details,estimated_weight_method_code,character(2),NO,,
 ros_ll,fishing_events,id,integer,YES,,
 ros_ll,fishing_events,comments,text,NO,,
 ros_ll,fishing_events,event_original_id,character varying(255),NO,,
@@ -454,7 +454,7 @@ ros_pl,catch_details,estimated_weight_value,double precision,NO,,
 ros_pl,catch_details,estimated_weight_unit,character varying(3),NO,,
 ros_pl,catch_details,estimated_weight_type_of_measurement_code,character(2),NO,,
 ros_pl,catch_details,estimated_weight_processing_type_code,character(2),NO,,
-ros_pl,catch_details,estimated_weight_weight_estimation_method_code,character(2),NO,,
+ros_pl,catch_details,estimated_weight_method_code,character(2),NO,,
 ros_pl,gear_specifications,id,integer,YES,,
 ros_pl,gear_specifications,trip_id,integer,YES,,ros_common.trip.id
 ros_pl,gear_specifications,live_bait_tanks_capacity,double precision,NO,,
@@ -526,7 +526,7 @@ ros_gn,catch_details,estimated_weight_value,double precision,NO,,
 ros_gn,catch_details,estimated_weight_unit,character varying(3),NO,,
 ros_gn,catch_details,estimated_weight_type_of_measurement_code,character(2),NO,,
 ros_gn,catch_details,estimated_weight_processing_type_code,character(2),NO,,
-ros_gn,catch_details,estimated_weight_weight_estimation_method_code,character(2),NO,,
+ros_gn,catch_details,estimated_weight_method_code,character(2),NO,,
 ros_gn,fishing_events,id,integer,YES,,
 ros_gn,fishing_events,comments,text,NO,,
 ros_gn,fishing_events,event_original_id,character varying(255),NO,,

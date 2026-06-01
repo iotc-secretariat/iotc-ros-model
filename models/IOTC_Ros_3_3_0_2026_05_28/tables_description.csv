@@ -9,7 +9,7 @@ ros_meta,vessel_licensed_target_species,
 ros_common,additional_details_on_non_target_species,
 ros_common,biometric_information,
 ros_common,depredation_details,
-ros_common,observer_data,Entry point of any data
+ros_common,observation_dataset,Entry point of any data
 ros_common,trip,
 ros_common,trip_daily_activities,
 ros_common,trip_daily_activity_details,
