@@ -65,7 +65,7 @@ function generate_table_columns(nodeId, data) {
         <tr>
           <th>Column</th>
           <th>Type</th>
-          <th>Comment</th>
+          <th>Description</th>
         </tr>
       </thead>
       <tbody>
