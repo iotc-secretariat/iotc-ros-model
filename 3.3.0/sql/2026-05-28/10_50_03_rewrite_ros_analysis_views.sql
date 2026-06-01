@@ -13,8 +13,8 @@ create or replace view ros_analysis.v_ps_sf_w(gear, flag, year, month, grid_1, g
            bi.estimated_weight_unit                                                  AS length_unit,
            floor(bi.estimated_weight_value)                                          AS size_bin,
            count(DISTINCT sp.id)                                                     AS num_fish
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -49,8 +49,8 @@ create or replace view ros_analysis.v_ps_sf_l(gear, flag, year, month, grid_1, g
            COALESCE(bi.measured_length_unit, bi.alternative_measured_length_unit) AS length_unit,
            floor(COALESCE(bi.measured_length_value, bi.alternative_measured_length_value)) AS size_bin,
            count(DISTINCT sp.id)                                                     AS num_fish
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -94,8 +94,8 @@ create or replace view ros_analysis.v_ps_sets_raw
            so.start_setting_latitude                                                                                 AS end_lat,
            1                                                                                                         AS effort,
            'SET'::text                                                                                               AS effort_unit_code
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
@@ -131,8 +131,8 @@ create or replace view ros_analysis.v_ps_in(gear, flag, year, month, grid_1, gri
                ELSE 'NA'::text
                END                                                                   AS condition,
            cl_cn.code                                                                AS condition_code
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -172,8 +172,8 @@ create or replace view ros_analysis.v_ps_ef_raw(gear, flag, year, month, grid_1,
            ros_meta.to_grid_5(se.start_setting_latitude, se.start_setting_longitude) AS grid_5,
            count(DISTINCT se.id)                                                     AS observed_effort,
            'SETS'::text                                                              AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -193,8 +193,8 @@ create or replace view ros_analysis.v_ps_ef_fd(gear, flag, year, month, grid_1, 
            ros_meta.to_grid_5(se.start_setting_latitude, se.start_setting_longitude) AS grid_5,
            count(DISTINCT date_part('day'::text, se.start_setting_date_and_time))    AS effort,
            'FDAYS'::text                                                             AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -242,8 +242,8 @@ create or replace view ros_analysis.v_ps_ca(gear, flag, year, month, grid_1, gri
                        ELSE 1
                        END::double precision * ca.estimated_weight_value)            AS observed_catch,
            'KG'::text                                                                AS catch_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -273,8 +273,8 @@ create or replace view ros_analysis.v_ll_sf_w(gear, flag, year, month, grid_1, g
            bi.estimated_weight_unit                                                  AS weight_unit,
            floor(bi.estimated_weight_value)                                          AS size_bin,
            count(DISTINCT sp.id)                                                     AS num_fish
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -308,8 +308,8 @@ create or replace view ros_analysis.v_ll_sf_l(gear, flag, year, month, grid_1, g
            COALESCE(bi.measured_length_unit, bi.alternative_measured_length_unit) AS length_unit,
            floor(COALESCE(bi.measured_length_value, bi.alternative_measured_length_value)) AS size_bin,
            count(DISTINCT sp.id)                                                     AS num_fish
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -455,8 +455,8 @@ create or replace view ros_analysis.v_ll_sets_raw
            so.end_setting_latitude                             AS end_lat,
            so.total_number_of_hooks_set                        AS effort,
            'HK'::text                                          AS effort_unit_code
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
@@ -484,8 +484,8 @@ create or replace view ros_analysis.v_ll_sets_raw
            ho.end_hauling_latitude                             AS end_lat,
            ho.number_of_hooks_observed                         AS effort,
            'HK'::text                                          AS effort_unit_code
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
@@ -521,8 +521,8 @@ create or replace view ros_analysis.v_ll_in(gear, flag, year, month, grid_1, gri
                ELSE 'NA'::text
                END                                                                   AS condition,
            cl_cn.code                                                                AS condition_code
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -562,8 +562,8 @@ create or replace view ros_analysis.v_ll_ef_sets(gear, flag, year, month, grid_1
            ros_meta.to_grid_5(se.start_setting_latitude, se.start_setting_longitude) AS grid_5,
            count(DISTINCT fe.event_original_id)                                      AS effort,
            'SETS'::text                                                              AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -584,8 +584,8 @@ create or replace view ros_analysis.v_ll_ef_raw(gear, flag, year, month, grid_1,
            ros_meta.to_grid_5(se.start_setting_latitude, se.start_setting_longitude) AS grid_5,
            sum(se.total_number_of_hooks_set)                                         AS observed_effort,
            'HOOKS'::text                                                             AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -606,8 +606,8 @@ create or replace view ros_analysis.v_ll_ef_fd(gear, flag, year, month, grid_1, 
            ros_meta.to_grid_5(se.start_setting_latitude, se.start_setting_longitude) AS grid_5,
            count(DISTINCT date_part('day'::text, se.start_setting_date_and_time))    AS effort,
            'FDAYS'::text                                                             AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -661,8 +661,8 @@ create or replace view ros_analysis.v_ll_ca(gear, flag, year, month, grid_1, gri
            cl_fa.code                                                                AS fate,
            count(DISTINCT sp.id)                                                     AS observed_catch,
            'NO'::text                                                                AS catch_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -817,8 +817,8 @@ create or replace view ros_analysis.v_ps_lw(gear, flag, year, month, grid_1, gri
            cl_pt.code                                                                AS weight_type,
            bi.estimated_weight_value                                                 AS weight,
            bi.estimated_weight_unit                                                     AS weight_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -900,8 +900,8 @@ create or replace view ros_analysis.v_efforts_by_year_flag_and_gear(gear, flag, 
            date_part('year'::text, se.start_setting_date_and_time) AS year,
            sum(se.total_number_of_hooks_set)                       AS observed_effort,
            'HOOK'::text                                            AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code
@@ -917,8 +917,8 @@ create or replace view ros_analysis.v_efforts_by_year_flag_and_gear(gear, flag, 
            date_part('year'::text, se.start_setting_date_and_time) AS year,
            count(DISTINCT se.id)                                   AS observed_effort,
            'SET'::text                                             AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvti ON t.id = gvti.trip_id
              JOIN ros_meta.vessel vi ON gvti.vessel_id = vi.id
              JOIN refs_admin.countries cl_co ON vi.flag_code = cl_co.code

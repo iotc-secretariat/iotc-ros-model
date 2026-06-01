@@ -22,8 +22,8 @@ as
            1                                                                         AS effort,
            1                                                                         AS total_effort,
            'SETS'::text                                                              AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ps.fishing_events fed ON fed.trip_id = t.id
              LEFT JOIN ros_ps.setting_operations so ON fed.setting_operation_id = so.id
     WHERE od.vessel_type_code = 'SP';
@@ -55,8 +55,8 @@ as
            1                                                                        AS effort,
            1                                                                        AS total_effort,
            'SETS'::text                                                             AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fed ON fed.trip_id = t.id
              JOIN ros_ll.setting_operations so ON fed.setting_operation_id = so.id
              LEFT JOIN ros_ll.hauling_operations ho ON fed.hauling_operation_id = ho.id
@@ -103,8 +103,8 @@ create view ros_meta.v_ps_fdays
            ros_meta.to_grid_5(s.start_setting_latitude, s.start_setting_longitude)                                                                     AS grid_5,
            count(DISTINCT concat(date_part('month'::text, s.start_setting_date_and_time), '/', date_part('day'::text, s.start_setting_date_and_time))) AS effort,
            'FDAYS'::text                                                                                                                               AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ps.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ps.setting_operations s ON fe.setting_operation_id = s.id
     WHERE od.vessel_type_code = 'PS'
@@ -123,8 +123,8 @@ create view ros_meta.v_ll_fdays
            ros_meta.to_grid_5(s.start_setting_latitude, s.end_setting_latitude)                                                                        AS grid_5,
            count(DISTINCT concat(date_part('month'::text, s.start_setting_date_and_time), '/', date_part('day'::text, s.start_setting_date_and_time))) AS effort,
            'FDAYS'::text                                                                                                                               AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ll.setting_operations s ON fe.setting_operation_id = s.id
     WHERE od.vessel_type_code = 'LL'
@@ -182,8 +182,8 @@ as
            COALESCE(ho.number_of_hooks_observed, so.total_number_of_hooks_set)      AS effort,
            COALESCE(so.total_number_of_hooks_set, ho.number_of_hooks_observed)      AS total_effort,
            'HOOKS'::text                                                            AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fed ON fed.trip_id = t.id
              JOIN ros_ll.setting_operations so ON fed.setting_operation_id = so.id
              LEFT JOIN ros_ll.hauling_operations ho ON fed.hauling_operation_id = ho.id
@@ -238,8 +238,8 @@ as
            count(cd.id)         AS quantity,
            count(cd.id)         AS quantity_sampled,
            'NO'::text           AS unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ll.setting_operations s ON fe.setting_operation_id = s.id
              JOIN ros_ll.catch_details cd ON cd.fishing_event_id = fe.id
@@ -308,7 +308,7 @@ as
                                        LEFT JOIN refs_biology.sex x ON b.sex_code = x.code
                                        LEFT JOIN refs_biology.measurements lt ON b.measured_length_measured_length_type_code = lt.code
                                        LEFT JOIN refs_biology.measurements alt ON b.alternative_measured_length_measured_length_type_code = alt.code
-                                       LEFT JOIN refs_fishery.fish_processing_types wp ON b.estimated_weight_weight_estimation_method_code = wp.code
+                                       LEFT JOIN refs_fishery.fish_processing_types wp ON b.estimated_weight_method_code = wp.code
                               WHERE b.measured_length_value IS NOT NULL
                                  OR b.alternative_measured_length_value IS NOT NULL
                                  OR b.estimated_weight_value IS NOT NULL)
@@ -335,8 +335,8 @@ as
            lw.weight_type,
            lw.weight_value,
            lw.weight_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_meta.vessel vi ON gvt.vessel_id = vi.id
              LEFT JOIN refs_admin.countries c ON vi.flag_code = c.code
@@ -411,8 +411,8 @@ as
            gvt.return_timestamp         AS vessel_return_date,
            pr.name_en                   AS vessel_return_port,
            cr.code                      AS vessel_return_country
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
@@ -459,8 +459,8 @@ as
            gvt.return_timestamp         AS vessel_return_date,
            pr.name_en                   AS vessel_return_port,
            cr.code                      AS vessel_return_country
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
@@ -507,8 +507,8 @@ as
            gvt.return_timestamp         AS vessel_return_date,
            pr.name_en                   AS vessel_return_port,
            cr.code                      AS vessel_return_country
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
@@ -555,8 +555,8 @@ as
            gvt.return_timestamp         AS vessel_return_date,
            pr.name_en                   AS vessel_return_port,
            cr.code                      AS vessel_return_country
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              LEFT JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
              LEFT JOIN ros_common.trip_observer otd ON t.id = otd.trip_id
              LEFT JOIN ros_meta.observer oi ON otd.observer_id = oi.contact_id
@@ -712,8 +712,8 @@ create view ros_meta.v_fishing_days_by_year_flag_and_gear(year, flag, gear, fish
                        c.code                                                                                                                                      AS flag,
                        'PS'::text                                                                                                                                  AS gear,
                        count(DISTINCT concat(date_part('month'::text, s.start_setting_date_and_time), '-', date_part('day'::text, s.start_setting_date_and_time))) AS fishing_days
-                FROM ros_common.observer_data od
-                         JOIN ros_common.trip t ON od.id = t.observer_data_id
+                FROM ros_common.observation_dataset od
+                         JOIN ros_common.trip t ON od.id = t.observation_dataset_id
                          JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
                          JOIN ros_ps.fishing_events fe ON fe.trip_id = t.id
                          JOIN ros_ps.setting_operations s ON fe.setting_operation_id = s.id
@@ -725,8 +725,8 @@ create view ros_meta.v_fishing_days_by_year_flag_and_gear(year, flag, gear, fish
                        c.code                                                                                                                                      AS flag,
                        'LL'::text                                                                                                                                  AS gear,
                        count(DISTINCT concat(date_part('month'::text, s.start_setting_date_and_time), '-', date_part('day'::text, s.start_setting_date_and_time))) AS fishing_days
-                FROM ros_common.observer_data od
-                         JOIN ros_common.trip t ON od.id = t.observer_data_id
+                FROM ros_common.observation_dataset od
+                         JOIN ros_common.trip t ON od.id = t.observation_dataset_id
                          JOIN ros_common.trip_vessel gvt ON t.id = gvt.trip_id
                          JOIN ros_ll.fishing_events fe ON fe.trip_id = t.id
                          JOIN ros_ll.setting_operations s ON fe.setting_operation_id = s.id

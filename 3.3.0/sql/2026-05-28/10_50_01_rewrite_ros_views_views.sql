@@ -32,8 +32,8 @@ CREATE VIEW ros_views.v_ps_lw_raw AS
                END                                           AS weight_type,
            bs.estimated_weight_value                         AS weight_value,
            bs.estimated_weight_unit                          AS weight_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ps.setting_operations s ON fe.setting_operation_id = s.id
              JOIN ros_ps.catch_details c ON c.fishing_event_id = fe.id
@@ -43,7 +43,7 @@ CREATE VIEW ros_views.v_ps_lw_raw AS
              JOIN ros_common.biometric_information bs ON spc.biometric_information_id = bs.id
              LEFT JOIN refs_biology.sex x ON bs.sex_code = x.code
              LEFT JOIN refs_biology.measurements lt ON bs.measured_length_measured_length_type_code = lt.code
-             LEFT JOIN refs_fishery.fish_processing_types wp ON bs.estimated_weight_weight_estimation_method_code = wp.code
+             LEFT JOIN refs_fishery.fish_processing_types wp ON bs.estimated_weight_method_code = wp.code
     WHERE od.vessel_type_code = 'SP' AND (bs.measured_length_value IS NOT NULL OR bs.estimated_weight_value IS NOT NULL);
 
 CREATE VIEW ros_views.v_ps_lw AS
@@ -79,8 +79,8 @@ CREATE VIEW ros_views.v_alternate_ll_effort_fdays AS
            s.start_setting_longitude                                                                          AS lon,
            count(DISTINCT concat(t.uid, '_', date_part('day'::text, s.start_setting_date_and_time))) AS observed_effort,
            'FDAYS'::text                                                                                      AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ll.setting_operations s ON fe.setting_operation_id = s.id
     WHERE od.vessel_type_code = 'LL'
@@ -94,8 +94,8 @@ CREATE VIEW ros_views.v_alternate_ll_effort_set AS
            s.start_setting_longitude                               AS lon,
            count(t.*)                                              AS observed_effort,
            'SET'::text                                             AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ll.setting_operations s ON fe.setting_operation_id = s.id
     WHERE od.vessel_type_code = 'LL'
@@ -109,8 +109,8 @@ CREATE VIEW ros_views.v_alternate_ps_effort_fdays AS
            s.start_setting_longitude                                                                           AS lon,
            count(DISTINCT concat(t.uid, '_', date_part('day'::text, s.start_setting_date_and_time))) AS observed_effort,
            'FDAYS'::text                                                                                       AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ps.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ps.setting_operations s ON fe.setting_operation_id = s.id
     WHERE od.vessel_type_code = 'SP'
@@ -125,8 +125,8 @@ CREATE VIEW ros_views.v_alternate_ps_effort_set AS
            s.start_setting_longitude                               AS lon,
            count(t.*)                                              AS observed_effort,
            'SET'::text                                             AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ps.fishing_events fe ON fe.trip_id = t.id
              JOIN ros_ps.setting_operations s ON fe.setting_operation_id = s.id
     WHERE od.vessel_type_code = 'SP'
@@ -213,8 +213,8 @@ create or replace view ros_views.v_ll_sets(trip_id, trip_uid, set_id, fishing_op
            COALESCE(ho.number_of_hooks_observed, so.total_number_of_hooks_set)      AS effort,
            COALESCE(so.total_number_of_hooks_set, ho.number_of_hooks_observed)      AS total_effort,
            'HK'::text                                                               AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ll.fishing_events fed ON fed.trip_id = t.id
              JOIN ros_ll.setting_operations so ON fed.setting_operation_id = so.id
              LEFT JOIN ros_ll.hauling_operations ho ON fed.hauling_operation_id = ho.id
@@ -234,8 +234,8 @@ create or replace view ros_views.v_ps_sets(trip_id, trip_uid, set_id, fishing_op
            1                                                                         AS effort,
            1                                                                         AS total_effort,
            'SETS'::text                                                              AS effort_unit
-    FROM ros_common.observer_data od
-             JOIN ros_common.trip t ON od.id = t.observer_data_id
+    FROM ros_common.observation_dataset od
+             JOIN ros_common.trip t ON od.id = t.observation_dataset_id
              JOIN ros_ps.fishing_events fed ON fed.trip_id = t.id
              LEFT JOIN ros_ps.setting_operations so ON fed.setting_operation_id = so.id
     WHERE od.vessel_type_code = 'SP';
