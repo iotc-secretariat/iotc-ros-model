@@ -15,7 +15,7 @@ Changelog of the version **2026-06-28**
 
 1. `ros_common.capacities`
    1. `ros_common.trip_vessel.fish_storage_capacity_value`\
-      `ros_common.trip_vessel.fish_storage_capacity_unit` (restricted to `m"/mt`)
+      `ros_common.trip_vessel.fish_storage_capacity_unit` (restricted to `m/mt`)
 2. `ros_common.depths`
    1. `ros_ps.gear_specifications.maximum_net_depth_value`\
       `ros_ps.gear_specifications.maximum_net_depth_unit` (restricted to `m`)
