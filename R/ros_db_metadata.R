@@ -27,7 +27,7 @@ DEFAULT_TIME_STAMP <- "2026-05-29"
 DB_METADATA_DIRECTORY <- file.path("./models", IOTC_ROS)
 
 #'The path of db reports
-DB_REPORT_DIRECTORY <- file.path("./reports", IOTC_ROS)
+DB_REPORT_DIRECTORY <- file.path("./doc", IOTC_ROS)
 
 #' Connects to an instance of \code{Ros} on a given server machine
 #'
