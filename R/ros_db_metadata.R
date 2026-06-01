@@ -29,6 +29,8 @@ DB_METADATA_DIRECTORY <- file.path("./models", IOTC_ROS)
 #'The path of db reports
 DB_REPORT_DIRECTORY <- file.path("./doc", IOTC_ROS)
 
+ROS_CODE_LIST_URLS <- fread("./models/ros_code_list_urls.csv")
+
 #' Connects to an instance of \code{Ros} on a given server machine
 #'
 #' @param config_file location of the json config file
@@ -115,9 +117,7 @@ dependencies_table <- function(db_table,
                 dependency_table = sapply(foreign_key, function(x) {
                   table <- column_location$new(x)
                   if (is_column_code_list_function(x)) {
-                    #TODO Find a nice way to have https://data.iotc.org/reference/latest/domain url from db table gav
-                    # return(sprintf("<a target='_iotc_code_lists' href='https://data.iotc.org/reference/latest/domain/%s#%s'>%s</a>", str_replace(table$schema(),"refs_",""), table$table(), table$table_gav()))
-                    return(table$table_gav())
+                    return(sprintf("<a target='_iotc_code_lists' href='%s'>%s</a>", ROS_CODE_LIST_URLS[codelist==table$table_gav()]$codelist_url , table$table_gav()))
                   }
                   if (is_column_registry_function(x) | is_column_data_function(x)) {
                     return(sprintf("<a href='#%s.%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
@@ -143,11 +143,8 @@ usages_table <- function(db_table,
                                                             usage_type = dependency_type,
                                                             usage_table_raw = x,
                                                             usage_table = sapply(x, function(y) {
-
                                                               if (is_column_code_list_function(y)) {
-                                                                #TODO Find a nice way to have https://data.iotc.org/reference/latest/domain url from db table gav
-                                                                # return(sprintf("<a target='_iotc_code_lists' href='https://data.iotc.org/reference/latest/domain/%s#%s'>%s</a>", str_replace(table$schema(),"refs_",""), table$table(), table$table_gav()))
-                                                                return(y)
+                                                                return(sprintf("<a target='_iotc_code_lists' href='%s'>%s</a>", ROS_CODE_LIST_URLS[codelist==y]$codelist_url , table$table_gav()))
                                                               }
                                                               if (is_column_registry_function(y) | is_column_data_function(y)) {
                                                                 gav <- table_location$new(y)
