@@ -204,7 +204,7 @@ out_data_graph <- function(data) {
     }")
 }
 
-generate_grah_data_input <- function(data, entry_point) {
+generate_graph_data_input <- function(data, entry_point) {
   deps <- data.table(data[!is.na(parent_table)])
   inverse_deps <- deps[link_type == "←"][, `:=`(parent_table = table, parent_column = table_column, table = parent_table, table_column = parent_column)]
   direct_deps <- deps[link_type == "→"]
@@ -254,11 +254,12 @@ generate_db_metadata_dependencies <- function(db_metadata, db_reverse_dependenci
     db_schema_reverse_dependencies_tree <- data.table(db_reverse_dependencies_tree[[schema_name]])
     db_schema_tables_names <- unique(append(db_schema_reverse_dependencies_tree[!is.na(parent_table)]$parent_table, db_schema_reverse_dependencies_tree$table))
     db_schema_tables_columns <- db_tables_columns[names(db_tables_columns) %in% db_schema_tables_names]
+    # FIXME add this in db_metadata class
     filter <- sprintf("ros_common|ros_meta|refs_|%s", schema_name)
     db_schema_tables_dependencies <- lapply(db_tables_dependencies[names(db_tables_dependencies) %in% db_schema_tables_names], function(x) { data.table(x)[dependency_table_raw %like% filter][, dependency_table_raw := NULL] })
     db_schema_tables_usages <- lapply(db_tables_usages[names(db_tables_usages) %in% db_schema_tables_names], function(x) { data.table(x)[usage_table_raw %like% filter][, usage_table_raw := NULL] })
     entry_point_table_gav <- db_metadata$entry_point_table_gav()
-    graph_data <- generate_grah_data_input(db_schema_reverse_dependencies_tree, entry_point_table_gav)
+    graph_data <- generate_graph_data_input(db_schema_reverse_dependencies_tree, entry_point_table_gav)
     generate_data_graph_js(db_schema_tables_columns, db_schema_tables_dependencies, db_schema_tables_usages)
     render("./RMDs/ros_metatadata-schema-graph.Rmd",
            output_format = "html_document",
