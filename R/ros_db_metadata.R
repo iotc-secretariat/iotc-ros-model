@@ -71,7 +71,7 @@ ros_db_metadata_create <- function(domain,
                     "ros_meta.vessel",
                     "ros_meta.vessel_licensed_target_species"
                   ),
-                  "ros_common.observer_data.id",
+                  "ros_common.observation_dataset.id",
                   function(schema, deps) {
                     if (schema %like% "ros_common|ros_meta") { return(NULL) }
                     deps[origin %like% sprintf("ros_common.+|%s.+", schema)]
