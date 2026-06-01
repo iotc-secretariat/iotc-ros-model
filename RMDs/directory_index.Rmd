@@ -1,0 +1,82 @@
+---
+title: "Directory index"
+output:
+  html_document:
+    theme: flatly
+    self_contained: TRUE
+    css: "../templates/html_template.css"
+    mathjax: null
+    toc: FALSE
+    smooth_scroll: FALSE
+    number_sections: FALSE
+params:
+  current_dir: "."
+  relative_dir: "."
+  directories: !r character()
+  html_files: !r character()
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  results = "asis"
+)
+
+current_dir <- params$current_dir
+relative_dir <- params$relative_dir
+
+directories <- sort(params$directories)
+html_files <- sort(params$html_files)
+
+page_title <- paste("Index of", relative_dir)
+
+make_link <- function(path, trailing_slash = FALSE) {
+  encoded <- utils::URLencode(path, reserved = TRUE)
+
+  if (trailing_slash) {
+    encoded <- paste0(encoded, "/")
+  }
+
+  encoded
+}
+```
+
+# `r page_title`
+
+```{r directories, results='asis'}
+if (length(directories) > 0) {
+  cat("## Directories\n\n")
+
+  for (directory in directories) {
+    href <- make_link(directory, trailing_slash = TRUE)
+    label <- directory
+
+    cat(sprintf("- [%s](%s)\n", label, href))
+  }
+
+  cat("\n")
+}
+```
+
+```{r html-files, results='asis'}
+if (length(html_files) > 0) {
+  cat("## HTML files\n\n")
+
+  for (html_file in html_files) {
+    href <- make_link(html_file)
+    label <- tools::file_path_sans_ext(html_file)
+
+    cat(sprintf("- [%s](%s)\n", label, href))
+  }
+
+  cat("\n")
+}
+```
+
+```{r empty-directory, results='asis'}
+if (length(directories) == 0 && length(html_files) == 0) {
+  cat("No directories or HTML files found.\n")
+}
+```

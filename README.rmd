@@ -58,3 +58,11 @@ source("R/common_db_report.R")
 source("R/ros_db_metadata.R")
 ros_db_metadata_generate_report(domain = "LL", timestamp = DEFAULT_TIME_STAMP)
 ```
+
+## Generate missing index.html files in doc directory
+
+```{r, warning = FALSE}
+# Load sources
+source("R/generate_indexes.R")
+
+```
