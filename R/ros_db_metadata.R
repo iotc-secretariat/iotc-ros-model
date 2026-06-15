@@ -34,18 +34,17 @@ ROS_CODE_LIST_URLS <- fread("./models/ros_code_list_urls.csv")
 #' Connects to an instance of \code{Ros} on a given server machine
 #'
 #' @param config_file location of the json config file
-#' @param client_encoding The character set used by the client (defaults to \code{UTF-8})
 #' @return An Sql connection to \code{Ros} database
 #' @export
-connect_to_ros <- function(config_file = file.path("./ros-db.json"), dbname = IOTC_ROS, client_encoding = "UTF-8") {
+connect_to_ros <- function(config_file = file.path("./ros-db.json")) {
   config <- fromJSON(config_file)
   DBI::dbConnect(drv = RPostgres::Postgres(),
                  host = config$host,
-                 dbname = dbname,
+                 dbname = config$dbname,
                  port = config$ort,
                  user = config$user,
                  password = config$password,
-                 client_encoding = client_encoding)
+                 client_encoding = config$client_encoding)
 }
 
 ros_db_metadata_create <- function(domain,
