@@ -3,7 +3,7 @@
 
 ## Prepare the ros connection file
 
-Create a *JSON* file named ```IOTC_ReferenceData-prod-db.json``` with content:
+Create a *JSON* file named ```IOTC_ReferenceData-prod-db.json``` with content (you will need to adapt with your own connection details):
 
 ```json
 {
