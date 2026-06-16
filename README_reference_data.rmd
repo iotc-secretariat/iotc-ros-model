@@ -1,0 +1,35 @@
+# Abstract
+
+
+## Prepare the ros connection file
+
+Create a *JSON* file named ```IOTC_ReferenceData-prod-db.json``` with content:
+
+```json
+{
+  "host": "localhost",
+  "port": "5432",
+  "dbname": "IOTC_ReferenceData_2025_07_23",
+  "user": "xxx",
+  "password": "xxx"
+}
+```
+
+## Generate database metadata
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+# Generate Reference data database metatadata files
+generate_db_metadata(extract_db_metadata(schemas = IOTC_REFERENCE_DATA_SCHEMAS, connection_provider = connect_to_reference_data), output_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY)
+```
+## Update comments on database
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+# Update for the hole Ros database
+ros_update_queries <- apply_comments_on_db(root_directory = IOTC_REFERENCE_DATADB_METADATA_DIRECTORY, connection_provider = connect_to_reference_data)
+```
