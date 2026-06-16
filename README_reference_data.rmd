@@ -33,3 +33,13 @@ source("R/reference_data_db.R")
 # Update for the hole Reference data database documentation
 update_queries <- apply_comments_on_db(root_directory = IOTC_REFERENCE_DATADB_METADATA_DIRECTORY, connection_provider = connect_to_reference_data)
 ```
+## Generate database metadata report
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/common_db_report.R")
+source("R/reference_data_db.R")
+# Generate documentation report of the hole Reference data database
+reference_data_db_metadata_generate_report(timestamp = DEFAULT_TIME_STAMP)
+```
