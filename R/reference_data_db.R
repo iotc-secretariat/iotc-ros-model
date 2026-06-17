@@ -96,7 +96,7 @@ dependencies_table <- function(db_table,
                 }),
                 dependency_table = sapply(foreign_key, function(x) {
                   table <- column_location$new(x)
-                  return(sprintf("<a href='#%s.%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
+                  return(sprintf("<a href='#table_%s_%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
                 }),
                 dependency_column = sapply(foreign_key, function(x) { column_location$new(x)$column() }))]
 }
@@ -118,7 +118,7 @@ usages_table <- function(db_table,
                                                             usage_table_raw = x,
                                                             usage_table = sapply(x, function(y) {
                                                               gav <- table_location$new(y)
-                                                              return(sprintf("<a href='#%s.%s'>%s</a>", gav$schema(), gav$table(), y))
+                                                              return(sprintf("<a href='#table_%s_%s'>%s</a>", gav$schema(), gav$table(), y))
                                                             }),
                                                             usage_column = column)]
   }))
