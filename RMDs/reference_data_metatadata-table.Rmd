@@ -10,7 +10,7 @@ with_depedencies <- nrow(db_table_dependencies) > 0
 with_usages <- nrow(db_table_usages) > 0
 ```
 ```{r echo=FALSE, results='asis'}
-cat(sprintf("## Table %1$s {#%2$s.%1$s}\n", db_table$table(), db_table$schema()))
+cat(sprintf("## Table %1$s  {#table_%2$s_%1$s}\n\n", db_table$table(), db_table$schema()))
 ```
 #### Description
 

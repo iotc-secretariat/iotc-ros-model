@@ -4,6 +4,6 @@ output: html_fragment
 
 # Schema `r db_schema$schema()`
 
-#### Description
+#### Description {#schema_`r db_schema$schema()`}
 
 `r ifelse(is.na(db_schema$schema_description()), '<p class="error">Not filled</p>', paste0('*', db_schema$schema_description(), '*'))`

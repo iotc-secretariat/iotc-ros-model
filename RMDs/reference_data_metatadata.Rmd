@@ -12,6 +12,7 @@ output:
     toc: yes
     toc_float:
       collapsed: FALSE
+    anchor_sections: TRUE
     smooth_scroll: FALSE
 ---
 ```{r, setup, include=FALSE}
