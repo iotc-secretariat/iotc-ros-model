@@ -3,7 +3,7 @@ library(stringr)
 
 #'The constants holding the name of the latest IOTC_ReferenceData database
 #'@export
-IOTC_REFERENCE_DATA <- "IOTC_ReferenceData_2025_07_23"
+IOTC_REFERENCE_DATA <- "IOTC_ReferenceData_2026_06_18"
 
 #' Default time-stamp used to suffix any generated files
 #' @export
