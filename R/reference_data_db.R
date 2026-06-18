@@ -138,32 +138,52 @@ build_tables_usages <- function(db_metadata, db_tables_dependencies) {
   lapply(db_metadata$all_tables(), function(x) { usages_table(x, db_tables_dependencies, is_column_code_list_function, is_column_registry_function, is_column_data_function) })
 }
 
-reference_data_db_metadata_report_template_supplier <- function(db_metadata, export_directory = "./RMDs", template = "./RMDs/reference_data_metatadata.Rmd") {
+reference_data_db_metadata_report_template_supplier <- function(db_metadata, export_directory = "./RMDs") {
+  template <- "./templates/iotc_reference_data/report.Rmd.tpl"
+
+  schema_sections <- lapply(db_metadata$all_schemas(), function(schema) {
+
+    schema_name <- schema$schema()
+    schema_id <- sanitize_id(schema_name)
+    table_sections <- lapply(schema$all_tables(), function(tbl) {
+      table_name <- tbl$table()
+
+      render_template("templates/iotc_reference_data/table.Rmd.tpl", list(
+        table_name = table_name,
+        table_anchor = paste0("{#table_", sanitize_id(schema_id, table_name), "}")
+      ))
+    })
+
+    render_template("templates/iotc_reference_data/schema.Rmd.tpl", list(
+      schema_name = schema_name,
+      schema_anchor = paste0("{#schema_", schema_id, "}"),
+      table_sections = paste(table_sections, collapse = "\n\n")
+    ))
+  })
+
   file_location <- file.path(export_directory, sprintf("reference_data_metatadata-%s.Rmd", db_metadata$domain()))
   if (file.exists(file_location)) {
     file.remove(file_location)
   }
-  content <- readLines(template)
-  for (schema in db_metadata$all_schemas()) {
-    content <- append(content, sprintf("
-```{r}
-db_schema <- db_metadata$schema('%s')
-```
+  report <- render_template(template, list(
+    title = sprintf("IOTC Reference data Database (version: %s `r timestamp`)", db_metadata$version()),
+    sub_title = sprintf("Last updated: %s", db_metadata$last_update()),
+    schema_sections = paste(schema_sections, collapse = "\n\n")
+  ))
 
-```{r child='reference_data_metatadata-schema.Rmd'}
-```
-", schema$schema()))
-    for (db_table in schema$all_tables()) {
-      content <- append(content, sprintf("
-```{r}
-db_table <- db_schema$table('%s')
-```
-```{r child='reference_data_metatadata-table.Rmd'}
-```", db_table$table()))
-    }
-  }
-  writeLines(content, file_location)
+  writeLines(report, file_location)
   file_location
+}
+
+reference_data_db_metadata_generate_report_template <- function(version = IOTC_REFERENCE_DATA,
+                                                                root_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY) {
+  print(paste0("Generate report for: ", version, " from: ", root_directory))
+  generate_db_metadata_report_template(domain = "ALL",
+                                       version = version,
+                                       root_directory = root_directory,
+                                       db_metadata_supplier = reference_data_db_metadata_create,
+                                       db_metadata_report_template_supplier = reference_data_db_metadata_report_template_supplier_ng,
+                                       remove_unused_tables = FALSE)
 }
 
 reference_data_db_metadata_generate_report <- function(version = IOTC_REFERENCE_DATA,
