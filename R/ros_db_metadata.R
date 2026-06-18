@@ -116,10 +116,10 @@ dependencies_table <- function(db_table,
                 dependency_table = sapply(foreign_key, function(x) {
                   table <- column_location$new(x)
                   if (is_column_code_list_function(x)) {
-                    return(sprintf("<a target='_iotc_code_lists' href='%s'>%s</a>", ROS_CODE_LIST_URLS[codelist==table$table_gav()]$codelist_url , table$table_gav()))
+                    return(sprintf("<a target='_iotc_code_lists' href='%s'>%s</a>", ROS_CODE_LIST_URLS[codelist == table$table_gav()]$codelist_url, table$table_gav()))
                   }
                   if (is_column_registry_function(x) | is_column_data_function(x)) {
-                    return(sprintf("<a href='#%s.%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
+                    return(sprintf("<a href='#table_%s.%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
                   }
                   NA_character_
                 }),
@@ -143,11 +143,11 @@ usages_table <- function(db_table,
                                                             usage_table_raw = x,
                                                             usage_table = sapply(x, function(y) {
                                                               if (is_column_code_list_function(y)) {
-                                                                return(sprintf("<a target='_iotc_code_lists' href='%s'>%s</a>", ROS_CODE_LIST_URLS[codelist==y]$codelist_url , table$table_gav()))
+                                                                return(sprintf("<a target='_iotc_code_lists' href='%s'>%s</a>", ROS_CODE_LIST_URLS[codelist == y]$codelist_url, table$table_gav()))
                                                               }
                                                               if (is_column_registry_function(y) | is_column_data_function(y)) {
                                                                 gav <- table_location$new(y)
-                                                                return(sprintf("<a href='#%s.%s'>%s</a>", gav$schema(), gav$table(), y))
+                                                                return(sprintf("<a href='#table_%s.%s'>%s</a>", gav$schema(), gav$table(), y))
                                                               }
                                                               NA_character_
                                                             }),
@@ -169,36 +169,43 @@ build_tables_usages <- function(db_metadata, db_tables_dependencies) {
   lapply(db_metadata$all_tables(), function(x) { usages_table(x, db_tables_dependencies, is_column_code_list_function, is_column_registry_function, is_column_data_function) })
 }
 
-ros_db_metadata_report_template_supplier <- function(db_metadata, export_directory = "./RMDs", template = "./RMDs/ros_metatadata.Rmd") {
+ros_db_metadata_report_template_supplier <- function(db_metadata, export_directory = "./RMDs") {
+  template <- "./templates/report.Rmd.tpl"
+
+  schema_sections <- lapply(db_metadata$all_schemas(), function(schema) {
+
+    schema_name <- schema$schema()
+    schema_id <- sanitize_id(schema_name)
+    table_sections <- lapply(schema$all_tables(), function(tbl) {
+      table_name <- tbl$table()
+
+      render_template("templates/table.Rmd.tpl", list(
+        table_name = table_name,
+        table_anchor = paste0("{#table_", schema_id, ".", sanitize_id(table_name), "}")
+      ))
+    })
+    extra_content <- ifelse(!schema$schema() %like% "ros_common|ros_meta", render_template("templates/schema-dependencies.Rmd.tpl", list()), "")
+    render_template("templates/schema.Rmd.tpl", list(
+      schema_name = schema_name,
+      schema_anchor = paste0("{#schema_", schema_id, "}"),
+      table_sections = paste(table_sections, collapse = "\n\n"),
+      extra_content = extra_content
+    ))
+  })
+
   file_location <- file.path(export_directory, sprintf("ros_metatadata-%s.Rmd", db_metadata$domain()))
   if (file.exists(file_location)) {
     file.remove(file_location)
   }
-  content <- readLines(template)
-  for (schema in db_metadata$all_schemas()) {
-    content <- append(content, sprintf("
-```{r}
-db_schema <- db_metadata$schema('%s')
-```
 
-```{r child='ros_metatadata-schema.Rmd'}
-```
-", schema$schema()))
-    if (!schema$schema() %like% "ros_common|ros_meta") {
-      content <- append(content, "
-```{r child='ros_metatadata-schema-dependencies.Rmd'}
-```")
-    }
-    for (db_table in schema$all_tables()) {
-      content <- append(content, sprintf("
-```{r}
-db_table <- db_schema$table('%s')
-```
-```{r child='ros_metatadata-table.Rmd'}
-```", db_table$table()))
-    }
-  }
-  writeLines(content, file_location)
+  report <- render_template(template, list(
+    title = sprintf("IOTC ROS Database (version: %s `r timestamp`) - Domain %s", db_metadata$version(), db_metadata$domain()),
+    sub_title = sprintf("Last updated: %s", db_metadata$last_update()),
+    abstract_content = paste0("This document describes the ***ROS*** database tables", ifelse(db_metadata$domain() == "ALL", ".", sprintf("used by the domain ***%s***.", db_metadata$domain()))),
+    schema_sections = paste(schema_sections, collapse = "\n\n")
+  ))
+
+  writeLines(report, file_location)
   file_location
 }
 

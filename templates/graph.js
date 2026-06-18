@@ -74,6 +74,10 @@ function generate_table_columns(nodeId, data) {
     </table>
   `;
 }
+function patchReportAnchors(html) {
+  if (!html) { return html; }
+  return html.replace( /href=(['"])#table_([^'"]+)\1/g, 'href=$1#$2$1' );
+}
 
 function generate_table_dependencies(nodeId, data) {
   if (data.length == 0) {
@@ -86,7 +90,7 @@ function generate_table_dependencies(nodeId, data) {
     <tr${datum.mandatory === 'YES' ? ' class="mandatory"' : ''}>
       <td>${datum.column}</td>
       <td>${datum.dependency_type}</td>
-      <td>${datum.dependency_table}</td>
+      <td>${patchReportAnchors(datum.dependency_table)}</td>
       <td>${datum.dependency_column}</td>
     </tr>
   `).join('');
@@ -120,7 +124,7 @@ function generate_table_usages(nodeId, data) {
     <tr>
       <td>${datum.column}</td>
       <td>${datum.usage_type}</td>
-      <td>${datum.usage_table}</td>
+      <td>${patchReportAnchors(datum.usage_table)}</td>
       <td>${datum.usage_column}</td>
     </tr>
   `).join('');

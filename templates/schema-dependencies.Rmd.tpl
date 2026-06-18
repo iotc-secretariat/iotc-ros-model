@@ -1,7 +1,3 @@
----
-output: html_fragment
----
-
 ## Dependencies
 
 Here is the dependency tree:
