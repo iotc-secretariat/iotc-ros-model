@@ -3,13 +3,13 @@
 
 ## Prepare the ros connection file
 
-Create a *JSON* file named ```IOTC_ReferenceData-prod-db.json``` with content (you will need to adapt with your own connection details):
+Create a *JSON* file named ```IOTC_ReferenceData-db.json``` with content (you will need to adapt with your own connection details):
 
 ```json
 {
   "host": "localhost",
   "port": "5432",
-  "dbname": "IOTC_ReferenceData_2025_07_23",
+  "dbname": "IOTC_ReferenceData_2025_06_18",
   "user": "xxx",
   "password": "xxx"
 }

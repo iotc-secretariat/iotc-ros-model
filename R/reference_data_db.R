@@ -33,7 +33,7 @@ IOTC_REFERENCE_DATA_DB_REPORT_DIRECTORY <- file.path("./doc", IOTC_REFERENCE_DAT
 #' @param config_file location of the json config file
 #' @return An Sql connection to \code{IOTC_ReferenceData} database
 #' @export
-connect_to_reference_data <- function(config_file = file.path("./IOTC_ReferenceData-prod-db.json")) {
+connect_to_reference_data <- function(config_file = file.path("./IOTC_ReferenceData-db.json")) {
   config <- fromJSON(config_file)
   DBI::dbConnect(drv = RPostgres::Postgres(),
                  host = config$host,
