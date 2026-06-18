@@ -223,6 +223,34 @@ apply_comments_on_db <- function(root_directory, connection_provider, apply = TR
   })
 }
 
+#' Generate SQL queries to set not-null constraint on the given data.
+#'
+#' @param data data table with three columns (shcema, table and column)
+#' @param connection_supplier function to get the connection
+#' @param apply flag to apply generated sql queries on database (defaults to \code{TRUE})
+#' @return generated sql queries
+#' @export
+set_not_null_on_db <- function(data, connection_provider, apply = TRUE) {
+  use_connection(connection_provider, function(connection) {
+    # generate sql queries
+    queries <- data[, sql := mapply(function(schema, table, column) {
+      # total_count <- as.integer(query(connection, sprintf("SELECT COUNT(*) AS count FROM %s.%s", schema, table))$count[[1]])
+      # if (total_count == 0) {
+      #   return(sprintf("ALTER TABLE %s.%s ALTER COLUMN %s SET NOT NULL;", schema, table, column))
+      # }
+      count <- as.integer(query(connection, sprintf("SELECT COUNT(*) AS count FROM %s.%s WHERE %s IS NULL", schema, table, column))$count[[1]])
+      ifelse(count == 0, sprintf("ALTER TABLE %s.%s ALTER COLUMN %s SET NOT NULL;", schema, table, column),
+             sprintf("-- Can not set not null constraint on column %s.%s.%s (There is %s row(s) with NULL value).", schema, table, column, count))
+    }, schema, table, column)]$sql
+    if (apply) {
+      # Run all queries
+      dbWithTransaction(connection, { lapply(queries, function(x) { dbExecute(connection, x) }) })
+    }
+    return(queries)
+  })
+}
+
+
 table_location <- R6Class(
   "TableLocation",
   public = list(
