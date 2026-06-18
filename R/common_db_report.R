@@ -288,7 +288,7 @@ sanitize_id <- function(...) {
 }
 
 render_description <- function(description) {
-  ifelse(is.na(description), '<p class="error">Not filled</p>', paste0('*', description, '*'))
+  ifelse(is.na(description), '<p class="error">Not filled</p>',  description)
 }
 
 generate_db_metadata_report_template <- function(domain,
