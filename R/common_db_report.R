@@ -5,6 +5,7 @@ library(stringr)
 library(DT)
 library(visNetwork)
 library(jsonlite)
+library(whisker)
 
 out_table_columns <- function(data) {
   real_data <- data.table(data)[, `:=`(description = fifelse(is.na(description) | description == "", "Not filled", description), schema = NULL, table = NULL, foreign_key = NULL)]
@@ -270,6 +271,73 @@ generate_db_metadata_dependencies <- function(db_metadata, db_reverse_dependenci
   }
 }
 
+format_timestamp <- function(timestamp) {
+  str_replace_all(timestamp, "[ :.]", "_")
+}
+
+render_template <- function(template_path, data) {
+  template <- paste(readLines(template_path, warn = FALSE), collapse = "\n")
+  whisker.render(template, data)
+}
+
+sanitize_id <- function(...) {
+  x <- paste(..., sep = "_")
+  x <- gsub("[^A-Za-z0-9_-]", "_", x)
+  x <- gsub("_+", "_", x)
+  tolower(x)
+}
+
+generate_db_metadata_report_template <- function(domain,
+                                                 version,
+                                                 root_directory,
+                                                 db_metadata_supplier,
+                                                 db_metadata_report_template_supplier,
+                                                 remove_unused_tables = FALSE) {
+  print("Generating template...")
+  if (is.function(db_metadata_supplier)) {
+    db_metadata <- db_metadata_supplier(domain, version, root_directory)
+    db_metadata$generate_dependencies()
+    if (remove_unused_tables) {
+      db_metadata$remove_unused_tables()
+    }
+  } else {
+    db_metadata <- db_metadata_supplier
+  }
+  template <- db_metadata_report_template_supplier(db_metadata)
+  print(sprintf("Generated template at %s", template))
+  template
+}
+
+patch_tocify_hash_generator <- function(html_file) {
+
+  html <- paste(readLines(html_file, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+
+  old <- 'hashGenerator: function \\(text\\) \\{\\n\\s*return text\\.replace\\(/\\[\\.\\\\\\\\/\\?&!#<>\\]/g, \'\'\\)\\.replace\\(/\\\\s/g, \'_\'\\);\\n\\s*\\}'
+
+  new <- 'hashGenerator: function (text) {
+        var foundId = null;
+
+        $("div.section[id] > h1, div.section[id] > h2, div.section[id] > h3").each(function () {
+          var headingText = $(this).clone().children().remove().end().text().trim();
+          if (headingText === text && foundId === null) {
+            foundId = $(this).parent().attr("id");
+          }
+        });
+
+        if (foundId) return foundId;
+
+        return text.replace(/[.\\\\/?&!#<>]/g, \'\').replace(/\\s/g, \'_\');
+      }'
+
+  html2 <- sub(old, new, html, perl = TRUE)
+
+  if (identical(html, html2)) {
+    stop("Could not patch tocify hashGenerator: pattern not found")
+  }
+
+  writeLines(html2, html_file, useBytes = TRUE)
+}
+
 generate_db_metadata_report <- function(domain,
                                         version,
                                         root_directory,
@@ -286,24 +354,37 @@ generate_db_metadata_report <- function(domain,
   if (remove_unused_tables) {
     db_metadata$remove_unused_tables()
   }
-  template <- db_metadata_report_template_supplier(db_metadata)
+  template <- generate_db_metadata_report_template(domain,
+                                                   version,
+                                                   root_directory,
+                                                   db_metadata,
+                                                   db_metadata_report_template_supplier,
+                                                   remove_unused_tables)
   export_directory <- file.path(export_directory, timestamp)
   if (!dir.exists(export_directory)) {
     dir.create(export_directory, recursive = TRUE)
   }
   file_location <- file.path(export_directory, sprintf("%s%s.html", report_prefix, db_metadata$to_domain_report()))
+  print("Preparing db_reverse_dependencies_tree...")
   db_reverse_dependencies_tree <- db_metadata$db_reverse_dependencies_tree()
+  print("Preparing db_tables_columns...")
   db_tables_columns <- lapply(db_metadata$all_tables(), function(x) { x$columns() })
+  print("Preparing db_tables_dependencies...")
   db_tables_dependencies <- build_tables_dependencies_supplier(db_metadata)
+  print("Preparing db_tables_usages...")
   db_tables_usages <- build_tables_usages_supplier(db_metadata, db_tables_dependencies)
+  print("Generating db_metadata_dependencies...")
   generate_db_metadata_dependencies(db_metadata, db_reverse_dependencies_tree, db_tables_columns, db_tables_dependencies, db_tables_usages, export_directory, timestamp, report_prefix)
   db_tables_dependencies <- lapply(db_tables_dependencies, function(x) { x[, dependency_table_raw := NULL] })
   db_tables_usages <- lapply(db_tables_usages, function(x) { x[, usage_table_raw := NULL] })
   options(DT.options = list(pageLength = -1))
-
+  print(sprintf("Generating report: %s...", file_location))
   render(template,
          output_format = "html_document",
          output_file = basename(file_location),
          output_dir = dirname(file_location),
          quiet = TRUE)
+  print(sprintf("Generated report: %s...", file_location))
+  print(sprintf("Patching report: %s...", file_location))
+  patch_tocify_hash_generator(file_location)
 }
