@@ -51,3 +51,17 @@ reference_data_db_metadata_generate_report(timestamp = DEFAULT_TIME_STAMP)
 source("R/generate_indexes.R")
 
 ```
+
+## Fix not null columns
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+# Load tables columns
+tables_columns <- as.data.table(load_db_metadata(output_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY)$tables_columns)[, .(schema, table, column, mandatory)]
+# Remove some schemas we do not want to deal with
+tables_columns <- tables_columns[!schema %in% "refs_legacy" & mandatory != "YES"]
+queries <- set_not_null_on_db(data = tables_columns, connection_provider = connect_to_reference_data, apply = TRUE)
+writeLines(queries, con=file.path(IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY, "migration", "01_set-not-null.sql"))
+```
