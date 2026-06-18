@@ -11,7 +11,7 @@ with_usages <- nrow(db_table_usages) > 0
 
 #### Description
 
-`r ifelse(is.na(db_table$table_description()), '<p class="error">Not filled</p>', paste0('*', db_table$table_description(), '*'))`
+`r render_description(db_table$table_description())`
 
 #### Definition {.tabset}
 

@@ -6,6 +6,6 @@ db_schema <- db_metadata$schema("{{ schema_name }}")
 
 #### Description
 
-`r ifelse(is.na(db_schema$schema_description()), '<p class="error">Not filled</p>', paste0('*', db_schema$schema_description(), '*'))`
+`r render_description(db_schema$schema_description())`
 
 {{{ table_sections }}}

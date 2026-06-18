@@ -21,7 +21,7 @@ knitr::opts_chunk$set(fig.width = 8, echo = FALSE, message = FALSE)
 
 # Abstract
 
-This document describes the ***IOTC ReferenceData*** database tables.
+{{ abstract_content }}
 
 {{{ schema_sections }}}
 

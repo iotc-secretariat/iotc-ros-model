@@ -139,7 +139,7 @@ build_tables_usages <- function(db_metadata, db_tables_dependencies) {
 }
 
 reference_data_db_metadata_report_template_supplier <- function(db_metadata, export_directory = "./RMDs") {
-  template <- "./templates/iotc_reference_data/report.Rmd.tpl"
+  template <- "./templates/report.Rmd.tpl"
 
   schema_sections <- lapply(db_metadata$all_schemas(), function(schema) {
 
@@ -148,13 +148,13 @@ reference_data_db_metadata_report_template_supplier <- function(db_metadata, exp
     table_sections <- lapply(schema$all_tables(), function(tbl) {
       table_name <- tbl$table()
 
-      render_template("templates/iotc_reference_data/table.Rmd.tpl", list(
+      render_template("templates/table.Rmd.tpl", list(
         table_name = table_name,
         table_anchor = paste0("{#table_", sanitize_id(schema_id, table_name), "}")
       ))
     })
 
-    render_template("templates/iotc_reference_data/schema.Rmd.tpl", list(
+    render_template("templates/schema.Rmd.tpl", list(
       schema_name = schema_name,
       schema_anchor = paste0("{#schema_", schema_id, "}"),
       table_sections = paste(table_sections, collapse = "\n\n")
@@ -168,6 +168,7 @@ reference_data_db_metadata_report_template_supplier <- function(db_metadata, exp
   report <- render_template(template, list(
     title = sprintf("IOTC Reference data Database (version: %s `r timestamp`)", db_metadata$version()),
     sub_title = sprintf("Last updated: %s", db_metadata$last_update()),
+    abstract_content = "This document describes the ***IOTC ReferenceData*** database tables.",
     schema_sections = paste(schema_sections, collapse = "\n\n")
   ))
 
