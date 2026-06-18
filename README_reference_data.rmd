@@ -43,3 +43,11 @@ source("R/reference_data_db.R")
 # Generate documentation report of the hole Reference data database
 reference_data_db_metadata_generate_report(timestamp = DEFAULT_TIME_STAMP)
 ```
+
+## Generate missing index.html files in doc directory
+
+```{r, warning = FALSE}
+# Load sources
+source("R/generate_indexes.R")
+
+```
