@@ -23,5 +23,15 @@ knitr::opts_chunk$set(fig.width = 8, echo = FALSE, message = FALSE)
 
 {{ abstract_content }}
 
+### Legend
+
+| Icon | Meaning |
+|------|---------|
+| <span class="pk-icon"></span> | Primary Key column |
+| <span class="fk-icon"></span> | Foreign Key column |
+| <span class="mandatory-icon"></span> | Mandatory (NOT NULL) column |
+
+Columns that belong to a primary key are displayed in **bold**.
+
 {{{ schema_sections }}}
 
