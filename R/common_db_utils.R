@@ -187,9 +187,9 @@ generate_db_metadata <- function(db_metadata, output_directory) {
 #' @return loaded files
 #' @export
 load_db_metadata <- function(output_directory) {
-  list(schemas_description = fread(file.path(output_directory, "schemas_description.csv")),
-       tables_description = fread(file.path(output_directory, "tables_description.csv")),
-       tables_columns = fread(file.path(output_directory, "tables_columns.csv")))
+  list(schemas_description = fread(file.path(output_directory, "schemas_description.csv"), na.strings = c('', 'NA')),
+       tables_description = fread(file.path(output_directory, "tables_description.csv"), na.strings = c('', 'NA')),
+       tables_columns = fread(file.path(output_directory, "tables_columns.csv"), na.strings = c('', 'NA')))
 }
 
 load_db_metadata_object <- function(domain,
