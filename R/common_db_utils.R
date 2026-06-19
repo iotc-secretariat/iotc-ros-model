@@ -345,7 +345,7 @@ as.character.ColumnLocation <- function(x, ...) {
 db_metadata_table <- R6Class(
   "DbMetadataTable",
   public = list(
-    initialize = function(schema, table, description, columns) {
+    initialize = function(schema, table, description, columns, dependencies, usages) {
       stopifnot(!is.na(schema), is.character(schema), nchar(schema) > 0)
       stopifnot(!is.na(table), is.character(table), nchar(table) > 0)
       private$.schema <- schema
@@ -353,6 +353,8 @@ db_metadata_table <- R6Class(
       private$.table_location <- table_location$new(sprintf("%s.%s", schema, table))
       private$.description <- ifelse(str_length(description) == 0, NA, description)
       private$.columns <- columns
+      private$.dependencies <- dependencies
+      private$.usages <- usages
     },
     table_description = function() {
       private$.description
@@ -371,6 +373,12 @@ db_metadata_table <- R6Class(
     },
     columns = function() {
       private$.columns
+    },
+    dependencies = function() {
+      private$.dependencies
+    },
+    usages = function() {
+      private$.usages
     }
   ),
   private = list(
@@ -383,7 +391,11 @@ db_metadata_table <- R6Class(
     # description
     .description = NULL,
     # columns
-    .columns = NULL
+    .columns = NULL,
+    #dependencies
+    .dependencies = NULL,
+    # usages
+    .usages = NULL
   )
 )
 
@@ -412,7 +424,7 @@ db_metadata_schema <- R6Class(
       if (is.null(tables_names)) {
         private$.tables }
       else {
-        Filter(function(x) {x$table_gav() %in% tables_names}, private$.tables)
+        Filter(function(x) { x$table_gav() %in% tables_names }, private$.tables)
       }
     },
     table = function(table) {
@@ -448,9 +460,7 @@ db_metadata <- R6Class(
                           schemas_description,
                           tables_description,
                           tables_columns,
-                          is_column_code_list_function,
-                          is_column_registry_function,
-                          is_column_data_function,
+                          column_dependency_filter,
                           standalone_tables,
                           entry_point,
                           generate_dependencies_tree_function) {
@@ -458,20 +468,57 @@ db_metadata <- R6Class(
       private$.domain <- domain
       private$.version <- version
       private$.last_update <- last_update
-      private$.is_column_code_list_function <- is_column_code_list_function
-      private$.is_column_registry_function <- is_column_registry_function
-      private$.is_column_data_function <- is_column_data_function
+      private$.column_dependency_filter <- column_dependency_filter
       private$.standalone_tables <- standalone_tables
       private$.entry_point <- entry_point
       private$.generate_dependencies_tree_function <- generate_dependencies_tree_function
       schema_names <- schemas_description$schema
+      # Compute fk table with only foereign keys, to build just after dependencies and usages
+      fk <- tables_columns[!is.na(foreign_key) & str_length(foreign_key) > 0]
+      fk[, table_id := paste(schema, table, sep = '.')]
+      fk[, column_id := paste(schema, table, column, sep = '.')]
+      fk[, c('target_schema', 'target_table', 'target_column') := tstrsplit(foreign_key, '.', fixed = TRUE)]
+      fk[, target_table_id := paste(target_schema, target_table, sep = '.')]
+      # Outgoing dependencies:
+      # current table column -> target table column
+      dependencies <- fk[, .(
+        schema,
+        table,
+        column,
+        table_id,
+        target_schema,
+        target_table,
+        target_column,
+        target_table_id,
+        mandatory
+      )]
+
+      # Reverse usages:
+      # target table is used by source table column
+      usages <- fk[, .(
+        schema = target_schema,
+        table = target_table,
+        column = target_column,
+        table_id = target_table_id,
+        usage_schema = schema,
+        usage_table = table,
+        usage_column = column,
+        usage_table_id = table_id,
+        mandatory
+      )]
       private$.schemas <- lapply(schema_names, function(schema_name) {
         description <- schemas_description[schema == schema_name]$description
         table_description <- tables_description[schema == schema_name]
         table_names <- table_description$table
         columns <- tables_columns[schema == schema_name]
         columns <- lapply(table_names, function(table_name) {
-          db_metadata_table$new(schema_name, table_name, table_description[table == table_name]$description, columns[table == table_name])
+          table_gav <- paste0(schema_name, ".", table_name)
+          db_metadata_table$new(schema_name,
+                                table_name,
+                                table_description[table == table_name]$description,
+                                columns[table == table_name],
+                                dependencies[table_id == table_gav],
+                                usages[table_id == table_gav])
         })
         names(columns) <- table_names
         db_metadata_schema$new(schema_name, description, columns)
@@ -490,14 +537,8 @@ db_metadata <- R6Class(
     last_update = function() {
       private$.last_update
     },
-    is_column_code_list_function = function() {
-      private$.is_column_code_list_function
-    },
-    is_column_data_function = function() {
-      private$.is_column_data_function
-    },
-    is_column_registry_function = function() {
-      private$.is_column_registry_function
+    column_dependency_filter = function() {
+      private$.column_dependency_filter
     },
     standalone_tables = function() {
       private$.standalone_tables
@@ -540,7 +581,7 @@ db_metadata <- R6Class(
       rbindlist(lapply(self$all_schemas(), function(x) { x$columns() }))
     },
     data_dependencies_tables = function() {
-      data_dependencies <- self$columns()[self$is_column_data_function()(foreign_key) | self$is_column_registry_function()(foreign_key)]
+      data_dependencies <- self$columns()[self$column_dependency_filter()(foreign_key)]
       unique(data_dependencies[, `:=`(origin = paste0(schema, ".", table, ".", column), target = foreign_key)][, .(origin, target)], by = c("origin", "target"))
     },
     generate_dependencies = function() {
@@ -582,12 +623,8 @@ db_metadata <- R6Class(
     .last_update = NULL,
     # schemas
     .schemas = NULL,
-    # funtion to test if a table column is a foreign key pointing to a code list
-    .is_column_code_list_function = NULL,
-    # funtion to test if a table column is a foreign key pointing to a registry table
-    .is_column_registry_function = NULL,
-    # function to test if a table column is a foreign key pointing to a data table
-    .is_column_data_function = NULL,
+    # funtion to test if a table column can be added to dependencies
+    .column_dependency_filter = NULL,
     # standalone tables
     .standalone_tables = NULL,
     # entry point
@@ -599,7 +636,6 @@ db_metadata <- R6Class(
     # computed dependencies tree for each schema
     .db_reverse_dependencies_tree = NULL,
     .build_reverse_dependency_tree = function(deps) {
-      # print(sprintf("yoyoyo %s", entry_point))
       entry_point <- self$entry_point()
       standalone_tables <- self$standalone_tables()
       result <- data.table(
@@ -635,7 +671,6 @@ db_metadata <- R6Class(
             path = path
           )
         )
-        # cat(sprintf("%s → %s\n", parent, current))
         # Prevent cycles
         if (current_table_gav %in% visited) {
           return(NULL)
