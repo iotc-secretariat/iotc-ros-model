@@ -57,8 +57,6 @@ reference_data_db_metadata_create <- function(domain = "ALL",
                   files$schemas_description[schema %in% schema_names],
                   files$tables_description[schema %in% schema_names],
                   files$tables_columns[schema %in% schema_names],
-                  function(foreign_key) { str_length(foreign_key) > 0 },
-                  function(foreign_key) { FALSE },
                   function(foreign_key) { FALSE },
                   list(),
                   "ros_common.observation_dataset.id",
@@ -67,113 +65,38 @@ reference_data_db_metadata_create <- function(domain = "ALL",
                   })
 }
 
-dependencies_table <- function(db_table,
-                               is_column_code_list_function,
-                               is_column_registry_function,
-                               is_column_data_function) {
-  result <- data.table(db_table$columns())[is_column_code_list_function(foreign_key) |
-                                             is_column_registry_function(foreign_key) |
-                                             is_column_data_function(foreign_key)]
-  result[, `:=`(schema = NULL,
-                table = NULL,
-                type = NULL,
-                description = NULL,
-                foreign_key = NULL,
-                dependency_type = sapply(foreign_key, function(x) {
-                  if (is.na(x)) {
-                    return(NA_character_)
-                  }
-                  if (is_column_code_list_function(x)) {
-                    return("Code list")
-                  }
-                  NA_character_
-                }),
-                dependency_table_raw = sapply(foreign_key, function(x) {
-                  if (is_column_code_list_function(x) |
-                    is_column_registry_function(x) |
-                    is_column_data_function(x)) {
-                    return(column_location$new(x)$table_gav())
-                  }
-                  NA_character_
-                }),
-                dependency_table = sapply(foreign_key, function(x) {
-                  table <- column_location$new(x)
-                  return(sprintf("<a href='#table_%s_%s'>%s</a>", table$schema(), table$table(), table$table_gav()))
-                }),
-                dependency_column = sapply(foreign_key, function(x) { column_location$new(x)$column() }))]
+link_to_type <- function(schema_and_table) {
+  "Code list"
 }
 
-usages_table <- function(db_table,
-                         db_tables_dependencies,
-                         is_column_code_list_function,
-                         is_column_registry_function,
-                         is_column_data_function) {
-  table_gav <- db_table$table_gav()
-  result <- rbindlist(lapply(names(db_tables_dependencies), function(x) {
-    t <- db_tables_dependencies[[x]]
-    data.table(t[dependency_table_raw == table_gav])[, `:=`(dependency_column = NULL,
-                                                            dependency_type = NULL,
-                                                            dependency_table_raw = NULL,
-                                                            dependency_table = NULL,
-                                                            column = dependency_column,
-                                                            usage_type = dependency_type,
-                                                            usage_table_raw = x,
-                                                            usage_table = sapply(x, function(y) {
-                                                              gav <- table_location$new(y)
-                                                              return(sprintf("<a href='#table_%s_%s'>%s</a>", gav$schema(), gav$table(), y))
-                                                            }),
-                                                            usage_column = column)]
-  }))
-}
-
-build_tables_dependencies <- function(db_metadata) {
-  is_column_code_list_function <- db_metadata$is_column_code_list_function()
-  is_column_registry_function <- db_metadata$is_column_registry_function()
-  is_column_data_function <- db_metadata$is_column_data_function()
-  lapply(db_metadata$all_tables(), function(x) { dependencies_table(x, is_column_code_list_function, is_column_registry_function, is_column_data_function) })
-}
-
-build_tables_usages <- function(db_metadata, db_tables_dependencies) {
-  is_column_code_list_function <- db_metadata$is_column_code_list_function()
-  is_column_registry_function <- db_metadata$is_column_registry_function()
-  is_column_data_function <- db_metadata$is_column_data_function()
-  lapply(db_metadata$all_tables(), function(x) { usages_table(x, db_tables_dependencies, is_column_code_list_function, is_column_registry_function, is_column_data_function) })
+link_to_url <- function(schema, table, schema_and_table) {
+  sprintf("<a href='#table_%s.%s'>%s</a>", schema, table, schema_and_table)
 }
 
 reference_data_db_metadata_report_template_supplier <- function(db_metadata, export_directory = "./RMDs") {
-  template <- "./templates/report.Rmd.tpl"
-
   schema_sections <- lapply(db_metadata$all_schemas(), function(schema) {
-
     schema_name <- schema$schema()
     schema_id <- sanitize_id(schema_name)
-    table_sections <- lapply(schema$all_tables(), function(tbl) {
-      table_name <- tbl$table()
-
+    table_sections <- lapply(schema$all_tables(), function(table) {
+      table_name <- table$table()
       render_template("templates/table.Rmd.tpl", list(
         table_name = table_name,
-        table_anchor = paste0("{#table_", sanitize_id(schema_id, table_name), "}")
+        table_anchor = paste0("{#table_", schema_id, ".", sanitize_id(table_name), "}")
       ))
     })
-
     render_template("templates/schema.Rmd.tpl", list(
       schema_name = schema_name,
       schema_anchor = paste0("{#schema_", schema_id, "}"),
       table_sections = paste(table_sections, collapse = "\n\n")
     ))
   })
-
   file_location <- file.path(export_directory, sprintf("reference_data_metatadata-%s.Rmd", db_metadata$domain()))
-  if (file.exists(file_location)) {
-    file.remove(file_location)
-  }
-  report <- render_template(template, list(
+  report <- render_template("./templates/report.Rmd.tpl", list(
     title = sprintf("IOTC Reference data Database (version: %s `r timestamp`)", db_metadata$version()),
     sub_title = sprintf("Last updated: %s", db_metadata$last_update()),
     abstract_content = "This document describes the ***IOTC ReferenceData*** database tables.",
     schema_sections = paste(schema_sections, collapse = "\n\n")
   ))
-
   writeLines(report, file_location)
   file_location
 }
@@ -201,8 +124,8 @@ reference_data_db_metadata_generate_report <- function(version = IOTC_REFERENCE_
                               export_directory = export_directory,
                               db_metadata_supplier = reference_data_db_metadata_create,
                               db_metadata_report_template_supplier = reference_data_db_metadata_report_template_supplier,
-                              build_tables_dependencies_supplier = build_tables_dependencies,
-                              build_tables_usages_supplier = build_tables_usages,
+                              link_to_type = link_to_type,
+                              link_to_url = link_to_url,
                               report_prefix = "IOTC_Reference_data_database",
                               remove_unused_tables = FALSE)
 }
