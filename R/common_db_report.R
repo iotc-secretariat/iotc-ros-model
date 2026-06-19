@@ -43,11 +43,11 @@ out_table_dependencies <- function(data) {
   datatable(
     data,
     colnames = c(
-       "Column",
-       "mandatory",
-       "Relation type",
-       "Dependency table",
-       "Dependency column"
+      "Column",
+      "mandatory",
+      "Relation type",
+      "Dependency table",
+      "Dependency column"
     ),
     escape = FALSE,
     autoHideNavigation = TRUE,
@@ -68,11 +68,11 @@ out_table_usages <- function(data) {
   datatable(
     data,
     colnames = c(
-       "Column",
-       "mandatory",
-       "Relation type",
-       "Usage table",
-       "Usage column"
+      "Column",
+      "mandatory",
+      "Relation type",
+      "Usage table",
+      "Usage column"
     ),
     escape = FALSE,
     autoHideNavigation = TRUE,
@@ -240,12 +240,13 @@ generate_graph_data_input <- function(data, entry_point) {
   list(nodes = nodes, edges = edges)
 }
 
-generate_data_graph_js <- function(tables_columns, tables_dependencies, tables_usages) {
+generate_data_graph_js <- function(tables_columns, tables_dependencies, tables_usages, table_descriptions) {
   columns <- toJSON(tables_columns, dataframe = 'rows', auto_unbox = TRUE)
   dependencies <- toJSON(tables_dependencies, dataframe = 'rows', auto_unbox = TRUE)
   usages <- toJSON(tables_usages, dataframe = 'rows', auto_unbox = TRUE)
+  descriptions <- toJSON(table_descriptions, auto_unbox = TRUE)
   js_template <- paste(readLines("./templates/graph.js", warn = FALSE), collapse = "\n")
-  js_content <- sprintf(paste0("<script>\n", js_template, "\n</script>"), columns, dependencies, usages)
+  js_content <- sprintf(paste0("<script>\n", js_template, "\n</script>"), columns, dependencies, usages, descriptions)
   writeLines(js_content, "./templates/generated-graph.js")
 }
 
@@ -255,13 +256,15 @@ generate_db_metadata_dependencies <- function(db_metadata, db_reverse_dependenci
     db_schema_reverse_dependencies_tree <- data.table(db_reverse_dependencies_tree[[schema_name]])
     db_schema_tables_names <- unique(append(db_schema_reverse_dependencies_tree[!is.na(parent_table)]$parent_table, db_schema_reverse_dependencies_tree$table))
     db_schema_tables_columns <- db_tables_columns[names(db_tables_columns) %in% db_schema_tables_names]
+    dt <- db_metadata$to_table_descriptions()[, gav := paste0(schema, ".", table)][, .(gav, description)]
+    db_tables_descriptions <- setNames(as.list(dt$description), dt$gav)
     # FIXME add this in db_metadata class
     filter <- sprintf("ros_common|ros_meta|refs_|%s", schema_name)
     db_schema_tables_dependencies <- lapply(db_tables_dependencies[names(db_tables_dependencies) %in% db_schema_tables_names], function(x) { data.table(x)[dependency_table_raw %like% filter][, dependency_table_raw := NULL] })
     db_schema_tables_usages <- lapply(db_tables_usages[names(db_tables_usages) %in% db_schema_tables_names], function(x) { data.table(x)[usage_table_raw %like% filter][, usage_table_raw := NULL] })
     entry_point_table_gav <- db_metadata$entry_point_table_gav()
     graph_data <- generate_graph_data_input(db_schema_reverse_dependencies_tree, entry_point_table_gav)
-    generate_data_graph_js(db_schema_tables_columns, db_schema_tables_dependencies, db_schema_tables_usages)
+    generate_data_graph_js(db_schema_tables_columns, db_schema_tables_dependencies, db_schema_tables_usages, db_tables_descriptions)
     render("./RMDs/ros_metatadata-schema-graph.Rmd",
            output_format = "html_document",
            output_file = basename(graph_location),
@@ -288,7 +291,7 @@ sanitize_id <- function(...) {
 }
 
 render_description <- function(description) {
-  ifelse(is.na(description), '<p class="error">Not filled</p>',  description)
+  ifelse(is.na(description), '<p class="error">Not filled</p>', description)
 }
 
 generate_db_metadata_report_template <- function(domain,
@@ -342,6 +345,25 @@ patch_tocify_hash_generator <- function(html_file) {
   writeLines(html2, html_file, useBytes = TRUE)
 }
 
+
+to_dependencies_table <- function(db_table, link_to_type, link_to_url) {
+  data.table(db_table$dependencies())[, `:=`(
+    dependency_type = sapply(target_table_id, link_to_type),
+    dependency_table_raw = target_table_id,
+    dependency_table = mapply(link_to_url, target_schema, target_table, target_table_id),
+    dependency_column = target_column
+  )][, .(column, mandatory, dependency_type, dependency_table_raw, dependency_table, dependency_column)]
+}
+
+to_usages_table <- function(db_table, link_to_type, link_to_url) {
+  data.table(db_table$usages())[, `:=`(
+    usage_type = sapply(usage_table_id, link_to_type),
+    usage_table_raw = usage_table_id,
+    usage_table = mapply(link_to_url, usage_schema, usage_table, usage_table_id),
+    usage_column = usage_column
+  )][, .(column, mandatory, usage_type, usage_table_raw, usage_table, usage_column)]
+}
+
 generate_db_metadata_report <- function(domain,
                                         version,
                                         root_directory,
@@ -349,8 +371,8 @@ generate_db_metadata_report <- function(domain,
                                         timestamp = format_timestamp(Sys.time()),
                                         db_metadata_supplier,
                                         db_metadata_report_template_supplier,
-                                        build_tables_dependencies_supplier,
-                                        build_tables_usages_supplier,
+                                        link_to_type,
+                                        link_to_url,
                                         report_prefix,
                                         remove_unused_tables = FALSE) {
   db_metadata <- db_metadata_supplier(domain, version, root_directory)
@@ -374,9 +396,9 @@ generate_db_metadata_report <- function(domain,
   print("Preparing db_tables_columns...")
   db_tables_columns <- lapply(db_metadata$all_tables(), function(x) { x$columns() })
   print("Preparing db_tables_dependencies...")
-  db_tables_dependencies <- build_tables_dependencies_supplier(db_metadata)
+  db_tables_dependencies <- lapply(db_metadata$all_tables(), function(x) { to_dependencies_table(x, link_to_type, link_to_url) })
   print("Preparing db_tables_usages...")
-  db_tables_usages <- build_tables_usages_supplier(db_metadata, db_tables_dependencies)
+  db_tables_usages <- lapply(db_metadata$all_tables(), function(x) { to_usages_table(x, link_to_type, link_to_url) })
   print("Generating db_metadata_dependencies...")
   generate_db_metadata_dependencies(db_metadata, db_reverse_dependencies_tree, db_tables_columns, db_tables_dependencies, db_tables_usages, export_directory, timestamp, report_prefix)
   db_tables_dependencies <- lapply(db_tables_dependencies, function(x) { x[, dependency_table_raw := NULL] })
