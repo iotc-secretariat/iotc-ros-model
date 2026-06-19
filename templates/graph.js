@@ -1,6 +1,7 @@
 window.dbTables_columns = %s;
 window.dbTables_dependencies = %s;
 window.dbTables_usages = %s;
+window.dbTables_descriptions = %s;
 
 function selectNode(nodeId) {
   window.myNetwork.setSelection( { nodes: [nodeId] });
@@ -39,8 +40,11 @@ function showNodeDetails(nodeId) {
   var columns = window.dbTables_columns[nodeId] || [];
   var dependencies = window.dbTables_dependencies[nodeId] || [];
   var usages = window.dbTables_usages[nodeId] || [];
+  var description = window.dbTables_descriptions[nodeId] || '';
+  description= !description || description === '' ? '<p class="error"><b><i>Not filled<i></b></p>' : '<p><b><i>' + description + '</i></b></p>';
   var html = `
   <h3>Table <b><i>${nodeId}</i></b></h3>
+  ${description}
   ${generate_table_columns(nodeId, columns)}
   ${generate_table_dependencies(nodeId, dependencies)}
   ${generate_table_usages(nodeId, usages)}
@@ -54,7 +58,7 @@ function generate_table_columns(nodeId, data) {
     <tr${datum.mandatory === 'YES' ? ' class="mandatory"' : ''}>
       <td>${datum.column}</td>
       <td>${datum.type}</td>
-      <td>${datum.description === '' ? '<p class="error">Not filled</p>' : datum.description}</td>
+      <td>${!datum.description || datum.description === '' ? '<p class="error">Not filled</p>' : datum.description}</td>
     </tr>
   `).join('');
 
