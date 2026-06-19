@@ -1,9 +1,7 @@
-library(htmltools)
-library(rmarkdown)
 library(data.table)
 library(stringr)
-library(DT)
-library(visNetwork)
+library(DBI)
+library(RPostgres)
 
 #'The constants holding the name of the latest IOTC_Ros database
 #'@export
