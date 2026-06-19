@@ -732,8 +732,8 @@ db_metadata <- R6Class(
 to_kW <- function(value, unit) {
   switch(
     unit,
-    kW  = value,
-    hp  = value * 0.745699872,
+    kW = value,
+    hp = value * 0.745699872,
     khp = value * 745.699872,
     stop(sprintf("Unsupported unit: %s", unit))
   )
