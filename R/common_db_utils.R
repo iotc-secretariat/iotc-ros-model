@@ -99,31 +99,16 @@ SELECT
         WHEN (NOT cols.is_nullable::boolean) THEN 'YES'
         ELSE 'NO'
     END AS mandatory,
-        pgd.description AS description,
---    fk.constraint_name,
+    pgd.description AS description,
     CASE
         WHEN fk.target_schema IS NULL THEN NULL
         ELSE concat(fk.target_schema, '.', fk.target_table, '.', fk.target_column)
     END AS foreign_key
---    fk.target_schema,
---    fk.target_table,
---    fk.target_column
 FROM information_schema.columns cols
-
-JOIN pg_namespace ns
-    ON ns.nspname = cols.table_schema
-
-JOIN pg_class tbl
-    ON tbl.relname = cols.table_name
-   AND tbl.relnamespace = ns.oid
-
-JOIN pg_attribute a
-    ON a.attrelid = tbl.oid
-   AND a.attname = cols.column_name
-
-LEFT JOIN pg_description pgd
-    ON pgd.objoid = tbl.oid
-   AND pgd.objsubid = a.attnum
+JOIN pg_namespace ns ON ns.nspname = cols.table_schema
+JOIN pg_class tbl ON tbl.relname = cols.table_name AND tbl.relnamespace = ns.oid
+JOIN pg_attribute a ON a.attrelid = tbl.oid AND a.attname = cols.column_name
+LEFT JOIN pg_description pgd ON pgd.objoid = tbl.oid AND pgd.objsubid = a.attnum
 LEFT JOIN (
     SELECT
         con.conname AS constraint_name,
@@ -133,33 +118,21 @@ LEFT JOIN (
         target_ns.nspname AS target_schema,
         target_tbl.relname AS target_table,
         target_col.attname AS target_column
-
     FROM pg_constraint con
-    JOIN pg_class src_tbl
-        ON src_tbl.oid = con.conrelid
-    JOIN pg_namespace src_ns
-        ON src_ns.oid = src_tbl.relnamespace
-    JOIN pg_class target_tbl
-        ON target_tbl.oid = con.confrelid
-    JOIN pg_namespace target_ns
-        ON target_ns.oid = target_tbl.relnamespace
-    JOIN unnest(con.conkey) WITH ORDINALITY AS src_colnum(attnum, ord)
-        ON TRUE
-    JOIN unnest(con.confkey) WITH ORDINALITY AS target_colnum(attnum, ord)
-        ON src_colnum.ord = target_colnum.ord
-    JOIN pg_attribute src_col
-        ON src_col.attrelid = src_tbl.oid
-       AND src_col.attnum = src_colnum.attnum
-    JOIN pg_attribute target_col
-        ON target_col.attrelid = target_tbl.oid
-       AND target_col.attnum = target_colnum.attnum
+    JOIN pg_class src_tbl ON src_tbl.oid = con.conrelid
+    JOIN pg_namespace src_ns ON src_ns.oid = src_tbl.relnamespace
+    JOIN pg_class target_tbl ON target_tbl.oid = con.confrelid
+    JOIN pg_namespace target_ns ON target_ns.oid = target_tbl.relnamespace
+    JOIN unnest(con.conkey) WITH ORDINALITY AS src_colnum(attnum, ord) ON TRUE
+    JOIN unnest(con.confkey) WITH ORDINALITY AS target_colnum(attnum, ord) ON src_colnum.ord = target_colnum.ord
+    JOIN pg_attribute src_col ON src_col.attrelid = src_tbl.oid AND src_col.attnum = src_colnum.attnum
+    JOIN pg_attribute target_col ON target_col.attrelid = target_tbl.oid AND target_col.attnum = target_colnum.attnum
     WHERE con.contype = 'f'
 ) fk
     ON fk.source_schema = cols.table_schema
    AND fk.source_table = cols.table_name
    AND fk.source_column = cols.column_name
 WHERE cols.table_schema IN ($1)
---  AND cols.table_name = $2
   AND a.attnum > 0
   AND tbl.relkind = 'r'
   AND NOT a.attisdropped
