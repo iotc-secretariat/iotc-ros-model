@@ -7,16 +7,44 @@ library(visNetwork)
 library(jsonlite)
 library(whisker)
 
+render_column_name <- function(column, mandatory = FALSE, primary_key = FALSE, foreign_key = FALSE) {
+  not_null <- if (!is.na(mandatory) & (isTRUE(mandatory) | mandatory == "YES")) {
+    "<span class='mandatory-icon'></span>"
+  } else {
+    ""
+  }
+  pk <- if (isTRUE(primary_key)) {
+    "<span class='pk-icon'></span>"
+  } else {
+    ""
+  }
+  fk <- if (isTRUE(foreign_key)) {
+    "<span class='fk-icon'></span>"
+  } else {
+    ""
+  }
+  label <- htmltools::htmlEscape(column)
+  if (isTRUE(primary_key)) {
+    label <- paste0("<span class='pk-column'>", label, "</span>")
+  }
+  paste0(pk, fk, not_null, label)
+}
+
 out_table_columns <- function(data) {
-  real_data <- data.table(data)[, `:=`(description = fifelse(is.na(description) | description == "", "Not filled", description), schema = NULL, table = NULL, foreign_key = NULL)]
+  hidden_columns <- c("mandatory", "primary_key")
+  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key, !is.na(foreign_key)),
+                                       description = fifelse(is.na(description) | description == "", "Not filled", description),
+                                       schema = NULL, table = NULL, foreign_key = NULL)]
   datatable(real_data,
             autoHideNavigation = TRUE,
             rownames = FALSE,
             lazyRender = TRUE,
             fillContainer = FALSE,
+            escape = FALSE,
+            colnames = c("Column", "Type", "mandatory", "Description", "primary_key"),
             options = list(dom = "t", ordering = FALSE,
                            columnDefs = list(
-                             list(visible = FALSE, targets = which(names(real_data) == "mandatory") - 1),
+                             list(visible = FALSE, targets = which(names(real_data) %in% hidden_columns) - 1),
                              list(
                                targets = "description",
                                createdCell = JS(
@@ -26,29 +54,19 @@ out_table_columns <- function(data) {
                                  "  }",
                                  "}"
                                )
-                             )))) %>% formatStyle("mandatory",
-                                                  target = "row",
-                                                  fontWeight = styleEqual(
-                                                    c("YES", "NO"),
-                                                    c("bold", "normal")
-                                                  ),
-                                                  backgroundColor = styleEqual(
-                                                    c("YES", "NO"),
-                                                    c("#fff8e1", NA)
-                                                  )
-  )
+                             )))
+  ) %>% formatStyle(
+    "primary_key",
+    target = "row",
+    fontWeight = styleEqual(c(TRUE, FALSE), c("bold", "normal")))
 }
 
 out_table_dependencies <- function(data) {
+  hidden_columns <- c("mandatory", "primary_key", "dependency_mandatory", "dependency_primary_key")
+  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key), dependency_column = mapply(render_column_name, dependency_column, dependency_mandatory, dependency_primary_key))]
   datatable(
-    data,
-    colnames = c(
-      "Column",
-      "mandatory",
-      "Relation type",
-      "Dependency table",
-      "Dependency column"
-    ),
+    real_data,
+    colnames = c("Column", "mandatory", "primary_key", "Relation type", "Dependency table", "Dependency column"),
     escape = FALSE,
     autoHideNavigation = TRUE,
     rownames = FALSE,
@@ -56,24 +74,19 @@ out_table_dependencies <- function(data) {
     fillContainer = FALSE,
     options = list(dom = "t",
                    ordering = FALSE,
-                   columnDefs = list(list(visible = FALSE, targets = which(names(data) == "mandatory") - 1)))
+                   columnDefs = list(list(visible = FALSE, targets = which(names(real_data) %in% hidden_columns) - 1)))
   ) %>% formatStyle(
-    "mandatory",
+    "primary_key",
     target = "row",
-    fontWeight = styleEqual(c("YES", "NO"), c("bold", "normal")),
-    backgroundColor = styleEqual(c("YES", "NO"), c("#fff8e1", NA)))
+    fontWeight = styleEqual(c(TRUE, FALSE), c("bold", "normal")))
 }
 
 out_table_usages <- function(data) {
+  hidden_columns <- c("mandatory", "primary_key", "usage_mandatory", "usage_primary_key")
+  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key), usage_column = mapply(render_column_name, usage_column, usage_mandatory, usage_primary_key))]
   datatable(
-    data,
-    colnames = c(
-      "Column",
-      "mandatory",
-      "Relation type",
-      "Usage table",
-      "Usage column"
-    ),
+    real_data,
+    colnames = c("Column", "mandatory", "primary_key", "Relation type", "Usage table", "Usage column"),
     escape = FALSE,
     autoHideNavigation = TRUE,
     rownames = FALSE,
@@ -81,12 +94,8 @@ out_table_usages <- function(data) {
     fillContainer = FALSE,
     options = list(dom = "t",
                    ordering = FALSE,
-                   columnDefs = list(list(visible = FALSE, targets = which(names(data) == "mandatory") - 1)))
-  ) %>% formatStyle(
-    "mandatory",
-    target = "row",
-    fontWeight = styleEqual(c("YES", "NO"), c("bold", "normal")),
-    backgroundColor = styleEqual(c("YES", "NO"), c("#fff8e1", NA)))
+                   columnDefs = list(list(visible = FALSE, targets = which(names(real_data) %in% hidden_columns) - 1)))
+  ) %>% formatStyle("primary_key", target = "row", fontWeight = styleEqual(c(TRUE, FALSE), c("bold", "normal")))
 }
 
 out_data_dependencies <- function(data, entry_point) {
@@ -351,8 +360,10 @@ to_dependencies_table <- function(db_table, link_to_type, link_to_url) {
     dependency_type = sapply(target_table_id, link_to_type),
     dependency_table_raw = target_table_id,
     dependency_table = mapply(link_to_url, target_schema, target_table, target_table_id),
-    dependency_column = target_column
-  )][, .(column, mandatory, dependency_type, dependency_table_raw, dependency_table, dependency_column)]
+    dependency_column = target_column,
+    dependency_mandatory = target_mandatory,
+    dependency_primary_key = target_primary_key
+  )][, .(column, mandatory, primary_key, dependency_type, dependency_table_raw, dependency_table, dependency_column, dependency_mandatory, dependency_primary_key)]
 }
 
 to_usages_table <- function(db_table, link_to_type, link_to_url) {
@@ -361,7 +372,7 @@ to_usages_table <- function(db_table, link_to_type, link_to_url) {
     usage_table_raw = usage_table_id,
     usage_table = mapply(link_to_url, usage_schema, usage_table, usage_table_id),
     usage_column = usage_column
-  )][, .(column, mandatory, usage_type, usage_table_raw, usage_table, usage_column)]
+  )][, .(column, mandatory, primary_key, usage_type, usage_table_raw, usage_table, usage_column, usage_mandatory, usage_primary_key)]
 }
 
 generate_db_metadata_report <- function(domain,
