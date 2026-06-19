@@ -56,8 +56,8 @@ function showNodeDetails(nodeId) {
 
 function generate_table_columns(nodeId, data) {
   const rows = data.map(datum => `
-    <tr${datum.mandatory === 'YES' ? ' class="mandatory"' : ''}>
-      <td>${datum.column}</td>
+    <tr${isTrue(datum.primary_key) ? ' class="primary_key"' : ''}>
+      <td>${renderColumnName(datum.column, datum.mandatory, datum.primary_key, datum.foreign_key)}</td>
       <td>${datum.type}</td>
       <td>${!datum.description || datum.description === '' ? '<p class="error">Not filled</p>' : datum.description}</td>
     </tr>
@@ -92,11 +92,11 @@ function generate_table_dependencies(nodeId, data) {
   `;
   }
   const rows = data.map(datum => `
-    <tr${datum.mandatory === 'YES' ? ' class="mandatory"' : ''}>
-      <td>${datum.column}</td>
+    <tr${isTrue(datum.primary_key) ? ' class="mandatory"' : ''}>
+      <td>${renderColumnName(datum.column, datum.mandatory, datum.primary_key, false)}</td>
       <td>${datum.dependency_type}</td>
       <td>${patchReportAnchors(datum.dependency_table)}</td>
-      <td>${datum.dependency_column}</td>
+      <td>${renderColumnName(datum.dependency_column, datum.dependency_mandatory, datum.dependency_primary_key, false)}</td>
     </tr>
   `).join('');
   return `
@@ -127,10 +127,10 @@ function generate_table_usages(nodeId, data) {
   }
   const rows = data.map(datum => `
     <tr>
-      <td>${datum.column}</td>
+      <td>${renderColumnName(datum.column, datum.mandatory, datum.primary_key, false)}</td>
       <td>${datum.usage_type}</td>
       <td>${patchReportAnchors(datum.usage_table)}</td>
-      <td>${datum.usage_column}</td>
+      <td>${renderColumnName(datum.usage_column, datum.usage_mandatory, datum.usage_primary_key, false)}</td>
     </tr>
   `).join('');
 
@@ -150,4 +150,38 @@ function generate_table_usages(nodeId, data) {
       </tbody>
     </table>
   `;
+}
+
+function hasValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== "";
+}
+
+function isTrue(value) {
+  return value === true || value === "TRUE" || value === "true" || value === "YES";
+}
+
+function iconSpan(className, title) {
+  return `<span class="${className}" title="${title}" aria-hidden="true"></span>`;
+}
+
+function escapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderColumnName(column, mandatory, primary_key, foreign_key) {
+  const is_mandatory = isTrue(mandatory);
+  const is_pk = isTrue(primary_key);
+  const is_fk = hasValue(foreign_key);
+  const not_null = is_mandatory ? iconSpan("mandatory-icon", "Mandatory") : "";
+  const pk = is_pk ? iconSpan("pk-icon", "Primary Key") : "";
+  const fk = is_fk ? iconSpan("fk-icon", "Foreign Key") : "";
+  const name = escapeHtml(column);
+  const label = is_pk  ? `<span class="pk-column">${name}</span>` : name;
+  return `${pk}${fk}${not_null}${label}`;
 }
