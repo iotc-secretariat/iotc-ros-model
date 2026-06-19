@@ -141,17 +141,49 @@ ORDER BY cols.table_schema, cols.table_name, cols.ordinal_position"
   })
 }
 
+get_tables_primary_keys <- function(schema_names, connection_provider) {
+  use_connection(connection_provider, function(connection) {
+    sql <- "
+    SELECT
+      kcu.table_schema AS schema,
+      kcu.table_name AS table,
+      kcu.column_name AS column,
+      kcu.ordinal_position AS position
+    FROM information_schema.table_constraints tc
+    JOIN information_schema.key_column_usage kcu
+      ON  kcu.constraint_schema = tc.constraint_schema
+      AND kcu.constraint_name   = tc.constraint_name
+      AND kcu.table_schema      = tc.table_schema
+      AND kcu.table_name        = tc.table_name
+    WHERE tc.constraint_type = 'PRIMARY KEY'
+      AND tc.table_schema IN ($1)
+    ORDER BY
+      kcu.table_schema,
+      kcu.table_name,
+      kcu.ordinal_position "
+    pk <- query(connection, sql, params = list(schema_names))
+    pk[, .(primary_key_columns = list(column)), by = .(schema, table)]
+  })
+}
+
 extract_db_metadata <- function(schemas, connection_provider) {
   list(schemas_description = get_schemas_description(schemas, connection_provider),
        tables_description = get_tables_description(schemas, connection_provider),
-       tables_columns = get_tables_columns(schemas, connection_provider))
+       tables_columns = get_tables_columns(schemas, connection_provider),
+       tables_primary_keys = get_tables_primary_keys(schemas, connection_provider))
 }
 
 generate_db_metadata <- function(db_metadata, output_directory) {
   if (!dir.exists(output_directory)) {
     dir.create(output_directory, recursive = TRUE)
   }
-  invisible(lapply(names(db_metadata), function(x) { write_file(db_metadata[[x]], file.path(output_directory, sprintf("%s.csv", x))) }))
+  invisible(lapply(names(db_metadata), function(x) {
+    data <- db_metadata[[x]]
+    if (x == "tables_primary_keys") {
+      data <- data[, primary_key_columns := vapply(primary_key_columns, paste, collapse = "|", FUN.VALUE = character(1))]
+    }
+    write_file(data, file.path(output_directory, sprintf("%s.csv", x)))
+  }))
 }
 
 #' Load all db metata files.
@@ -162,7 +194,8 @@ generate_db_metadata <- function(db_metadata, output_directory) {
 load_db_metadata <- function(output_directory) {
   list(schemas_description = fread(file.path(output_directory, "schemas_description.csv"), na.strings = c('', 'NA')),
        tables_description = fread(file.path(output_directory, "tables_description.csv"), na.strings = c('', 'NA')),
-       tables_columns = fread(file.path(output_directory, "tables_columns.csv"), na.strings = c('', 'NA')))
+       tables_columns = fread(file.path(output_directory, "tables_columns.csv"), na.strings = c('', 'NA')),
+       tables_primary_keys = fread(file.path(output_directory, "tables_primary_keys.csv"))[, primary_key_columns := strsplit(primary_key_columns, '\\|')])
 }
 
 load_db_metadata_object <- function(domain,
@@ -318,16 +351,17 @@ as.character.ColumnLocation <- function(x, ...) {
 db_metadata_table <- R6Class(
   "DbMetadataTable",
   public = list(
-    initialize = function(schema, table, description, columns, dependencies, usages) {
+    initialize = function(schema, table, description, columns, primary_keys, dependencies, usages) {
       stopifnot(!is.na(schema), is.character(schema), nchar(schema) > 0)
       stopifnot(!is.na(table), is.character(table), nchar(table) > 0)
       private$.schema <- schema
       private$.table <- table
       private$.table_location <- table_location$new(sprintf("%s.%s", schema, table))
       private$.description <- ifelse(str_length(description) == 0, NA, description)
-      private$.columns <- columns
-      private$.dependencies <- dependencies
-      private$.usages <- usages
+      private$.columns <- copy(columns)[, primary_key := column %in% primary_keys]
+      private$.primary_keys <- primary_keys
+      private$.dependencies <- copy(dependencies)[, primary_key := column %in% primary_keys]
+      private$.usages <- copy(usages)[, primary_key := column %in% primary_keys]
     },
     table_description = function() {
       private$.description
@@ -347,6 +381,9 @@ db_metadata_table <- R6Class(
     columns = function() {
       private$.columns
     },
+    primary_keys = function() {
+      private$.primary_keys
+    },
     dependencies = function() {
       private$.dependencies
     },
@@ -365,6 +402,8 @@ db_metadata_table <- R6Class(
     .description = NULL,
     # columns
     .columns = NULL,
+    # primary keys
+    .primary_keys = NULL,
     #dependencies
     .dependencies = NULL,
     # usages
@@ -433,6 +472,7 @@ db_metadata <- R6Class(
                           schemas_description,
                           tables_description,
                           tables_columns,
+                          tables_primary_keys,
                           column_dependency_filter,
                           standalone_tables,
                           entry_point,
@@ -446,55 +486,102 @@ db_metadata <- R6Class(
       private$.entry_point <- entry_point
       private$.generate_dependencies_tree_function <- generate_dependencies_tree_function
       schema_names <- schemas_description$schema
-      # Compute fk table with only foereign keys, to build just after dependencies and usages
-      fk <- tables_columns[!is.na(foreign_key) & str_length(foreign_key) > 0]
-      fk[, table_id := paste(schema, table, sep = '.')]
-      fk[, column_id := paste(schema, table, column, sep = '.')]
-      fk[, c('target_schema', 'target_table', 'target_column') := tstrsplit(foreign_key, '.', fixed = TRUE)]
-      fk[, target_table_id := paste(target_schema, target_table, sep = '.')]
+      # Normalize PK list column if needed
+      if (nrow(tables_primary_keys) > 0 &&
+        is.character(tables_primary_keys$primary_key_columns)) {
+        tables_primary_keys[, primary_key_columns := strsplit(primary_key_columns, "|", fixed = TRUE)]
+      }
+
+      # Add primary_key logical flag on columns
+      tables_columns[, primary_key := FALSE]
+
+      pk_long <- tables_primary_keys[, .(column = unlist(primary_key_columns)), by = .(schema, table)]
+
+      if (nrow(pk_long) > 0) {
+        tables_columns[pk_long, primary_key := TRUE, on = .(schema, table, column)]
+      }
+
+      # Keep database column order, based on existing row order
+      column_order <- tables_columns[, .(column, column_order = seq_len(.N)), by = .(schema, table)]
+
+      # Compute FK table
+      fk <- copy(tables_columns[!is.na(foreign_key) & stringr::str_length(foreign_key) > 0])
+      fk[, table_id := paste(schema, table, sep = ".")]
+      fk[, mandatory := mandatory == "YES"]
+      fk[, column_id := paste(schema, table, column, sep = ".")]
+      fk[, c("target_schema", "target_table", "target_column") := tstrsplit(foreign_key, ".", fixed = TRUE)]
+      fk[, target_table_id := paste(target_schema, target_table, sep = ".")]
+
+      # Add target column metadata
+      target_columns <- tables_columns[, .(target_schema = schema,
+                                           target_table = table,
+                                           target_column = column,
+                                           target_mandatory = mandatory == "YES",
+                                           target_primary_key = primary_key)]
+
+      fk <- merge(fk, target_columns, by = c("target_schema", "target_table", "target_column"), all.x = TRUE)
+
       # Outgoing dependencies:
       # current table column -> target table column
-      dependencies <- fk[, .(
-        schema,
-        table,
-        column,
-        table_id,
-        target_schema,
-        target_table,
-        target_column,
-        target_table_id,
-        mandatory
-      )]
+      dependencies <- fk[, .(schema,
+                             table,
+                             column,
+                             table_id,
+                             mandatory,
+                             primary_key,
+                             target_schema,
+                             target_table,
+                             target_column,
+                             target_table_id,
+                             target_mandatory,
+                             target_primary_key)]
+      dependencies <- merge(dependencies, column_order, by = c("schema", "table", "column"), all.x = TRUE)
+      setorder(dependencies, schema, table, column_order)
 
       # Reverse usages:
-      # target table is used by source table column
-      usages <- fk[, .(
-        schema = target_schema,
-        table = target_table,
-        column = target_column,
-        table_id = target_table_id,
-        usage_schema = schema,
-        usage_table = table,
-        usage_column = column,
-        usage_table_id = table_id,
-        mandatory
-      )]
+      # target table column <- usage table column
+      usages <- fk[, .(schema = target_schema,
+                       table = target_table,
+                       column = target_column,
+                       table_id = target_table_id,
+
+                       mandatory = target_mandatory,
+                       primary_key = target_primary_key,
+
+                       usage_schema = schema,
+                       usage_table = table,
+                       usage_column = column,
+                       usage_table_id = table_id,
+
+                       usage_mandatory = mandatory,
+                       usage_primary_key = primary_key)]
+      usage_column_order <- column_order[, .(usage_schema = schema,
+                                             usage_table = table,
+                                             usage_column = column,
+                                             usage_column_order = column_order)]
+
+      usages <- merge(usages, usage_column_order, by = c("usage_schema", "usage_table", "usage_column"), all.x = TRUE)
+      setorder(usages, schema, table, usage_column_order)
+
       private$.schemas <- lapply(schema_names, function(schema_name) {
         description <- schemas_description[schema == schema_name]$description
         table_description <- tables_description[schema == schema_name]
         table_names <- table_description$table
         columns <- tables_columns[schema == schema_name]
-        columns <- lapply(table_names, function(table_name) {
+        tables <- lapply(table_names, function(table_name) {
           table_gav <- paste0(schema_name, ".", table_name)
+          primary_key_columns <- tables_primary_keys[schema == schema_name & table == table_name]$primary_key_columns
+          primary_key_columns <- unlist(primary_key_columns, use.names = FALSE)
           db_metadata_table$new(schema_name,
                                 table_name,
                                 table_description[table == table_name]$description,
                                 columns[table == table_name],
+                                primary_key_columns,
                                 dependencies[table_id == table_gav],
                                 usages[table_id == table_gav])
         })
-        names(columns) <- table_names
-        db_metadata_schema$new(schema_name, description, columns)
+        names(tables) <- table_names
+        db_metadata_schema$new(schema_name, description, tables)
       })
       names(private$.schemas) <- schema_names
     },
