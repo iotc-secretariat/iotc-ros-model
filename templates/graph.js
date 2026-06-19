@@ -44,6 +44,7 @@ function showNodeDetails(nodeId) {
   description= !description || description === '' ? '<p class="error"><b><i>Not filled<i></b></p>' : '<p><b><i>' + description + '</i></b></p>';
   var html = `
   <h3>Table <b><i>${nodeId}</i></b></h3>
+  <h4>Description</h4>
   ${description}
   ${generate_table_columns(nodeId, columns)}
   ${generate_table_dependencies(nodeId, dependencies)}
