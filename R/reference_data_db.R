@@ -1,5 +1,7 @@
 library(data.table)
 library(stringr)
+library(DBI)
+library(RPostgres)
 
 #'The constants holding the name of the latest IOTC_ReferenceData database
 #'@export
