@@ -60,6 +60,7 @@ ros_db_metadata_create <- function(domain, version = IOTC_ROS, root_directory = 
                   files$schemas_description[schema %in% schema_names],
                   files$tables_description[schema %in% schema_names],
                   files$tables_columns[schema %in% schema_names],
+                  files$tables_primary_keys[schema %in% schema_names],
                   function(x) { is_column_registry_function(x) | is_column_data_function(x)},
                   list(
                     "ros_meta.observer",
