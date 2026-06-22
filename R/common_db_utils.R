@@ -407,6 +407,12 @@ db_metadata_schema <- R6Class(
     columns = function() {
       rbindlist(lapply(self$all_tables(), function(x) { x$columns() }))
     },
+    dependencies = function() {
+      rbindlist(lapply(self$all_tables(), function(x) { x$dependencies() }))
+    },
+    usages = function() {
+      rbindlist(lapply(self$all_tables(), function(x) { x$usages() }))
+    },
     remove_unused_tables = function(tables_to_remove) {
       private$.tables <- Filter(function(x) { !x$table() %in% tables_to_remove }, private$.tables)
       invisible(self)
@@ -598,6 +604,12 @@ db_metadata <- R6Class(
     },
     columns = function() {
       rbindlist(lapply(self$all_schemas(), function(x) { x$columns() }))
+    },
+    dependencies = function() {
+      rbindlist(lapply(self$all_schemas(), function(x) { x$dependencies() }))
+    },
+    usages = function() {
+      rbindlist(lapply(self$all_schemas(), function(x) { x$usages() }))
     },
     data_dependencies_tables = function() {
       data_dependencies <- self$columns()[self$column_dependency_filter()(foreign_key)]
