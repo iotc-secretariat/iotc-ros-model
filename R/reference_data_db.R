@@ -57,6 +57,7 @@ reference_data_db_metadata_create <- function(domain = "ALL",
                   files$schemas_description[schema %in% schema_names],
                   files$tables_description[schema %in% schema_names],
                   files$tables_columns[schema %in% schema_names],
+                  files$tables_foreign_keys[schema %in% schema_names],
                   files$tables_primary_keys[schema %in% schema_names],
                   function(foreign_key) { FALSE },
                   list(),
@@ -81,6 +82,7 @@ reference_data_db_metadata_report_template_supplier <- function(db_metadata, exp
     table_sections <- lapply(schema$all_tables(), function(table) {
       table_name <- table$table()
       render_template("templates/table.Rmd.tpl", list(
+        table_gav = table$table_gav(),
         table_name = table_name,
         table_anchor = paste0("{#table_", schema_id, ".", sanitize_id(table_name), "}")
       ))
@@ -127,6 +129,7 @@ reference_data_db_metadata_generate_report <- function(version = IOTC_REFERENCE_
                               db_metadata_report_template_supplier = reference_data_db_metadata_report_template_supplier,
                               link_to_type = link_to_type,
                               link_to_url = link_to_url,
+                              link_to_url_js = NULL,
                               report_prefix = "IOTC_Reference_data_database",
                               remove_unused_tables = FALSE)
 }
