@@ -96,6 +96,21 @@ get_tables_columns <- function(schema_names, connection_provider) {
   })
 }
 
+get_tables_foreign_keys <- function(schema_names, connection_provider) {
+  use_connection(connection_provider, function(connection) {
+    sql <- read_sql("get_tables_foreign_keys.sql")
+    result <- query(connection, sql, params = list(schema_names))
+    result[,
+      .(
+        columns = list(column_name),
+        target_schema = first(target_schema),
+        target_table = first(target_table),
+        target_columns = list(target_column)
+      ),
+      by = .(schema = schema_name, table = table_name, foreign_key)]
+  })
+}
+
 get_tables_primary_keys <- function(schema_names, connection_provider) {
   use_connection(connection_provider, function(connection) {
     sql <- read_sql("get_tables_primary_keys.sql")
@@ -108,6 +123,7 @@ extract_db_metadata <- function(schemas, connection_provider) {
   list(schemas_description = get_schemas_description(schemas, connection_provider),
        tables_description = get_tables_description(schemas, connection_provider),
        tables_columns = get_tables_columns(schemas, connection_provider),
+       tables_foreign_keys = get_tables_foreign_keys(schemas, connection_provider),
        tables_primary_keys = get_tables_primary_keys(schemas, connection_provider))
 }
 
@@ -119,6 +135,9 @@ generate_db_metadata <- function(db_metadata, output_directory) {
     data <- db_metadata[[x]]
     if (x == "tables_primary_keys") {
       data <- data[, primary_key_columns := vapply(primary_key_columns, paste, collapse = "|", FUN.VALUE = character(1))]
+    } else if (x == "tables_foreign_keys") {
+      data <- data[, `:=`(columns = vapply(columns, paste, collapse = "|", FUN.VALUE = character(1)),
+                          target_columns = vapply(target_columns, paste, collapse = "|", FUN.VALUE = character(1)))]
     }
     write_file(data, file.path(output_directory, sprintf("%s.csv", x)))
   }))
@@ -133,6 +152,7 @@ load_db_metadata <- function(output_directory) {
   list(schemas_description = fread(file.path(output_directory, "schemas_description.csv"), na.strings = c('', 'NA')),
        tables_description = fread(file.path(output_directory, "tables_description.csv"), na.strings = c('', 'NA')),
        tables_columns = fread(file.path(output_directory, "tables_columns.csv"), na.strings = c('', 'NA')),
+       tables_foreign_keys = fread(file.path(output_directory, "tables_foreign_keys.csv"))[, `:=`(columns = strsplit(columns, '\\|'), target_columns = strsplit(target_columns, '\\|'))],
        tables_primary_keys = fread(file.path(output_directory, "tables_primary_keys.csv"))[, primary_key_columns := strsplit(primary_key_columns, '\\|')])
 }
 
