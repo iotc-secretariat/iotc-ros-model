@@ -52,117 +52,55 @@ split_location <- function(value) {
   unlist(strsplit(value, "\\."))
 }
 
+read_sql <- function(name) {
+  path <- file.path("sql", name)
+  if (!file.exists(path)) {
+    stop("SQL file not found: ", path, call. = FALSE)
+  }
+  paste(readLines(path, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+}
+
 get_schemas_description <- function(schema_names, connection_provider) {
   use_connection(connection_provider, function(connection) {
-    sql <- "
-SELECT
-    n.nspname AS schema,
-    d.description AS description
-FROM pg_namespace n
-LEFT JOIN pg_description d
-       ON d.objoid = n.oid
-      AND d.classoid = 'pg_namespace'::regclass
-      AND d.objsubid = 0
-WHERE n.nspname NOT IN ('pg_catalog', 'information_schema') AND n.nspname IN ($1)
-ORDER BY n.nspname
-"
-    query(connection, sql, params = list(schema_names))
+    sql <- read_sql("get_schemas_description.sql")
+    result <- query(connection, sql, params = list(schema_names))
+    result[, `:=`(schema = schema_name, schema_name = NULL)][, .(
+      schema, description)]
+
   })
 }
 
 get_tables_description <- function(schema_names, connection_provider) {
   use_connection(connection_provider, function(connection) {
-    sql <- "
-SELECT
-    t.table_schema AS schema,
-     t.table_name AS table,
-    obj_description(c.oid, 'pg_class') AS description
-FROM information_schema.tables t
-JOIN pg_class c ON c.relname = t.table_name
-JOIN pg_namespace n ON n.oid = c.relnamespace AND n.nspname = t.table_schema
-WHERE t.table_schema IN ($1)
-  AND t.table_type = 'BASE TABLE'
-ORDER BY t.table_name"
-    query(connection, sql, params = list(schema_names))
+    sql <- read_sql("get_tables_description.sql")
+    result <- query(connection, sql, params = list(schema_names))
+    result[, `:=`(schema = schema_name,
+                  schema_name = NULL,
+                  table = table_name,
+                  table_name = NULL)][, .(
+      schema, table, description)]
   })
 }
 
 get_tables_columns <- function(schema_names, connection_provider) {
   use_connection(connection_provider, function(connection) {
-    sql <- "
-SELECT
-    cols.table_schema AS schema,
-    cols.table_name AS table,
-    cols.column_name AS column,
-    format_type(a.atttypid, a.atttypmod) AS type,
-    CASE
-        WHEN (NOT cols.is_nullable::boolean) THEN 'YES'
-        ELSE 'NO'
-    END AS mandatory,
-    pgd.description AS description,
-    CASE
-        WHEN fk.target_schema IS NULL THEN NULL
-        ELSE concat(fk.target_schema, '.', fk.target_table, '.', fk.target_column)
-    END AS foreign_key
-FROM information_schema.columns cols
-JOIN pg_namespace ns ON ns.nspname = cols.table_schema
-JOIN pg_class tbl ON tbl.relname = cols.table_name AND tbl.relnamespace = ns.oid
-JOIN pg_attribute a ON a.attrelid = tbl.oid AND a.attname = cols.column_name
-LEFT JOIN pg_description pgd ON pgd.objoid = tbl.oid AND pgd.objsubid = a.attnum
-LEFT JOIN (
-    SELECT
-        con.conname AS constraint_name,
-        src_ns.nspname AS source_schema,
-        src_tbl.relname AS source_table,
-        src_col.attname AS source_column,
-        target_ns.nspname AS target_schema,
-        target_tbl.relname AS target_table,
-        target_col.attname AS target_column
-    FROM pg_constraint con
-    JOIN pg_class src_tbl ON src_tbl.oid = con.conrelid
-    JOIN pg_namespace src_ns ON src_ns.oid = src_tbl.relnamespace
-    JOIN pg_class target_tbl ON target_tbl.oid = con.confrelid
-    JOIN pg_namespace target_ns ON target_ns.oid = target_tbl.relnamespace
-    JOIN unnest(con.conkey) WITH ORDINALITY AS src_colnum(attnum, ord) ON TRUE
-    JOIN unnest(con.confkey) WITH ORDINALITY AS target_colnum(attnum, ord) ON src_colnum.ord = target_colnum.ord
-    JOIN pg_attribute src_col ON src_col.attrelid = src_tbl.oid AND src_col.attnum = src_colnum.attnum
-    JOIN pg_attribute target_col ON target_col.attrelid = target_tbl.oid AND target_col.attnum = target_colnum.attnum
-    WHERE con.contype = 'f'
-) fk
-    ON fk.source_schema = cols.table_schema
-   AND fk.source_table = cols.table_name
-   AND fk.source_column = cols.column_name
-WHERE cols.table_schema IN ($1)
-  AND a.attnum > 0
-  AND tbl.relkind = 'r'
-  AND NOT a.attisdropped
-ORDER BY cols.table_schema, cols.table_name, cols.ordinal_position"
-    query(connection, sql, params = list(schema_names))
+    sql <- read_sql("get_tables_columns.sql")
+    result <- query(connection, sql, params = list(schema_names))
+    result[, `:=`(schema = schema_name,
+                  schema_name = NULL,
+                  table = table_name,
+                  table_name = NULL,
+                  column = column_name,
+                  column_name = NULL)][, .(
+      schema, table, column, type, mandatory, description)]
   })
 }
 
 get_tables_primary_keys <- function(schema_names, connection_provider) {
   use_connection(connection_provider, function(connection) {
-    sql <- "
-    SELECT
-      kcu.table_schema AS schema,
-      kcu.table_name AS table,
-      kcu.column_name AS column,
-      kcu.ordinal_position AS position
-    FROM information_schema.table_constraints tc
-    JOIN information_schema.key_column_usage kcu
-      ON  kcu.constraint_schema = tc.constraint_schema
-      AND kcu.constraint_name   = tc.constraint_name
-      AND kcu.table_schema      = tc.table_schema
-      AND kcu.table_name        = tc.table_name
-    WHERE tc.constraint_type = 'PRIMARY KEY'
-      AND tc.table_schema IN ($1)
-    ORDER BY
-      kcu.table_schema,
-      kcu.table_name,
-      kcu.ordinal_position "
-    pk <- query(connection, sql, params = list(schema_names))
-    pk[, .(primary_key_columns = list(column)), by = .(schema, table)]
+    sql <- read_sql("get_tables_primary_keys.sql")
+    result <- query(connection, sql, params = list(schema_names))
+    result[, .(primary_key_columns = list(column_name)), by = .(schema = schema_name, table = table_name)]
   })
 }
 
