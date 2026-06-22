@@ -22,7 +22,7 @@ Create a *JSON* file named ```ros-db.json``` with content:
 source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 # Generate Ros dtabase metatadata files
-generate_db_metadata(extract_db_metadata(schemas = ROS_SCHEMAS$ALL, connection_provider = connect_to_ros), output_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(extract_db_metadata(schemas = c(ROS_SCHEMAS$ALL, ROS_SCHEMAS$CODE_LIST), connection_provider = connect_to_ros), output_directory = DB_METADATA_DIRECTORY)
 ```
 ## Update comments on database
 
