@@ -315,11 +315,12 @@ db_metadata_table <- R6Class(
       private$.schema <- schema
       private$.table <- table
       private$.table_location <- table_location$new(sprintf("%s.%s", schema, table))
-      private$.description <- ifelse(str_length(description) == 0, NA, description)
-      private$.columns <- copy(columns)[, primary_key := column %in% primary_keys]
+      private$.description <- ifelse(is.na(description) || str_length(description) == 0, NA, description)
+      private$.columns <- copy(columns)
+      private$.columns[, primary_key := column %in% primary_keys]
       private$.primary_keys <- primary_keys
-      private$.dependencies <- copy(dependencies)[, primary_key := column %in% primary_keys]
-      private$.usages <- copy(usages)[, primary_key := column %in% primary_keys]
+      private$.dependencies <- copy(dependencies)[, `:=`(column_order = NULL)]
+      private$.usages <- copy(usages)[, `:=`(usage_column_order = NULL, column_order = NULL)]
     },
     table_description = function() {
       private$.description
