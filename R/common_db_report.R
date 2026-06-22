@@ -30,9 +30,43 @@ render_column_name <- function(column, mandatory = FALSE, primary_key = FALSE, f
   paste0(pk, fk, not_null, label)
 }
 
+render_column_names <- function(columns,
+                                mandatory = FALSE,
+                                primary_key = FALSE,
+                                foreign_key = FALSE,
+                                collapse = "<br/>") {
+  columns <- unlist(columns, use.names = FALSE)
+  mandatory <- unlist(mandatory, use.names = FALSE)
+  primary_key <- unlist(primary_key, use.names = FALSE)
+
+  if (length(mandatory) == 1L && length(columns) > 1L) {
+    mandatory <- rep(mandatory, length(columns))
+  }
+
+  if (length(primary_key) == 1L && length(columns) > 1L) {
+    primary_key <- rep(primary_key, length(columns))
+  }
+
+  if (length(foreign_key) == 1L && length(columns) > 1L) {
+    foreign_key <- rep(foreign_key, length(columns))
+  }
+
+  paste(
+    mapply(
+      render_column_name,
+      columns,
+      mandatory,
+      primary_key,
+      foreign_key,
+      USE.NAMES = FALSE
+    ),
+    collapse = collapse
+  )
+}
+
 out_table_columns <- function(data) {
   hidden_columns <- c("mandatory", "primary_key")
-  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key, !is.na(foreign_key)),
+  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key, foreign_key),
                                        description = fifelse(is.na(description) | description == "", "Not filled", description),
                                        schema = NULL, table = NULL, foreign_key = NULL)]
   datatable(real_data,
@@ -63,7 +97,8 @@ out_table_columns <- function(data) {
 
 out_table_dependencies <- function(data) {
   hidden_columns <- c("mandatory", "primary_key", "dependency_mandatory", "dependency_primary_key")
-  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key), dependency_column = mapply(render_column_name, dependency_column, dependency_mandatory, dependency_primary_key))]
+  real_data <- data.table(data)[, `:=`(columns = mapply(render_column_names, columns, mandatory, primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE),
+                                       dependency_columns = mapply(render_column_names, dependency_columns, dependency_mandatory, dependency_primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE))]
   datatable(
     real_data,
     colnames = c("Column", "mandatory", "primary_key", "Relation type", "Dependency table", "Dependency column"),
@@ -83,7 +118,8 @@ out_table_dependencies <- function(data) {
 
 out_table_usages <- function(data) {
   hidden_columns <- c("mandatory", "primary_key", "usage_mandatory", "usage_primary_key")
-  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key), usage_column = mapply(render_column_name, usage_column, usage_mandatory, usage_primary_key))]
+  real_data <- data.table(data)[, `:=`(columns = mapply(render_column_names, columns, mandatory, primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE),
+                                       usage_columns = mapply(render_column_names, usage_columns, usage_mandatory, usage_primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE))]
   datatable(
     real_data,
     colnames = c("Column", "mandatory", "primary_key", "Relation type", "Usage table", "Usage column"),
@@ -99,40 +135,42 @@ out_table_usages <- function(data) {
 }
 
 out_data_dependencies <- function(data, entry_point) {
-  data <- data.table(data[,
-                       tree_view := mapply(
-                         function(level, table, table_column, parent_table, parent_column, link_type) {
-                           result <- sprintf("%s%s%s",
-                                             strrep("&nbsp;&nbsp;&nbsp;&nbsp;", level),
-                                             ifelse(level == 0, "", "└── "),
-                                             table)
-                           ifelse(level == 0,
-                                  result,
-                                  ifelse(link_type == "←",
-                                         sprintf("%s (%s.%s %s %s.%s)",
-                                                 result,
-                                                 table,
-                                                 table_column,
-                                                 link_type,
-                                                 parent_table,
-                                                 parent_column),
-                                         sprintf("%s (%s.%s %s %s.%s)",
-                                                 result,
-                                                 parent_table,
-                                                 parent_column,
-                                                 link_type,
-                                                 table,
-                                                 table_column)))
-                         },
-                         level,
-                         table,
-                         table_column,
-                         parent_table,
-                         parent_column,
-                         link_type
-                       )])[, .(tree_view)]
+  real_data <- data.table(data)[, `:=`(table_column = vapply(table_columns, paste, collapse = ", ", FUN.VALUE = character(1)),
+                                       parent_column = vapply(parent_columns, paste, collapse = ", ", FUN.VALUE = character(1)))]
+  real_data <- real_data[,
+    tree_view := mapply(
+      function(level, table, table_column, parent_table, parent_column, link_type) {
+        result <- sprintf("%s%s%s",
+                          strrep("&nbsp;&nbsp;&nbsp;&nbsp;", level),
+                          ifelse(level == 0, "", "└── "),
+                          table)
+        ifelse(level == 0,
+               result,
+               ifelse(link_type == "←",
+                      sprintf("%s (%s.%s %s %s.%s)",
+                              result,
+                              table,
+                              table_column,
+                              link_type,
+                              parent_table,
+                              parent_column),
+                      sprintf("%s (%s.%s %s %s.%s)",
+                              result,
+                              parent_table,
+                              parent_column,
+                              link_type,
+                              table,
+                              table_column)))
+      },
+      level,
+      table,
+      table_column,
+      parent_table,
+      parent_column,
+      link_type
+    )][, .(tree_view)]
   datatable(
-    data,
+    real_data,
     escape = FALSE,
     rownames = FALSE,
     options = list(dom = "t", ordering = FALSE, autoWidth = FALSE)
@@ -216,7 +254,7 @@ out_data_graph <- function(data) {
 
 generate_graph_data_input <- function(data, entry_point) {
   deps <- data.table(data[!is.na(parent_table)])
-  inverse_deps <- deps[link_type == "←"][, `:=`(parent_table = table, parent_column = table_column, table = parent_table, table_column = parent_column)]
+  inverse_deps <- deps[link_type == "←"][, `:=`(parent_table = table, parent_columns = table_columns, table = parent_table, table_columns = parent_columns)]
   direct_deps <- deps[link_type == "→"]
   deps <- rbind(inverse_deps, direct_deps)
 
@@ -237,9 +275,9 @@ generate_graph_data_input <- function(data, entry_point) {
   # Build edges
   edges <- data.table(
     from = deps$parent_table,
-    from_column = deps$parent_column,
+    from_column = deps$parent_columns,
     to = deps$table,
-    to_column = deps$table_column,
+    to_column = deps$table_columns,
     relation = deps$link_type,
     stringsAsFactors = FALSE)
   edges$title <- paste0(edges$from, ".", edges$from_column, " → ", edges$to, ".", edges$to_column)
@@ -360,10 +398,10 @@ to_dependencies_table <- function(db_table, link_to_type, link_to_url) {
     dependency_type = sapply(target_table_id, link_to_type),
     dependency_table_raw = target_table_id,
     dependency_table = mapply(link_to_url, target_schema, target_table, target_table_id),
-    dependency_column = target_column,
+    dependency_columns = target_columns,
     dependency_mandatory = target_mandatory,
     dependency_primary_key = target_primary_key
-  )][, .(column, mandatory, primary_key, dependency_type, dependency_table_raw, dependency_table, dependency_column, dependency_mandatory, dependency_primary_key)]
+  )][, .(columns, mandatory, primary_key, dependency_type, dependency_table_raw, dependency_table, dependency_columns, dependency_mandatory, dependency_primary_key)]
 }
 
 to_usages_table <- function(db_table, link_to_type, link_to_url) {
@@ -371,8 +409,19 @@ to_usages_table <- function(db_table, link_to_type, link_to_url) {
     usage_type = sapply(usage_table_id, link_to_type),
     usage_table_raw = usage_table_id,
     usage_table = mapply(link_to_url, usage_schema, usage_table, usage_table_id),
-    usage_column = usage_column
-  )][, .(column, mandatory, primary_key, usage_type, usage_table_raw, usage_table, usage_column, usage_mandatory, usage_primary_key)]
+    usage_columns = usage_columns
+  )][, .(columns, mandatory, primary_key, usage_type, usage_table_raw, usage_table, usage_columns, usage_mandatory, usage_primary_key)]
+}
+
+generate_db_metadata_report_variables <- function(db_metadata, link_to_type, link_to_url, link_to_url_js) {
+  list(db_reverse_dependencies_tree = db_metadata$db_reverse_dependencies_tree(),
+       db_tables_columns = lapply(db_metadata$all_tables(), function(x) { x$columns() }),
+       db_tables_description = lapply(db_metadata$all_tables(), function(x) { x$table_description() }),
+       db_tables_dependencies_js = lapply(db_metadata$all_tables(), function(x) { to_dependencies_table(x, link_to_type, link_to_url_js) }),
+       db_tables_usages_js = lapply(db_metadata$all_tables(), function(x) { to_usages_table(x, link_to_type, link_to_url_js) }),
+       db_tables_dependencies = lapply(db_metadata$all_tables(), function(x) { to_dependencies_table(x, link_to_type, link_to_url) }[, dependency_table_raw := NULL]),
+       db_tables_usages = lapply(db_metadata$all_tables(), function(x) { to_usages_table(x, link_to_type, link_to_url) }[, usage_table_raw := NULL])
+  )
 }
 
 generate_db_metadata_report <- function(domain,
@@ -384,6 +433,7 @@ generate_db_metadata_report <- function(domain,
                                         db_metadata_report_template_supplier,
                                         link_to_type,
                                         link_to_url,
+                                        link_to_url_js,
                                         report_prefix,
                                         remove_unused_tables = FALSE) {
   db_metadata <- db_metadata_supplier(domain, version, root_directory)
@@ -403,26 +453,46 @@ generate_db_metadata_report <- function(domain,
   }
   file_location <- file.path(export_directory, sprintf("%s%s.html", report_prefix, db_metadata$to_domain_report()))
   print("Preparing variables...")
-  # print("Preparing db_reverse_dependencies_tree...")
-  db_reverse_dependencies_tree <- db_metadata$db_reverse_dependencies_tree()
-  # print("Preparing db_tables_columns...")
-  db_tables_columns <- lapply(db_metadata$all_tables(), function(x) { x$columns() })
-  # print("Preparing db_tables_dependencies...")
-  db_tables_dependencies <- lapply(db_metadata$all_tables(), function(x) { to_dependencies_table(x, link_to_type, link_to_url) })
-  # print("Preparing db_tables_usages...")
-  db_tables_usages <- lapply(db_metadata$all_tables(), function(x) { to_usages_table(x, link_to_type, link_to_url) })
+  variables <- generate_db_metadata_report_variables(db_metadata, link_to_type, link_to_url, link_to_url_js)
+
   print("Generating db_metadata_dependencies...")
-  generate_db_metadata_dependencies(db_metadata, db_reverse_dependencies_tree, db_tables_columns, db_tables_dependencies, db_tables_usages, export_directory, timestamp, report_prefix)
-  db_tables_dependencies <- lapply(db_tables_dependencies, function(x) { x[, dependency_table_raw := NULL] })
-  db_tables_usages <- lapply(db_tables_usages, function(x) { x[, usage_table_raw := NULL] })
+  generate_db_metadata_dependencies(db_metadata,
+                                    variables$db_reverse_dependencies_tree,
+                                    variables$db_tables_columns,
+                                    variables$db_tables_dependencies_js,
+                                    variables$db_tables_usages_js,
+                                    export_directory,
+                                    timestamp,
+                                    report_prefix)
   options(DT.options = list(pageLength = -1))
   print(sprintf("Generating report: %s...", file_location))
+  generate_db_metadata_report_call(file_location,
+                                   template,
+                                   timestamp,
+                                   db_metadata,
+                                   variables$db_reverse_dependencies_tree,
+                                   variables$db_tables_description,
+                                   variables$db_tables_columns,
+                                   variables$db_tables_dependencies,
+                                   variables$db_tables_usages)
+
+  print(sprintf("Generated report: %s...", file_location))
+  print(sprintf("Patching report: %s...", file_location))
+  patch_tocify_hash_generator(file_location)
+}
+
+generate_db_metadata_report_call <- function(file_location,
+                                             template,
+                                             timestamp,
+                                             db_metadata,
+                                             db_reverse_dependencies_tree,
+                                             db_tables_description,
+                                             db_tables_columns,
+                                             db_tables_dependencies,
+                                             db_tables_usages) {
   render(template,
          output_format = "html_document",
          output_file = basename(file_location),
          output_dir = dirname(file_location),
          quiet = TRUE)
-  print(sprintf("Generated report: %s...", file_location))
-  print(sprintf("Patching report: %s...", file_location))
-  patch_tocify_hash_generator(file_location)
 }
