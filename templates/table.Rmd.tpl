@@ -1,8 +1,9 @@
 ```{r}
-db_table <- db_schema$table("{{ table_name }}")
-db_table_columns <- db_tables_columns[[db_table$table_gav()]]
-db_table_dependencies <- db_tables_dependencies[[db_table$table_gav()]]
-db_table_usages <- db_tables_usages[[db_table$table_gav()]]
+db_table_gav <- "{{ table_gav }}"
+db_table_description <- db_tables_description[[db_table_gav]]
+db_table_columns <- db_tables_columns[[db_table_gav]]
+db_table_dependencies <- db_tables_dependencies[[db_table_gav]]
+db_table_usages <- db_tables_usages[[db_table_gav]]
 with_dependencies <- nrow(db_table_dependencies) > 0
 with_usages <- nrow(db_table_usages) > 0
 ```
@@ -11,7 +12,7 @@ with_usages <- nrow(db_table_usages) > 0
 
 #### Description
 
-`r render_description(db_table$table_description())`
+`r render_description(db_table_description)`
 
 #### Definition {.tabset}
 
