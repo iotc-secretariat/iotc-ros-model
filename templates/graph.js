@@ -93,10 +93,10 @@ function generate_table_dependencies(nodeId, data) {
   }
   const rows = data.map(datum => `
     <tr${isTrue(datum.primary_key) ? ' class="mandatory"' : ''}>
-      <td>${renderColumnName(datum.column, datum.mandatory, datum.primary_key, false)}</td>
+      <td>${renderColumnNames(datum.columns, datum.mandatory, datum.primary_key, false)}</td>
       <td>${datum.dependency_type}</td>
       <td>${patchReportAnchors(datum.dependency_table)}</td>
-      <td>${renderColumnName(datum.dependency_column, datum.dependency_mandatory, datum.dependency_primary_key, false)}</td>
+      <td>${renderColumnNames(datum.dependency_columns, datum.dependency_mandatory, datum.dependency_primary_key, false)}</td>
     </tr>
   `).join('');
   return `
@@ -127,10 +127,10 @@ function generate_table_usages(nodeId, data) {
   }
   const rows = data.map(datum => `
     <tr>
-      <td>${renderColumnName(datum.column, datum.mandatory, datum.primary_key, false)}</td>
+      <td>${renderColumnNames(datum.columns, datum.mandatory, datum.primary_key, false)}</td>
       <td>${datum.usage_type}</td>
       <td>${patchReportAnchors(datum.usage_table)}</td>
-      <td>${renderColumnName(datum.usage_column, datum.usage_mandatory, datum.usage_primary_key, false)}</td>
+      <td>${renderColumnNames(datum.usage_columns, datum.usage_mandatory, datum.usage_primary_key, false)}</td>
     </tr>
   `).join('');
 
@@ -174,10 +174,26 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function renderColumnNames(columns, mandatory, primary_key, foreign_key) {
+  const cols = Array.isArray(columns) ? columns : [columns];
+  const mandatoryValues = Array.isArray(mandatory) ? mandatory : cols.map(() => mandatory);
+  const pkValues = Array.isArray(primary_key) ? primary_key : cols.map(() => primary_key);
+  const fkValues = Array.isArray(foreign_key) ? foreign_key : cols.map(() => foreign_key);
+
+  return cols.map((column, index) =>
+    renderColumnName(
+      column,
+      mandatoryValues[index],
+      pkValues[index],
+      fkValues[index]
+    )
+  ).join("<br/>");
+}
+
 function renderColumnName(column, mandatory, primary_key, foreign_key) {
   const is_mandatory = isTrue(mandatory);
   const is_pk = isTrue(primary_key);
-  const is_fk = hasValue(foreign_key);
+  const is_fk = isTrue(foreign_key);
   const not_null = is_mandatory ? iconSpan("mandatory-icon", "Mandatory") : "";
   const pk = is_pk ? iconSpan("pk-icon", "Primary Key") : "";
   const fk = is_fk ? iconSpan("fk-icon", "Foreign Key") : "";
