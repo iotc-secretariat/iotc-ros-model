@@ -827,7 +827,7 @@ db_metadata <- R6Class(
             link_type = link_type,
             path = sprintf("%s (%s%s%s)", path, target, link_type, origin)
           )
-        }, children$origin, children$target)
+        }, children$origin, children$target, children$origin_columns, children$target_columns, children$foreign_key)
 
         # Find tables depended by current:
         # origin -> target, current is origin
