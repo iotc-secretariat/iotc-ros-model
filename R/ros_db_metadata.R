@@ -14,7 +14,15 @@ ROS_SCHEMAS <- list(
   LL = c("ros_meta", "ros_common", "ros_ll"),
   PS = c("ros_meta", "ros_common", "ros_ps"),
   PL = c("ros_meta", "ros_common", "ros_pl"),
-  GN = c("ros_meta", "ros_common", "ros_gn")
+  GN = c("ros_meta", "ros_common", "ros_gn"),
+  CODE_LIST = c(
+    "refs_admin",
+    "refs_biology",
+    "refs_data",
+    "refs_fishery",
+    "refs_fishery_config",
+    "refs_gis"
+  )
 )
 
 #' Default time-stamp used to suffix any generated files
@@ -53,7 +61,7 @@ is_column_data_function <- function(foreign_key) { str_length(foreign_key) > 0 &
 
 ros_db_metadata_create <- function(domain, version = IOTC_ROS, root_directory = DB_METADATA_DIRECTORY) {
   files <- load_db_metadata(root_directory)
-  schema_names <- ROS_SCHEMAS[[domain]]
+  schema_names <- c(ROS_SCHEMAS[[domain]], ROS_SCHEMAS$CODE_LIST)
   db_metadata$new(domain,
                   version,
                   withr::with_locale(c(LC_TIME = "C"), format(Sys.time(), '%d %B %Y %H:%M %Z')),
