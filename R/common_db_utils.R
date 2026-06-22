@@ -437,6 +437,7 @@ db_metadata <- R6Class(
                           schemas_description,
                           tables_description,
                           tables_columns,
+                          tables_foreign_keys,
                           tables_primary_keys,
                           column_dependency_filter,
                           standalone_tables,
@@ -466,67 +467,134 @@ db_metadata <- R6Class(
         tables_columns[pk_long, primary_key := TRUE, on = .(schema, table, column)]
       }
 
+      # Normalize mandatory
+      tables_columns[, mandatory := mandatory == "YES"]
+
+      # Add foreign_key logical flag on columns
+      tables_columns[, foreign_key := FALSE]
+
+      fk_columns <- tables_foreign_keys[
+        ,
+        .(
+          column = unlist(columns)
+        ),
+        by = .(schema, table)
+      ]
+
+      fk_columns <- unique(
+        fk_columns,
+        by = c("schema", "table", "column")
+      )
+
+      if (nrow(fk_columns) > 0) {
+        tables_columns[
+          fk_columns,
+          foreign_key := TRUE,
+          on = .(schema, table, column)
+        ]
+      }
+
       # Keep database column order, based on existing row order
       column_order <- tables_columns[, .(column, column_order = seq_len(.N)), by = .(schema, table)]
 
-      # Compute FK table
-      fk <- copy(tables_columns[!is.na(foreign_key) & stringr::str_length(foreign_key) > 0])
-      fk[, table_id := paste(schema, table, sep = ".")]
-      fk[, mandatory := mandatory == "YES"]
-      fk[, column_id := paste(schema, table, column, sep = ".")]
-      fk[, c("target_schema", "target_table", "target_column") := tstrsplit(foreign_key, ".", fixed = TRUE)]
-      fk[, target_table_id := paste(target_schema, target_table, sep = ".")]
+      # Column metadata lookup
+      column_flags <- tables_columns[
+        ,
+        .(
+          mandatory,
+          primary_key,
+          foreign_key
+        ),
+        by = .(schema, table, column)
+      ]
 
-      # Add target column metadata
-      target_columns <- tables_columns[, .(target_schema = schema,
-                                           target_table = table,
-                                           target_column = column,
-                                           target_mandatory = mandatory == "YES",
-                                           target_primary_key = primary_key)]
+      get_column_flag <- function(schema_name, table_name, column_names, flag_name) {
+        values <- column_flags[
+          schema == schema_name &
+            table == table_name &
+            column %in% column_names
+        ]
 
-      fk <- merge(fk, target_columns, by = c("target_schema", "target_table", "target_column"), all.x = TRUE)
+        values <- values[
+          match(column_names, column)
+        ]
 
-      # Outgoing dependencies:
-      # current table column -> target table column
-      dependencies <- fk[, .(schema,
-                             table,
-                             column,
-                             table_id,
-                             mandatory,
-                             primary_key,
-                             target_schema,
-                             target_table,
-                             target_column,
-                             target_table_id,
-                             target_mandatory,
-                             target_primary_key)]
-      dependencies <- merge(dependencies, column_order, by = c("schema", "table", "column"), all.x = TRUE)
-      setorder(dependencies, schema, table, column_order)
+        values[[flag_name]]
+      }
+
+      get_column_order <- function(schema_name, table_name, column_names) {
+        values <- column_order[
+          schema == schema_name &
+            table == table_name &
+            column %in% column_names
+        ]
+
+        values <- values[
+          match(column_names, column)
+        ]
+
+        values$column_order
+      }
+
+      # Dependencies:
+      # one row per FK constraint, columns stay as list columns
+      dependencies <- copy(tables_foreign_keys)
+
+      dependencies[, table_id := paste(schema, table, sep = ".")]
+      dependencies[, target_table_id := paste(target_schema, target_table, sep = ".")]
+
+      dependencies[
+        ,
+        `:=`(
+          mandatory = list(get_column_flag(schema, table, columns[[1]], "mandatory")),
+          primary_key = list(get_column_flag(schema, table, columns[[1]], "primary_key")),
+          foreign_key = foreign_key,
+          target_mandatory = list(get_column_flag(target_schema, target_table, target_columns[[1]], "mandatory")),
+          target_primary_key = list(get_column_flag(target_schema, target_table, target_columns[[1]], "primary_key")),
+          target_foreign_key = list(get_column_flag(target_schema, target_table, target_columns[[1]], "foreign_key")),
+          column_order = min(get_column_order(schema, table, columns[[1]]), na.rm = TRUE)
+        ),
+        by = seq_len(nrow(dependencies))
+      ]
+
+      setorder(dependencies, schema, table, column_order, foreign_key)
 
       # Reverse usages:
-      # target table column <- usage table column
-      usages <- fk[, .(schema = target_schema,
-                       table = target_table,
-                       column = target_column,
-                       table_id = target_table_id,
+      # target table columns <- usage table columns
+      usages <- dependencies[
+        ,
+        .(
+          schema = target_schema,
+          table = target_table,
+          columns = target_columns,
+          table_id = target_table_id,
 
-                       mandatory = target_mandatory,
-                       primary_key = target_primary_key,
+          mandatory = target_mandatory,
+          primary_key = target_primary_key,
+          foreign_key = target_foreign_key,
 
-                       usage_schema = schema,
-                       usage_table = table,
-                       usage_column = column,
-                       usage_table_id = table_id,
+          usage_schema = schema,
+          usage_table = table,
+          usage_columns = columns,
+          usage_table_id = table_id,
+          usage_foreign_key = foreign_key,
 
-                       usage_mandatory = mandatory,
-                       usage_primary_key = primary_key)]
-      usage_column_order <- column_order[, .(usage_schema = schema,
-                                             usage_table = table,
-                                             usage_column = column,
-                                             usage_column_order = column_order)]
+          usage_mandatory = mandatory,
+          usage_primary_key = primary_key,
+          usage_column_order = column_order
+        )
+      ]
 
-      usages <- merge(usages, usage_column_order, by = c("usage_schema", "usage_table", "usage_column"), all.x = TRUE)
-      setorder(usages, schema, table, usage_column_order)
+      usages[
+        ,
+        column_order := min(
+          get_column_order(schema, table, columns[[1]]),
+          na.rm = TRUE
+        ),
+        by = seq_len(nrow(usages))
+      ]
+
+      setorder(usages, schema, table, usage_column_order, usage_foreign_key)
 
       private$.schemas <- lapply(schema_names, function(schema_name) {
         description <- schemas_description[schema == schema_name]$description
@@ -612,12 +680,30 @@ db_metadata <- R6Class(
       rbindlist(lapply(self$all_schemas(), function(x) { x$usages() }))
     },
     data_dependencies_tables = function() {
-      data_dependencies <- self$columns()[self$column_dependency_filter()(foreign_key)]
-      unique(data_dependencies[, `:=`(origin = paste0(schema, ".", table, ".", column), target = foreign_key)][, .(origin, target)], by = c("origin", "target"))
+      data_dependencies <- self$dependencies()[self$column_dependency_filter()(schema) & self$column_dependency_filter()(target_schema)]
+      unique(
+        data_dependencies[
+          ,
+          .(
+            origin = table_id,
+            origin_schema = schema,
+            origin_table = table,
+            origin_columns = columns,
+
+            target = target_table_id,
+            target_schema,
+            target_table,
+            target_columns,
+
+            foreign_key
+          )
+        ],
+        by = c("origin", "target", "foreign_key")
+      )
     },
     generate_dependencies = function() {
       deps <- self$data_dependencies_tables()
-      schema_names <- self$schema_names()
+      schema_names <- Filter(self$column_dependency_filter(), self$schema_names())
       private$.db_reverse_dependencies <- lapply(schema_names, function(x) {
         private$.generate_dependencies_tree_function(x, deps)
       })
@@ -632,10 +718,8 @@ db_metadata <- R6Class(
       names(private$.db_reverse_dependencies_tree) <- schema_names
     },
     remove_unused_tables = function() {
-      stopifnot(!is.null(private$.db_reverse_dependencies_tree))
-      table_names_to_keep <- unique(unlist(lapply(private$.db_reverse_dependencies_tree, function(x) {
-        unique(append(x[!is.na(parent_table)]$parent_table, x$table))
-      })))
+      table_names_to_keep <- c(unique(self$dependencies()[self$column_dependency_filter()(schema)]$target_table_id),
+                               unique(self$usages()[self$column_dependency_filter()(schema)]$usage_table_id))
       tables_to_keep <- lapply(table_names_to_keep, table_location$new)
       names(tables_to_keep) <- table_names_to_keep
       lapply(self$all_schemas(), function(schema) {
@@ -669,93 +753,126 @@ db_metadata <- R6Class(
     .build_reverse_dependency_tree = function(deps) {
       entry_point <- self$entry_point()
       standalone_tables <- self$standalone_tables()
+      entry_point_location <- column_location$new(entry_point)
+      entry_point_table_gav <- entry_point_location$table_gav()
+      entry_point_column <- entry_point_location$column()
       result <- data.table(
         level = integer(),
         parent_table = character(),
-        parent_column = character(),
+        parent_columns = list(),
         table = character(),
-        table_column = character(),
+        table_columns = list(),
+        foreign_key = character(),
         link_type = character(),
         path = character()
       )
 
       visited <- character()
 
-      recurse <- function(current,
-                          parent = NA_character_,
+      recurse <- function(current_table_gav,
+                          current_columns = list(character()),
+                          parent_table_gav = NA_character_,
+                          parent_columns = list(character()),
+                          foreign_key = NA_character_,
                           link_type = NA_character_,
                           level = 0,
                           path = "") {
-
-        current_gav <- column_location$new(current)
-        current_table_gav <- current_gav$table_gav()
 
         result <<- rbind(
           result,
           data.table(
             level = level,
             link_type = link_type,
-            parent_table = ifelse(is.na(parent), NA_character_, column_location$new(parent)$table_gav()),
-            parent_column = ifelse(is.na(parent), NA_character_, column_location$new(parent)$column()),
+            parent_table = parent_table_gav,
+            parent_columns = parent_columns,
             table = current_table_gav,
-            table_column = current_gav$column(),
+            table_columns = current_columns,
+            foreign_key = foreign_key,
             path = path
-          )
+          ),
+          fill = TRUE
         )
         # Prevent cycles
         if (current_table_gav %in% visited) {
           return(NULL)
         }
-        # Never add a standalone table (could be used by more than one data table)
+        # Never add a standalone table
         if (current_table_gav %in% standalone_tables) {
           return(NULL)
         }
 
         visited <<- c(visited, current_table_gav)
-
-        # Find tables depending on current
+        # Find tables depending on current:
+        # origin -> target, current is target
         children <- deps[
-          mapply(function(origin, target) {
-            origin_table_gav <- column_location$new(origin)$table_gav()
-            target_table_gav <- column_location$new(target)$table_gav()
-            target_table_gav == current_table_gav &
-              !origin_table_gav %in% visited &
-              !str_ilike(path, paste0("% ", origin_table_gav, "%"))
-          }, origin, target)]
+          target == current_table_gav &
+            !origin %in% visited &
+            !str_ilike(path, paste0("% ", origin, "%"))
+        ]
+
         link_type <- "←"
-        mapply(function(origin, target) {
+
+        mapply(function(origin,
+                        target,
+                        origin_columns,
+                        target_columns,
+                        foreign_key) {
           recurse(
-            current = origin,
-            parent = target,
+            current_table_gav = origin,
+            current_columns = list(origin_columns),
+            parent_table_gav = target,
+            parent_columns = list(target_columns),
+            foreign_key = foreign_key,
             level = level + 1,
             link_type = link_type,
             path = sprintf("%s (%s%s%s)", path, target, link_type, origin)
           )
         }, children$origin, children$target)
 
-        # Find tables depended by current
+        # Find tables depended by current:
+        # origin -> target, current is origin
         children <- deps[
-          mapply(function(origin, target) {
-            origin_table_gav <- column_location$new(origin)$table_gav()
-            target_table_gav <- column_location$new(target)$table_gav()
-            origin_table_gav == current_table_gav &
-              !target_table_gav %in% visited &
-              !str_ilike(target_table_gav, paste0("% ", origin_table_gav, "%"))
-          }, origin, target)]
+          origin == current_table_gav &
+            !target %in% visited &
+            !str_ilike(path, paste0("% ", target, "%"))
+        ]
+
         link_type <- "→"
-        mapply(function(origin, target) {
+
+        mapply(function(origin,
+                        target,
+                        origin_columns,
+                        target_columns,
+                        foreign_key) {
           recurse(
-            current = target,
-            parent = origin,
+            current_table_gav = target,
+            current_columns = list(target_columns),
+            parent_table_gav = origin,
+            parent_columns = list(origin_columns),
+            foreign_key = foreign_key,
             level = level + 1,
             link_type = link_type,
-            path = sprintf("%s (%s%s%s)", path, target, link_type, origin)
+            path = sprintf("%s (%s%s%s)", path, origin, link_type, target)
           )
-        }, children$origin, children$target)
+        }, children$origin, children$target, children$origin_columns, children$target_columns, children$foreign_key)
       }
 
-      recurse(entry_point)
-      unique(result)
+      recurse(
+        current_table_gav = entry_point_table_gav,
+        current_columns = list(entry_point_column)
+      )
+
+      unique(
+        result,
+        by = c(
+          "level",
+          "parent_table",
+          "table",
+          "foreign_key",
+          "link_type",
+          "path"
+        )
+      )
     }
   )
 )
