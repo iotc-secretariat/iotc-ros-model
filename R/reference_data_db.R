@@ -9,7 +9,7 @@ IOTC_REFERENCE_DATA <- "IOTC_ReferenceData_2026_06_18"
 
 #' Default time-stamp used to suffix any generated files
 #' @export
-DEFAULT_TIME_STAMP <- "2026-06-18"
+DEFAULT_TIME_STAMP <- "2026-06-22"
 
 #'The constants holding the name of all schemas of the IOTC_ReferenceData database
 #'@export

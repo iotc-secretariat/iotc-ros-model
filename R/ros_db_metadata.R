@@ -19,7 +19,7 @@ ROS_SCHEMAS <- list(
 
 #' Default time-stamp used to suffix any generated files
 #' @export
-DEFAULT_TIME_STAMP <- "2026-06-18"
+DEFAULT_TIME_STAMP <- "2026-06-22"
 
 #'The path of db models
 DB_METADATA_DIRECTORY <- file.path("./models", IOTC_ROS)
