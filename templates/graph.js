@@ -80,7 +80,7 @@ function generate_table_columns(nodeId, data) {
   `;
 }
 function patchReportAnchors(html) {
-  if (!html) { return html; }
+  if (!html || html.length === 0) { return html; }
   return html.replace( /href=(['"])#table_([^'"]+)\1/g, 'href=$1#$2$1' );
 }
 
