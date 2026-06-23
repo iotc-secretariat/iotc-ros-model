@@ -3,7 +3,7 @@
 Here is the dependency tree:
 
 ```{r}
-out_data_dependencies(db_metadata$db_reverse_dependencies_tree()[[db_schema$schema()]], db_metadata$entry_point())
+out_data_dependencies(variables$db_reverse_dependencies_tree${{ schema_name }}, "{{ entry_point }}")
 ```
 
-[Visit the dependency graph](`r sprintf('ROS_database%s_dependencies_%s.html', db_metadata$to_domain_report(), db_schema$schema())`){target='_blank'}
+[Visit the dependency graph](`r sprintf('ROS_database%s_dependencies_%s.html', "{{ domain_report }}", "{{ schema_name }}")`){target='_blank'}

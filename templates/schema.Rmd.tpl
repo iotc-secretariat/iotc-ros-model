@@ -1,12 +1,8 @@
-```{r}
-db_schema <- db_metadata$schema("{{ schema_name }}")
-```
-
 # Schema {{ schema_name }} {{{ schema_anchor }}}
 
 #### Description
 
-`r render_description(db_schema$schema_description())`
+`r render_description(variables$db_schemas_description${{ schema_name }})`
 
 {{{ extra_content }}}
 

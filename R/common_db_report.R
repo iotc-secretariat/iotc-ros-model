@@ -96,6 +96,9 @@ out_table_columns <- function(data) {
 }
 
 out_table_dependencies <- function(data) {
+  if (nrow(data) == 0) {
+    return(p("NO DATA"))
+  }
   hidden_columns <- c("mandatory", "primary_key", "dependency_mandatory", "dependency_primary_key")
   real_data <- data.table(data)[, `:=`(columns = mapply(render_column_names, columns, mandatory, primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE),
                                        dependency_columns = mapply(render_column_names, dependency_columns, dependency_mandatory, dependency_primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE))]
@@ -117,6 +120,9 @@ out_table_dependencies <- function(data) {
 }
 
 out_table_usages <- function(data) {
+  if (nrow(data) == 0) {
+    return(p("NO DATA"))
+  }
   hidden_columns <- c("mandatory", "primary_key", "usage_mandatory", "usage_primary_key")
   real_data <- data.table(data)[, `:=`(columns = mapply(render_column_names, columns, mandatory, primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE),
                                        usage_columns = mapply(render_column_names, usage_columns, usage_mandatory, usage_primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE))]
@@ -297,7 +303,11 @@ generate_data_graph_js <- function(tables_columns, tables_dependencies, tables_u
   writeLines(js_content, "./templates/generated-graph.js")
 }
 
-generate_db_metadata_dependencies <- function(db_metadata, db_reverse_dependencies_tree, db_tables_columns, db_tables_dependencies, db_tables_usages, export_directory, timestamp, report_prefix) {
+generate_db_metadata_dependencies <- function(db_metadata, main_variables, export_directory, report_prefix) {
+  db_reverse_dependencies_tree <- main_variables$db_reverse_dependencies_tree
+  db_tables_columns <- main_variables$db_tables_columns
+  db_tables_dependencies <- main_variables$db_tables_dependencies_js
+  db_tables_usages <- main_variables$db_tables_usages_js
   for (schema_name in names(db_reverse_dependencies_tree)) {
     graph_location <- file.path(export_directory, sprintf("%s%s_dependencies_%s.html", report_prefix, db_metadata$to_domain_report(), schema_name))
     db_schema_reverse_dependencies_tree <- data.table(db_reverse_dependencies_tree[[schema_name]])
@@ -312,13 +322,44 @@ generate_db_metadata_dependencies <- function(db_metadata, db_reverse_dependenci
     entry_point_table_gav <- db_metadata$entry_point_table_gav()
     graph_data <- generate_graph_data_input(db_schema_reverse_dependencies_tree, entry_point_table_gav)
     generate_data_graph_js(db_schema_tables_columns, db_schema_tables_dependencies, db_schema_tables_usages, db_tables_descriptions)
-    render("./RMDs/ros_metatadata-schema-graph.Rmd",
-           output_format = "html_document",
-           output_file = basename(graph_location),
-           output_dir = dirname(graph_location),
-           quiet = TRUE)
+    variables <- list(
+      timestamp = main_variables$timestamp,
+      last_update = main_variables$last_update,
+      version = main_variables$version,
+      domain_title = main_variables$domain_title,
+      graph_data = graph_data,
+      schema_name = schema_name)
+    generate_db_metadata_dependencies_call(graph_location, variables)
     file.remove("./templates/generated-graph.js")
   }
+}
+
+output_legend <- function() {
+  legend_data <- data.table::data.table(
+    Icon = c(
+      "<span class='pk-icon'></span>",
+      "<span class='fk-icon'></span>",
+      "<span class='mandatory-icon'></span>"
+    ),
+    Meaning = c(
+      "Primary Key column",
+      "Foreign Key column",
+      "Mandatory (NOT NULL) column"
+    )
+  )
+  DT::datatable(
+    legend_data,
+    escape = FALSE,
+    rownames = FALSE,
+    options = list(
+      dom = "t",
+      ordering = FALSE,
+      paging = FALSE,
+      searching = FALSE,
+      info = FALSE,
+      class = "table table-striped table-sm"
+    )
+  )
 }
 
 format_timestamp <- function(timestamp) {
@@ -413,8 +454,13 @@ to_usages_table <- function(db_table, link_to_type, link_to_url) {
   )][, .(columns, mandatory, primary_key, usage_type, usage_table_raw, usage_table, usage_columns, usage_mandatory, usage_primary_key)]
 }
 
-generate_db_metadata_report_variables <- function(db_metadata, link_to_type, link_to_url, link_to_url_js) {
-  list(db_reverse_dependencies_tree = db_metadata$db_reverse_dependencies_tree(),
+generate_db_metadata_report_variables <- function(db_metadata, link_to_type, link_to_url, link_to_url_js, timestamp) {
+  list(timestamp = timestamp,
+       last_update = db_metadata$last_update(),
+       version = db_metadata$version(),
+       domain_title = ifelse(db_metadata$domain() == "ALL", "", paste0(" - Domain ", str_to_upper(db_metadata$domain()))),
+       db_reverse_dependencies_tree = db_metadata$db_reverse_dependencies_tree(),
+       db_schemas_description = lapply(db_metadata$all_schemas(), function(x) { x$schema_description() }),
        db_tables_columns = lapply(db_metadata$all_tables(), function(x) { x$columns() }),
        db_tables_description = lapply(db_metadata$all_tables(), function(x) { x$table_description() }),
        db_tables_dependencies_js = lapply(db_metadata$all_tables(), function(x) { to_dependencies_table(x, link_to_type, link_to_url_js) }),
@@ -453,43 +499,28 @@ generate_db_metadata_report <- function(domain,
   }
   file_location <- file.path(export_directory, sprintf("%s%s.html", report_prefix, db_metadata$to_domain_report()))
   print("Preparing variables...")
-  variables <- generate_db_metadata_report_variables(db_metadata, link_to_type, link_to_url, link_to_url_js)
+  variables <- generate_db_metadata_report_variables(db_metadata, link_to_type, link_to_url, link_to_url_js, timestamp)
 
   print("Generating db_metadata_dependencies...")
-  generate_db_metadata_dependencies(db_metadata,
-                                    variables$db_reverse_dependencies_tree,
-                                    variables$db_tables_columns,
-                                    variables$db_tables_dependencies_js,
-                                    variables$db_tables_usages_js,
-                                    export_directory,
-                                    timestamp,
-                                    report_prefix)
+  generate_db_metadata_dependencies(db_metadata, variables, export_directory, report_prefix)
   options(DT.options = list(pageLength = -1))
   print(sprintf("Generating report: %s...", file_location))
-  generate_db_metadata_report_call(file_location,
-                                   template,
-                                   timestamp,
-                                   db_metadata,
-                                   variables$db_reverse_dependencies_tree,
-                                   variables$db_tables_description,
-                                   variables$db_tables_columns,
-                                   variables$db_tables_dependencies,
-                                   variables$db_tables_usages)
+  generate_db_metadata_report_call(file_location, template, variables)
 
   print(sprintf("Generated report: %s...", file_location))
   print(sprintf("Patching report: %s...", file_location))
   patch_tocify_hash_generator(file_location)
 }
 
-generate_db_metadata_report_call <- function(file_location,
-                                             template,
-                                             timestamp,
-                                             db_metadata,
-                                             db_reverse_dependencies_tree,
-                                             db_tables_description,
-                                             db_tables_columns,
-                                             db_tables_dependencies,
-                                             db_tables_usages) {
+generate_db_metadata_dependencies_call <- function(graph_location, variables) {
+  render("./RMDs/ros_metatadata-schema-graph.Rmd",
+         output_format = "html_document",
+         output_file = basename(graph_location),
+         output_dir = dirname(graph_location),
+         quiet = TRUE)
+}
+
+generate_db_metadata_report_call <- function(file_location, template, variables) {
   render(template,
          output_format = "html_document",
          output_file = basename(file_location),

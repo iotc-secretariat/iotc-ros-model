@@ -1,6 +1,6 @@
 ---
-title: "{{title}}"
-subtitle: "{{sub_title}}"
+title: "{{ title }} `r variables$domain_title`."
+subtitle: "Last updated: `r variables$last_update`"
 author: "Author: [IOTC Secretariat](mailto:IOTC-Secretariat@fao.org)"
 output:
   html_document:
@@ -25,11 +25,9 @@ knitr::opts_chunk$set(fig.width = 8, echo = FALSE, message = FALSE)
 
 ### Legend
 
-| Icon | Meaning |
-|------|---------|
-| <span class="pk-icon"></span> | Primary Key column |
-| <span class="fk-icon"></span> | Foreign Key column |
-| <span class="mandatory-icon"></span> | Mandatory (NOT NULL) column |
+```{r legend}
+output_legend()
+```
 
 Columns that belong to a primary key are displayed in **bold**.
 
