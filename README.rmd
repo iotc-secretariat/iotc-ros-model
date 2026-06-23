@@ -66,3 +66,58 @@ ros_db_metadata_generate_report(domain = "LL", timestamp = DEFAULT_TIME_STAMP)
 source("R/generate_indexes.R")
 
 ```
+
+## Remove all views from Ros database on code list schemas
+```{r,  warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_synchronization.R")
+generate_drop_views_script(connection_provider = connect_to_ros,
+                           schemas = ROS_SCHEMAS$CODE_LIST,
+                           output_file = "3.3.0/sql/2026-06-23/11_00_01_drop_code_lists_views.sql")
+
+```
+## Generate SQL script to synchronize missing code list from Reference data db to Ros db
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_db.R")
+source("R/reference_data_synchronization.R")
+schema_excluder <- function(schema) { schema %in% c("refs_legacy", "refs_socio_economics", "refs_mappings") }
+generate_missing_code_list_tables_script(reference_data_connection_provider = connect_to_reference_data,
+                                         ros_connection_provider = connect_to_ros,
+                                         schema_excluder = schema_excluder,
+                                         output_file = "./3.3.0/sql/2026-06-23/11_02_add_new_code_lists.sql")
+```
+## Generate SQL script to synchronize existing code list from Reference data db to Ros db (will also synchronize descriptions on table and columns)
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_db.R")
+source("R/reference_data_synchronization.R")
+schema_excluder <- function(schema) { schema %in% c("refs_legacy", "refs_socio_economics", "refs_mappings") }
+table_excluder <- function(schema, table) { paste0(schema, ".", table) %in% c("refs_admin.fleet_to_flags_and_fisheries", "refs_fishery.hook_types") }
+
+tables_to_update <- get_code_list_tables_to_update(reference_data_connection_provider = connect_to_reference_data,
+                                                   ros_connection_provider = connect_to_ros,
+                                                   schema_excluder = schema_excluder,
+                                                   table_excluder = table_excluder)
+schemas_to_file_prefix <- c(
+  refs_admin = "11_05_01",
+  refs_biology = "11_05_02",
+  refs_data = "11_05_03",
+  refs_fishery = "11_05_04",
+  refs_fishery_config = "11_05_05",
+  refs_gis = "11_05_06"
+)
+
+generate_existing_code_list_upsert_script(reference_data_connection_provider = connect_to_reference_data,
+                                          tables_to_update = tables_to_update,
+                                          schemas_to_file_prefix = schemas_to_file_prefix,
+                                          output_file_pattern = "./3.3.0/sql/2026-06-23/%s_update_code_lists_%s.sql")
+```
