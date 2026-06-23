@@ -1,0 +1,15 @@
+
+alter table ros_pl.lures_or_jiggers_by_type DROP CONSTRAINT fk_ros_pl_hook_type_code_lures_or_jiggers_by_type;
+alter table ros_pl.lures_or_jiggers_by_type ADD CONSTRAINT fk_ros_pl_hook_type_code_lures_or_jiggers_by_type foreign key (hook_type_code) references refs_fishery.hook_and_terminal_devices(code);
+
+alter table ros_ll.hooks_by_type DROP CONSTRAINT fk_ros_ll_hook_type_code_hooks_by_type;
+alter table ros_ll.hooks_by_type ADD CONSTRAINT fk_ros_ll_hook_type_code_hooks_by_type foreign key (hook_type_code) references refs_fishery.hook_and_terminal_devices(code);
+
+alter table ros_pl.gear_specifications DROP CONSTRAINT fk_ros_pl_gear_specifications_hook_type_code;
+alter table ros_pl.gear_specifications ADD CONSTRAINT fk_ros_pl_gear_specifications_hook_type_code foreign key (hook_type_code) references refs_fishery.hook_and_terminal_devices(code);
+
+alter table ros_ll.additional_catch_details_on_ssi DROP CONSTRAINT fk_ros_ll_additional_catch_details_on_ssi_hook_type_code;
+alter table ros_ll.additional_catch_details_on_ssi ADD CONSTRAINT fk_ros_ll_additional_catch_details_on_ssi_hook_type_code foreign key (hook_type_code) references refs_fishery.hook_and_terminal_devices(code);
+
+alter table refs_fishery_config.fishery_types DROP CONSTRAINT fk_fishery_types_purposes;
+alter table refs_fishery_config.fishery_types ADD CONSTRAINT fk_fishery_types_purposes foreign key (purpose_code) references refs_fishery_config.fishery_purposes(code);

@@ -1,0 +1,13 @@
+DROP TABLE IF EXISTS refs_admin.contact_role;
+DROP TABLE IF EXISTS refs_fishery.activities;
+DROP TABLE IF EXISTS refs_fishery.gear_types;
+DROP TABLE IF EXISTS refs_fishery.gillnet_material_types;
+DROP TABLE IF EXISTS refs_fishery.mechanization_types;
+DROP TABLE IF EXISTS refs_fishery.vessel_size_types;
+DROP TABLE IF EXISTS refs_fishery_config.fishery_types_bkp;
+DROP TABLE IF EXISTS refs_fishery_config.gear_to_fishery_type_new;
+DROP TABLE IF EXISTS refs_fishery_config.gear_fishery_type_to_configuration_bkp;
+DROP TABLE IF EXISTS refs_fishery_config.gear_fishery_type_to_fishing_mode_bkp;
+DROP TABLE IF EXISTS refs_fishery_config.gear_to_fishery_type_bkp;
+DROP TABLE IF EXISTS refs_fishery_config.fishery_types_new;
+DROP TABLE IF EXISTS refs_fishery_config.purposes;
