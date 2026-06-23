@@ -1,6 +1,6 @@
 ---
-title: "ROS Database dependency graph (version: `r paste0(db_metadata$version(), ' ', timestamp)` ) - Domain `r str_to_upper(str_sub(schema_name, 5))`"
-subtitle: "Last updated: `r db_metadata$last_update()`"
+title: "ROS Database dependency graph (version: `r paste0(variables$version, ' ', variables$timestamp)` )`r variables$domain_title`."
+subtitle: "Last updated: `r variables$last_update`"
 author: "Author: [IOTC Secretariat](mailto:IOTC-Secretariat@fao.org)"
 output:
   html_document:
@@ -21,7 +21,7 @@ output:
 <div id="graph">
 
 ```{r echo=FALSE}
-out_data_graph(graph_data)
+out_data_graph(variables$graph_data)
 ```
 
 </div>
