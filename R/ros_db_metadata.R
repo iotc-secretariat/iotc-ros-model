@@ -5,7 +5,7 @@ library(RPostgres)
 
 #'The constants holding the name of the latest IOTC_Ros database
 #'@export
-IOTC_ROS <- "IOTC_Ros_3_3_0_2026_05_28"
+IOTC_ROS <- "IOTC_Ros_3_3_0_2026_06_23"
 
 #'The constants holding the name of all schemas of the Ros database
 #'@export
