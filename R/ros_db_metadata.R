@@ -21,7 +21,8 @@ ROS_SCHEMAS <- list(
     "refs_data",
     "refs_fishery",
     "refs_fishery_config",
-    "refs_gis"
+    "refs_gis",
+    "refs_meta"
   )
 )
 
@@ -70,7 +71,7 @@ ros_db_metadata_create <- function(domain, version = IOTC_ROS, root_directory = 
                   files$tables_columns[schema %in% schema_names],
                   files$tables_foreign_keys[schema %in% schema_names],
                   files$tables_primary_keys[schema %in% schema_names],
-                  function(x) { is_column_registry_function(x) | is_column_data_function(x)},
+                  function(x) { is_column_registry_function(x) | is_column_data_function(x) },
                   list(
                     "ros_meta.observer",
                     "ros_meta.observer_accreditation",
