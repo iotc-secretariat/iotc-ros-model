@@ -95,8 +95,7 @@ reference_data_db_metadata_report_template_supplier <- function(db_metadata, exp
   })
   file_location <- file.path(export_directory, sprintf("reference_data_metatadata-%s.Rmd", db_metadata$domain()))
   report <- render_template("./templates/report.Rmd.tpl", list(
-    title = sprintf("IOTC Reference data Database (version: %s `r timestamp`)", db_metadata$version()),
-    sub_title = sprintf("Last updated: %s", db_metadata$last_update()),
+    title = "IOTC Reference data Database (version: `r variables$version` `r variables$timestamp`)",
     abstract_content = "This document describes the ***IOTC ReferenceData*** database tables.",
     schema_sections = paste(schema_sections, collapse = "\n\n")
   ))
