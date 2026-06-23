@@ -1,0 +1,4 @@
+
+alter table ros_common.trip_daily_activity_details DROP CONSTRAINT fk_ros_common_trip_daily_activity_details_activity_code;
+alter table ros_common.trip_daily_activities ALTER COLUMN date SET NOT NULL;
+alter table ros_common.trip_daily_activity_details ADD CONSTRAINT fk_ros_common_trip_daily_activity_details_activity_code foreign key (activity_code) references refs_fishery.activities;
