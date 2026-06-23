@@ -718,8 +718,13 @@ db_metadata <- R6Class(
       names(private$.db_reverse_dependencies_tree) <- schema_names
     },
     remove_unused_tables = function() {
-      table_names_to_keep <- c(unique(self$dependencies()[self$column_dependency_filter()(schema)]$target_table_id),
-                               unique(self$usages()[self$column_dependency_filter()(schema)]$usage_table_id))
+      filter <- self$column_dependency_filter()
+      all_dependencies <- self$dependencies()
+      all_usages <- self$usages()
+      # first pass to get only on targetd schemas
+      table_names_to_keep <- c(unique(all_dependencies[filter(schema)]$target_table_id), unique(all_usages[filter(schema)]$usage_table_id))
+      # second pass to get all tables `origin`of previous found tables
+      table_names_to_keep <- c(unique(all_dependencies[table_id %in% table_names_to_keep]$target_table_id), unique(all_usages[table_id %in% table_names_to_keep]$usage_table_id))
       tables_to_keep <- lapply(table_names_to_keep, table_location$new)
       names(tables_to_keep) <- table_names_to_keep
       lapply(self$all_schemas(), function(schema) {
