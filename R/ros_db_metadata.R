@@ -126,7 +126,11 @@ ros_db_metadata_report_template_supplier <- function(db_metadata, export_directo
         table_anchor = paste0("{#table_", schema_id, ".", sanitize_id(table_name), "}")
       ))
     })
-    extra_content <- ifelse(!schema$schema() %like% "ros_common|ros_meta|refs_.+", render_template("templates/schema-dependencies.Rmd.tpl", list()), "")
+    extra_content <- ifelse(!schema$schema() %like% "ros_common|ros_meta|refs_.+", render_template("templates/schema-dependencies.Rmd.tpl", list(
+      schema_name = schema_name,
+      entry_point = db_metadata$entry_point(),
+      domain_report = db_metadata$to_domain_report()
+    )), "")
     render_template("templates/schema.Rmd.tpl", list(
       schema_name = schema_name,
       schema_anchor = paste0("{#schema_", schema_id, "}"),
@@ -134,14 +138,11 @@ ros_db_metadata_report_template_supplier <- function(db_metadata, export_directo
       extra_content = extra_content
     ))
   })
-  on_all <- db_metadata$domain() == "ALL"
   file_location <- file.path(export_directory, sprintf("ros_metatadata-%s.Rmd", db_metadata$domain()))
   report <- render_template("./templates/report.Rmd.tpl", list(
-    title = sprintf("IOTC ROS Database (version: %s `r timestamp`)%s", db_metadata$version(), ifelse(on_all, "", sprintf(" - Domain %s", db_metadata$domain()))),
-    sub_title = sprintf("Last updated: %s", db_metadata$last_update()),
-    abstract_content = paste0("This document describes the ***ROS*** database tables", ifelse(on_all, ".", sprintf(" used by the domain ***%s***.", db_metadata$domain()))),
-    schema_sections = paste(schema_sections, collapse = "\n\n")
-  ))
+    title = "IOTC ROS Database (version: `r variables$version` `r variables$timestamp`)",
+    abstract_content = paste0("This document describes the ***ROS*** database tables", ifelse(db_metadata$domain() == "ALL", ".", sprintf(" used by the domain ***%s***.", db_metadata$domain()))),
+    schema_sections = paste(schema_sections, collapse = "\n\n")))
   writeLines(report, file_location)
   file_location
 }
