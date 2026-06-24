@@ -3,7 +3,7 @@ refs_admin.countries,TRUE,TRUE,FALSE
 refs_admin.cpc_history,FALSE,FALSE,TRUE
 refs_admin.cpc_to_flags,FALSE,FALSE,TRUE
 refs_admin.cpcs,FALSE,FALSE,TRUE
-refs_admin.entities,FALSE,FALSE,TRUE
+refs_admin.entities,TRUE,TRUE,FALSE
 refs_admin.fleet_to_flags_and_fisheries,FALSE,FALSE,TRUE
 refs_admin.fleets,FALSE,FALSE,TRUE
 refs_admin.ports,TRUE,TRUE,FALSE
@@ -28,7 +28,10 @@ refs_biology.species_groups,FALSE,FALSE,TRUE
 refs_biology.tag_types,TRUE,TRUE,FALSE
 refs_biology.types_of_fate,FALSE,FALSE,TRUE
 refs_biology.types_of_measurement,FALSE,FALSE,TRUE
+refs_data.datasets,FALSE,FALSE,TRUE
 refs_data.logical_responses,TRUE,TRUE,FALSE
+refs_data.processings,FALSE,FALSE,TRUE
+refs_data.sources,TRUE,TRUE,FALSE
 refs_fishery.bait_fishing_methods,TRUE,TRUE,FALSE
 refs_fishery.branchline_storages,TRUE,TRUE,FALSE
 refs_fishery.dehooker_types,TRUE,TRUE,FALSE

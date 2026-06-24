@@ -122,7 +122,7 @@ refs_biology,species_groups,
 refs_biology,tag_types,
 refs_biology,types_of_fate,
 refs_biology,types_of_measurement,
-refs_data,coverage_types,Code list defining the denominator type used for calculating sampling coverage in biological and observer sampling programmes
+refs_data,coverage_types,
 refs_data,datasets,"Code list defining the types of datasets held by the IOTC Secretariat, with both short labels and descriptive metadata in English and French"
 refs_data,estimations,
 refs_data,logical_responses,
