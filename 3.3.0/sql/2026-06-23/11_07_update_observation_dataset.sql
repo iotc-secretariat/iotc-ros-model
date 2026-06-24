@@ -8,3 +8,4 @@ create index if not exists index_common_observation_dataset_reporting_source on 
 
 alter table ros_common.observation_dataset add constraint fk_ros_common_observation_dataset_reporting_entity_code foreign key (reporting_country_code) references refs_admin.entities(code);
 alter table ros_common.observation_dataset add constraint fk_ros_common_observation_dataset_source foreign key (reporting_source_dataset_code,reporting_source_code) references refs_data.sources(dataset_code, code);
+alter table ros_common.observation_dataset add constraint fk_ros_common_observation_dataset_reporting_source_dataset_code foreign key (reporting_source_dataset_code) references refs_data.datasets( code);
