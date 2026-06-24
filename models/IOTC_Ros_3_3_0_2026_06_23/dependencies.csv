@@ -26,9 +26,9 @@ refs_biology.species_aggregates,FALSE,FALSE,TRUE
 refs_biology.species_categories,FALSE,FALSE,TRUE
 refs_biology.species_groups,FALSE,FALSE,TRUE
 refs_biology.tag_types,TRUE,TRUE,FALSE
-refs_biology.types_of_fate,FALSE,FALSE,TRUE
-refs_biology.types_of_measurement,FALSE,FALSE,TRUE
-refs_data.datasets,FALSE,FALSE,TRUE
+refs_biology.types_of_fate,TRUE,TRUE,FALSE
+refs_biology.types_of_measurement,TRUE,TRUE,FALSE
+refs_data.datasets,TRUE,TRUE,FALSE
 refs_data.logical_responses,TRUE,TRUE,FALSE
 refs_data.processings,FALSE,FALSE,TRUE
 refs_data.sources,TRUE,TRUE,FALSE
