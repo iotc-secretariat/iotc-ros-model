@@ -237,7 +237,8 @@ sort_tables_by_dependencies <- function(tables, dependencies) {
 # Discovery
 # ================================================================
 
-get_code_list_tables <- function(connection_provider, schema_excluder) {
+get_code_list_tables <- function(connection_provider,
+                                 schema_excluder = function(schema) { FALSE }) {
   use_connection(connection_provider, function(connection) {
     sql <- read_sql("get_code_list_tables.sql")
     result <- query(connection, sql)
@@ -245,7 +246,9 @@ get_code_list_tables <- function(connection_provider, schema_excluder) {
   })
 }
 
-detect_missing_refs_tables <- function(reference_data_connection_provider, ros_connection_provider, schema_excluder) {
+detect_missing_refs_tables <- function(reference_data_connection_provider,
+                                       ros_connection_provider,
+                                       schema_excluder = function(schema) { FALSE }) {
   reference_data_tables <- get_code_list_tables(reference_data_connection_provider, schema_excluder)
   ros_tables <- get_code_list_tables(ros_connection_provider, schema_excluder)
   missing <- reference_data_tables[!ros_tables, on = c("schema", "table")]
@@ -254,8 +257,8 @@ detect_missing_refs_tables <- function(reference_data_connection_provider, ros_c
 
 detect_existing_refs_tables <- function(reference_data_connection_provider,
                                         ros_connection_provider,
-                                        schema_excluder,
-                                        table_excluder) {
+                                        schema_excluder = function(schema) { FALSE },
+                                        table_excluder = function(schema, table) { FALSE }) {
   reference_data_tables <- get_code_list_tables(reference_data_connection_provider, schema_excluder)[!table_excluder(schema, table)]
   ros_tables <- get_code_list_tables(ros_connection_provider, schema_excluder)[!table_excluder(schema, table)]
   reference_data_tables[
