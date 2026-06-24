@@ -1,5 +1,5 @@
 -- Generated refs_fishery_config code list update script
--- Generated at: 2026-06-24 14:51:12 +0200
+-- Generated at: 2026-06-24 16:30:45 +0200
 
 -- -------------------------------------------------------------------
 -- refs_fishery_config.areas_of_operation

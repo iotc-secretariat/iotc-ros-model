@@ -39,3 +39,28 @@ ALTER TABLE refs_fishery.catch_units DROP COLUMN description_fr, DROP COLUMN des
 -- ALTER TABLE refs_fishery.vessel_size_types DROP COLUMN description_fr, DROP COLUMN description_en;
 -- ALTER TABLE refs_fishery.waste_categories DROP COLUMN description_fr, DROP COLUMN description_en;
 -- ALTER TABLE refs_fishery.waste_disposal_methods DROP COLUMN description_fr, DROP COLUMN description_en;
+
+ALTER TABLE refs_admin.fleet_to_flags_and_fisheries ADD COLUMN id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY;
+
+ALTER TABLE refs_admin.fleet_to_flags_and_fisheries
+ADD CONSTRAINT uk_refs_admin_fleet_to_flags_and_fisheries
+UNIQUE NULLS NOT DISTINCT (
+  fleet_code,
+  reporting_entity_code,
+  flag_code,
+  iotc_main_area_code,
+  fishery_type_code,
+  gear_category_code,
+  gear_code,
+  gear_configuration_code,
+  fishing_mode_code,
+  target_species_code,
+  from_year,
+  to_year
+);
+
+ALTER table refs_admin.ports DROP CONSTRAINT pk_cl_ports;
+ALTER TABLE refs_admin.ports ADD CONSTRAINT pk_refs_admin_ports PRIMARY KEY (code);
+ALTER TABLE refs_admin.ports DROP COLUMN id;
+
+DELETE from refs_admin.fleet_to_flags_and_fisheries;

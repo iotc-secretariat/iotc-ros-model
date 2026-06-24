@@ -1,5 +1,5 @@
 -- Generated refs_fishery code list update script
--- Generated at: 2026-06-24 14:51:09 +0200
+-- Generated at: 2026-06-24 16:30:42 +0200
 
 -- -------------------------------------------------------------------
 -- refs_fishery.bait_fishing_methods
