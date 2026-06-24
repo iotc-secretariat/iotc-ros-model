@@ -181,7 +181,8 @@ generate_drop_views_script <- function(connection_provider, schemas, output_file
 }
 
 sort_tables_by_dependencies <- function(tables, dependencies) {
-
+  tables <- copy(tables)
+  dependencies <- copy(dependencies)
   tables[, id := table_id(schema, table)]
 
   dependencies[, source_id := table_id(source_schema, source_table)]
