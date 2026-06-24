@@ -71,6 +71,7 @@ ros_db_metadata_create <- function(domain, version = IOTC_ROS, root_directory = 
                   files$tables_columns[schema %in% schema_names],
                   files$tables_foreign_keys[schema %in% schema_names],
                   files$tables_primary_keys[schema %in% schema_names],
+                  files$dependencies,
                   function(x) { is_column_registry_function(x) | is_column_data_function(x) },
                   list(
                     "ros_meta.observer",
@@ -148,6 +149,11 @@ ros_db_metadata_report_template_supplier <- function(db_metadata, export_directo
   file_location
 }
 
+ros_db_generate_shell_dependencies <- function(version = IOTC_ROS,
+                                               root_directory = DB_METADATA_DIRECTORY) {
+  generate_shell_dependencies("ALL", version, root_directory, ros_db_metadata_create)
+}
+
 ros_db_metadata_generate_report <- function(domain,
                                             version = IOTC_ROS,
                                             timestamp = DEFAULT_TIME_STAMP,
@@ -165,5 +171,5 @@ ros_db_metadata_generate_report <- function(domain,
                               link_to_url = link_to_url,
                               link_to_url_js = link_to_url_js,
                               report_prefix = "ROS_database",
-                              remove_unused_tables = domain != "ALL")
+                              remove_unused_tables = TRUE)
 }
