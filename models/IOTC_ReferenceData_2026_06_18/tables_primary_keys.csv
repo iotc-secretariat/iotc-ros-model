@@ -4,9 +4,10 @@ refs_admin,cpc_history,cpc_code|contracting_party|acceptance_date
 refs_admin,cpc_to_flags,cpc_code|flag_code
 refs_admin,cpcs,code
 refs_admin,entities,code
+refs_admin,fleet_to_flags_and_fisheries,id
 refs_admin,fleets,code
 refs_admin,io_main_areas,code
-refs_admin,ports,id
+refs_admin,ports,code
 refs_admin,species_reporting_requirements,gear_group_code|species_code
 refs_biology,bait_conditions,code
 refs_biology,bait_types,code
