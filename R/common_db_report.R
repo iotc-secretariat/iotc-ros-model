@@ -447,7 +447,7 @@ to_dependencies_table <- function(db_table, link_to_type, link_to_url) {
 
 to_usages_table <- function(db_table, link_to_type, link_to_url) {
   data.table(db_table$usages())[, `:=`(
-    usage_type = sapply(usage_table_id, link_to_type),
+    usage_type = sapply(table_id, link_to_type),
     usage_table_raw = usage_table_id,
     usage_table = mapply(link_to_url, usage_schema, usage_table, usage_table_id),
     usage_columns = usage_columns
