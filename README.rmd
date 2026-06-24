@@ -82,6 +82,9 @@ generate_drop_views_script(connection_provider = connect_to_ros,
 ```
 ## Generate SQL script to synchronize missing code list from Reference data db to Ros db
 
+**We should not use this code, because adding a new code list should be controled by human, and if the code list is not use in the ROS database, no need of it.**
+
+
 ```{r, warning = FALSE}
 # Load sources
 source("R/common_db_utils.R")
@@ -96,16 +99,17 @@ generate_missing_code_list_tables_script(reference_data_connection_provider = co
 ```
 ## Generate SQL script to synchronize existing code list from Reference data db to Ros db (will also synchronize descriptions on table and columns)
 
+**TODO: We need to check structure between the both database, and if there is some changed we block to process, because generated sql statements won't work**.
+
 ```{r, warning = FALSE}
 # Load sources
 source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 source("R/reference_data_db.R")
 source("R/reference_data_synchronization.R")
-table_excluder <- function(schema, table) { paste0(schema, ".", table) %in% c("refs_admin.fleet_to_flags_and_fisheries") }
 tables_to_update <- load_db_metadata(output_directory = DB_METADATA_DIRECTORY)$dependencies[table_id %like% "refs_.+"][, `:=`(
   schema = mapply(function(x) { table_location$new(x)$schema() }, table_id),
-  table = mapply(function(x) { table_location$new(x)$table() }, table_id))][mapply(function(s, t) { !table_excluder(s, t) }, schema, table), .(schema, table)]
+  table = mapply(function(x) { table_location$new(x)$table() }, table_id))][, .(schema, table)]
 schemas_to_file_prefix <- c(
   refs_admin = "11_05_01",
   refs_biology = "11_05_02",
@@ -114,10 +118,10 @@ schemas_to_file_prefix <- c(
   refs_fishery_config = "11_05_05",
   refs_gis = "11_05_06"
 )
-sorted_tables_to_update <- sort_code_list_tables_to_update(reference_data_connection_provider = connect_to_reference_data,
+sorted_tables_to_update <- sort_code_list_tables_to_update(connection_provider = connect_to_reference_data,
                                                            tables = tables_to_update)
 
-generate_existing_code_list_upsert_script(reference_data_connection_provider = connect_to_reference_data,
+generate_existing_code_list_upsert_script(connection_provider = connect_to_reference_data,
                                           tables_to_update = sorted_tables_to_update,
                                           schemas_to_file_prefix = schemas_to_file_prefix,
                                           output_file_pattern = "./3.3.0/sql/2026-06-23/%s_update_code_lists_%s.sql")
@@ -130,8 +134,8 @@ source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 source("R/reference_data_db.R")
 source("R/reference_data_synchronization.R")
-code_lists_tables <- load_db_metadata(output_directory = DB_METADATA_DIRECTORY)$dependencies[table_id %like% "refs_.+"][, `:=`(
-  schema = mapply(function(x) { table_location$new(x)$schema() }, table_id),
-  table = mapply(function(x) { table_location$new(x)$table() }, table_id))][, .(schema, table)]
-code_lists_tables <- rbind(code_lists_tables,data.table(schema= c("refs_admin"), table = c("fleet_to_flags_and_fisheries")))
+
+code_list_tables_to_remove_sorted <-generate_drop_unused_code_list_table(output_directory = DB_METADATA_DIRECTORY,
+                                                                         connection_provider = connect_to_ros,
+                                                                         output_file = "./3.3.0/sql/2026-06-23/11_08_drop_unused_code_lists.sql")
 ```
