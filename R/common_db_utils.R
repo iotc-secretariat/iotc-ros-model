@@ -149,11 +149,16 @@ generate_db_metadata <- function(db_metadata, output_directory) {
 #' @return loaded files
 #' @export
 load_db_metadata <- function(output_directory) {
+  dependencies <- NULL
+  if (file.exists(file.path(output_directory, "dependencies.csv"))) {
+    dependencies <- fread(file.path(output_directory, "dependencies.csv"))
+  }
   list(schemas_description = fread(file.path(output_directory, "schemas_description.csv"), na.strings = c('', 'NA')),
        tables_description = fread(file.path(output_directory, "tables_description.csv"), na.strings = c('', 'NA')),
        tables_columns = fread(file.path(output_directory, "tables_columns.csv"), na.strings = c('', 'NA')),
        tables_foreign_keys = fread(file.path(output_directory, "tables_foreign_keys.csv"))[, `:=`(columns = strsplit(columns, '\\|'), target_columns = strsplit(target_columns, '\\|'))],
-       tables_primary_keys = fread(file.path(output_directory, "tables_primary_keys.csv"))[, primary_key_columns := strsplit(primary_key_columns, '\\|')])
+       tables_primary_keys = fread(file.path(output_directory, "tables_primary_keys.csv"))[, primary_key_columns := strsplit(primary_key_columns, '\\|')],
+       dependencies = dependencies)
 }
 
 load_db_metadata_object <- function(domain,
@@ -161,6 +166,14 @@ load_db_metadata_object <- function(domain,
                                     root_directory,
                                     db_metadata_supplier) {
   db_metadata_supplier(domain, version, root_directory)
+}
+
+generate_shell_dependencies <- function(domain,
+                                        version,
+                                        root_directory,
+                                        db_metadata_supplier) {
+  db_metadata <- load_db_metadata_object(domain, version, root_directory, db_metadata_supplier)
+  write_file(db_metadata$compute_shell_dependencies_table(), file.path(root_directory, "dependencies.csv"))
 }
 
 #' Generate SQL queries to update comments on database, at schema, table and column level.
@@ -439,6 +452,7 @@ db_metadata <- R6Class(
                           tables_columns,
                           tables_foreign_keys,
                           tables_primary_keys,
+                          dependencies_table,
                           column_dependency_filter,
                           standalone_tables,
                           entry_point,
@@ -617,6 +631,10 @@ db_metadata <- R6Class(
         db_metadata_schema$new(schema_name, description, tables)
       })
       names(private$.schemas) <- schema_names
+      if (is.null(dependencies_table)) {
+        dependencies_table <- private$.compute_shell_dependencies_table()
+      }
+      private$.dependencies <- dependencies_table
     },
     domain = function() {
       private$.domain
@@ -629,6 +647,9 @@ db_metadata <- R6Class(
     },
     last_update = function() {
       private$.last_update
+    },
+    dependencies_table = function() {
+      private$.dependencies
     },
     column_dependency_filter = function() {
       private$.column_dependency_filter
@@ -717,14 +738,19 @@ db_metadata <- R6Class(
       })
       names(private$.db_reverse_dependencies_tree) <- schema_names
     },
+    direct_dependencies = function() {
+      self$dependencies_table()[direct_dependency]$table_id
+    },
+
+    outer_dependencies = function() {
+      self$dependencies_table()[outer_dependency]$table_id
+    },
+
+    shell_dependencies = function() {
+      self$dependencies_table()$table_id
+    },
     remove_unused_tables = function() {
-      filter <- self$column_dependency_filter()
-      all_dependencies <- self$dependencies()
-      all_usages <- self$usages()
-      # first pass to get only on targetd schemas
-      table_names_to_keep <- c(unique(all_dependencies[filter(schema)]$target_table_id), unique(all_usages[filter(schema)]$usage_table_id))
-      # second pass to get all tables `origin`of previous found tables
-      table_names_to_keep <- c(unique(all_dependencies[table_id %in% table_names_to_keep]$target_table_id), unique(all_usages[table_id %in% table_names_to_keep]$usage_table_id))
+      table_names_to_keep <- self$shell_dependencies()
       tables_to_keep <- lapply(table_names_to_keep, table_location$new)
       names(tables_to_keep) <- table_names_to_keep
       lapply(self$all_schemas(), function(schema) {
@@ -743,6 +769,8 @@ db_metadata <- R6Class(
     .last_update = NULL,
     # schemas
     .schemas = NULL,
+    # computed dependencies
+    .dependencies = NULL,
     # funtion to test if a table column can be added to dependencies
     .column_dependency_filter = NULL,
     # standalone tables
@@ -755,6 +783,45 @@ db_metadata <- R6Class(
     .db_reverse_dependencies = NULL,
     # computed dependencies tree for each schema
     .db_reverse_dependencies_tree = NULL,
+    .compute_direct_dependencies = function() {
+      filter <- self$column_dependency_filter()
+      all_dependencies <- self$dependencies()
+      sort(unique(c(all_dependencies[filter(schema)]$target_table_id, all_dependencies[filter(target_schema)]$table_id)))
+    },
+    .compute_outer_dependencies = function() {
+      filter <- self$column_dependency_filter()
+      direct_dependencies <- private$.compute_direct_dependencies()
+      Filter(function(x) { !filter(table_location$new(x)$schema()) }, direct_dependencies)
+    },
+    .compute_shell_dependencies = function() {
+      all_dependencies <- self$dependencies()
+      # first pass to get direct dependencies
+      direct_dependencies <- private$.compute_direct_dependencies()
+      # second pass: recurse on direct dependencies to found the hole shell
+      recurse <- function(incoming) {
+        result <- unique(c(incoming,
+                           all_dependencies[table_id %in% incoming]$target_table_id,
+                           all_dependencies[target_table_id %in% incoming]$table_id))
+        if (length(result) == length(incoming)) {
+          return(result)
+        }
+        recurse(result)
+      }
+
+      sort(recurse(direct_dependencies))
+    },
+    .compute_shell_dependencies_table = function() {
+      filter <- self$column_dependency_filter()
+      direct <- private$.compute_direct_dependencies()
+      outer <- private$.compute_outer_dependencies()
+      shell <- private$.compute_shell_dependencies()
+      data.table(
+        table_id = shell,
+        direct_dependency = shell %in% direct,
+        outer_dependency = shell %in% outer,
+        outer_transitive_dependency = !shell %in% outer & !shell %in% direct & !filter(table_location$new(shell)$schema())
+      )[order(table_id)]
+    },
     .build_reverse_dependency_tree = function(deps) {
       entry_point <- self$entry_point()
       standalone_tables <- self$standalone_tables()
