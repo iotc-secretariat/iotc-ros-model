@@ -632,7 +632,7 @@ db_metadata <- R6Class(
       })
       names(private$.schemas) <- schema_names
       if (is.null(dependencies_table)) {
-        dependencies_table <- private$.compute_shell_dependencies_table()
+        dependencies_table <- self$compute_shell_dependencies_table()
       }
       private$.dependencies <- dependencies_table
     },
@@ -741,13 +741,23 @@ db_metadata <- R6Class(
     direct_dependencies = function() {
       self$dependencies_table()[direct_dependency]$table_id
     },
-
     outer_dependencies = function() {
       self$dependencies_table()[outer_dependency]$table_id
     },
-
     shell_dependencies = function() {
       self$dependencies_table()$table_id
+    },
+    compute_shell_dependencies_table = function() {
+      filter <- self$column_dependency_filter()
+      direct <- private$.compute_direct_dependencies()
+      outer <- private$.compute_outer_dependencies()
+      shell <- private$.compute_shell_dependencies()
+      data.table(
+        table_id = shell,
+        direct_dependency = shell %in% direct,
+        outer_dependency = shell %in% outer,
+        outer_transitive_dependency = !shell %in% outer & !shell %in% direct & !filter(table_location$new(shell)$schema())
+      )[order(table_id)]
     },
     remove_unused_tables = function() {
       table_names_to_keep <- self$shell_dependencies()
@@ -809,18 +819,6 @@ db_metadata <- R6Class(
       }
 
       sort(recurse(direct_dependencies))
-    },
-    .compute_shell_dependencies_table = function() {
-      filter <- self$column_dependency_filter()
-      direct <- private$.compute_direct_dependencies()
-      outer <- private$.compute_outer_dependencies()
-      shell <- private$.compute_shell_dependencies()
-      data.table(
-        table_id = shell,
-        direct_dependency = shell %in% direct,
-        outer_dependency = shell %in% outer,
-        outer_transitive_dependency = !shell %in% outer & !shell %in% direct & !filter(table_location$new(shell)$schema())
-      )[order(table_id)]
     },
     .build_reverse_dependency_tree = function(deps) {
       entry_point <- self$entry_point()
