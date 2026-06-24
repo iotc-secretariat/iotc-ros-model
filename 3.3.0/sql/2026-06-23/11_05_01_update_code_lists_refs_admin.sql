@@ -1,5 +1,5 @@
 -- Generated refs_admin code list update script
--- Generated at: 2026-06-24 12:38:23 +0200
+-- Generated at: 2026-06-24 14:51:04 +0200
 
 -- -------------------------------------------------------------------
 -- refs_admin.countries

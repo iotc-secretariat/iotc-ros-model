@@ -1,5 +1,5 @@
 -- Generated refs_biology code list update script
--- Generated at: 2026-06-24 12:38:25 +0200
+-- Generated at: 2026-06-24 14:51:06 +0200
 
 -- -------------------------------------------------------------------
 -- refs_biology.bait_conditions
