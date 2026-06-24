@@ -144,6 +144,14 @@ get_code_list_tables_dependencies <- function(connection_provider) {
   })
 }
 
+get_tables_used_by_views <- function(connection_provider) {
+  use_connection(connection_provider, function(connection) {
+    sql <- read_sql("get_tables_used_by_views.sql")
+    result <- query(connection, sql, params = list("ros_%"))
+    result[!table_name %like% "v_.+"][, `:=`(schema = table_schema, table_schema = NULL, table = table_name, table_name = NULL)]
+  })
+}
+
 generate_drop_views_script <- function(connection_provider, schemas, output_file) {
   views <- use_connection(connection_provider, function(connection) {
     query(
@@ -178,6 +186,48 @@ generate_drop_views_script <- function(connection_provider, schemas, output_file
   }
   writeLines(sql, output_file)
   invisible(views)
+}
+
+generate_drop_unused_code_list_table <- function(output_directory, connection_provider, output_file) {
+  code_lists_tables_required <- load_db_metadata(output_directory)$dependencies[table_id %like% "refs_.+"][, `:=`(
+    schema = mapply(function(x) { table_location$new(x)$schema() }, table_id),
+    table = mapply(function(x) { table_location$new(x)$table() }, table_id))][, .(schema, table)]
+  blocked_code_list_tables <- get_tables_used_by_views(connection_provider)
+  blocked_code_list_tables <- unique(blocked_code_list_tables[, .(schema, table)])
+  code_lists_tables_required <- rbind(code_lists_tables_required, blocked_code_list_tables, data.table(schema = c("refs_meta"), table = c("codelists_versions")))
+  code_list_tables_found <- get_code_list_tables(connection_provider)
+  code_list_tables_to_remove <- code_list_tables_found[!code_lists_tables_required, on = .(schema, table)]
+  code_list_tables_to_remove_sorted <- sort_code_list_tables_to_update(connection_provider, code_list_tables_to_remove)
+  sql <- c(
+    "-- Generated ROS refs_* remove unused tables script",
+    paste0("-- Generated at: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S %z")),
+    ""
+  )
+
+  if (nrow(code_list_tables_to_remove_sorted) == 0) {
+    sql <- c(sql, "-- No refs_* tables found to remove.", "")
+    writeLines(sql, output_file)
+    return(invisible(code_list_tables_to_remove_sorted))
+  }
+
+  for (i in seq_len(nrow(code_list_tables_to_remove_sorted))) {
+    schema <- code_list_tables_to_remove_sorted$schema[i]
+    table <- code_list_tables_to_remove_sorted$table[i]
+
+    message("DROP table: ", schema, ".", table)
+
+    sql <- c(
+      sql,
+      "-- ----------------------------------------------------------------",
+      paste0("-- ", schema, ".", table),
+      "-- ----------------------------------------------------------------",
+      paste0("DROP TABLE ", schema, ".", table, ";"),
+      ""
+    )
+  }
+
+  writeLines(sql, output_file)
+  invisible(code_list_tables_to_remove_sorted)
 }
 
 sort_tables_by_dependencies <- function(tables, dependencies) {
