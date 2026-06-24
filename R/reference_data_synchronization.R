@@ -831,8 +831,8 @@ get_code_list_tables_to_update <- function(
   sort_tables_by_dependencies(tables = existing_tables, dependencies = dependencies)
 }
 
-sort_code_list_tables_to_update <- function(reference_data_connection_provider, tables) {
-  dependencies <- get_code_list_tables_dependencies(reference_data_connection_provider)
+sort_code_list_tables_to_update <- function(connection_provider, tables) {
+  dependencies <- get_code_list_tables_dependencies(connection_provider)
   sort_tables_by_dependencies(tables = tables, dependencies = dependencies)
 }
 
@@ -866,7 +866,7 @@ sort_code_list_tables_to_update <- function(reference_data_connection_provider, 
 #   02_update_code_list_refs_biology.sql
 #
 # =============================================================================
-generate_existing_code_list_upsert_script <- function(reference_data_connection_provider,
+generate_existing_code_list_upsert_script <- function(connection_provider,
                                                       tables_to_update,
                                                       schemas_to_file_prefix,
                                                       output_file_pattern = "update_existing_%s_code_list_%s.sql") {
@@ -875,14 +875,14 @@ generate_existing_code_list_upsert_script <- function(reference_data_connection_
   for (schema_name in schemas_to_update) {
     stopifnot(schema_name %in% names(schemas_to_file_prefix))
     output_file <- sprintf(output_file_pattern, schemas_to_file_prefix[[schema_name]], schema_name)
-    generate_existing_code_list_upsert_script_for_schema(reference_data_connection_provider,
+    generate_existing_code_list_upsert_script_for_schema(connection_provider,
                                                          schema_name,
                                                          tables_to_update[schema == schema_name],
                                                          output_file)
   }
 }
 
-generate_existing_code_list_upsert_script_for_schema <- function(reference_data_connection_provider,
+generate_existing_code_list_upsert_script_for_schema <- function(connection_provider,
                                                                  schema_name,
                                                                  tables_to_update,
                                                                  output_file) {
@@ -915,9 +915,9 @@ generate_existing_code_list_upsert_script_for_schema <- function(reference_data_
       paste0("-- ", schema, ".", table),
       "-- -------------------------------------------------------------------",
       "",
-      generate_upsert_sql(reference_data_connection_provider, schema, table),
+      generate_upsert_sql(connection_provider, schema, table),
       "",
-      generate_comment_sql(reference_data_connection_provider, schema, table),
+      generate_comment_sql(connection_provider, schema, table),
       ""
     )
   }
