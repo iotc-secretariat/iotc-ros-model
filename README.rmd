@@ -121,12 +121,14 @@ schemas_to_file_prefix <- c(
 sorted_tables_to_update <- sort_code_list_tables_to_update(connection_provider = connect_to_reference_data,
                                                            tables = tables_to_update)
 
-generate_existing_code_list_upsert_script(connection_provider = connect_to_reference_data,
+generate_existing_code_list_upsert_script(reference_data_connection_provider = connect_to_reference_data,
+                                          ros_connection_provider = connect_to_ros,
                                           tables_to_update = sorted_tables_to_update,
                                           schemas_to_file_prefix = schemas_to_file_prefix,
-                                          output_file_pattern = "./3.3.0/sql/2026-06-23/%s_update_code_lists_%s.sql")
+                                          output_file_pattern = "./3.3.0/sql/2026-06-23/%s_update_code_lists_%s.sql",
+                                          structure_fix_file = "./3.3.0/sql/2026-06-23/fix_before_reference_data_synchronisation.sql")
 ```
-## Remove code list tables not used anymore
+## Remove code list tables not used any more
 
 ```{r, warning = FALSE}
 # Load sources
@@ -135,7 +137,7 @@ source("R/ros_db_metadata.R")
 source("R/reference_data_db.R")
 source("R/reference_data_synchronization.R")
 
-code_list_tables_to_remove_sorted <-generate_drop_unused_code_list_table(output_directory = DB_METADATA_DIRECTORY,
-                                                                         connection_provider = connect_to_ros,
-                                                                         output_file = "./3.3.0/sql/2026-06-23/11_08_drop_unused_code_lists.sql")
+code_list_tables_to_remove_sorted <- generate_drop_unused_code_list_table(output_directory = DB_METADATA_DIRECTORY,
+                                                                          connection_provider = connect_to_ros,
+                                                                          output_file = "./3.3.0/sql/2026-06-23/11_08_drop_unused_code_lists.sql")
 ```

@@ -152,6 +152,264 @@ get_tables_used_by_views <- function(connection_provider) {
   })
 }
 
+get_table_structure <- function(connection_provider, schema, table) {
+  use_connection(connection_provider, function(connection) {
+    sql <- read_sql("get_table_structure.sql")
+    result <- query(connection, sql, params = list(schema, table))
+    result
+  })
+}
+check_same_table_structure <- function(
+    reference_data_connection_provider,
+    ros_connection_provider,
+    schema,
+    table,
+    check_order = FALSE
+) {
+  format_value <- function(x) {
+    if (length(x) == 0 || is.na(x)) "NULL" else as.character(x)
+  }
+
+  format_type <- function(row) {
+    type <- row$data_type
+
+    if (type %in% c("character varying", "character") &&
+        !is.na(row$character_maximum_length)) {
+      type <- paste0(type, "(", row$character_maximum_length, ")")
+    }
+
+    if (type == "numeric" && !is.na(row$numeric_precision)) {
+      if (!is.na(row$numeric_scale)) {
+        type <- paste0(type, "(", row$numeric_precision, ",", row$numeric_scale, ")")
+      } else {
+        type <- paste0(type, "(", row$numeric_precision, ")")
+      }
+    }
+
+    type
+  }
+
+  format_column_definition <- function(row) {
+    paste0(
+      row$column_name,
+      " ",
+      format_type(row),
+      if (is_nullable(row$is_nullable)) " NULL" else " NOT NULL"
+    )
+  }
+
+  is_nullable <- function(x) {
+    value <- toupper(as.character(x))
+
+    if (value %in% c("YES", "TRUE", "T", "1")) return(TRUE)
+    if (value %in% c("NO", "FALSE", "F", "0")) return(FALSE)
+
+    stop("Unsupported is_nullable value: ", x)
+  }
+
+  same_value <- function(a, b) {
+    if (length(a) == 0 && length(b) == 0) return(TRUE)
+    if (length(a) == 0 || length(b) == 0) return(FALSE)
+    if (is.na(a) && is.na(b)) return(TRUE)
+    identical(a, b)
+  }
+
+  ref <- get_table_structure(reference_data_connection_provider, schema, table)
+  ros <- get_table_structure(ros_connection_provider, schema, table)
+
+  if (nrow(ref) == 0) {
+    return(list(
+      ok = FALSE,
+      table_id = paste(schema, table, sep = "."),
+      messages = paste0("Reference Data table not found or has no columns: ", schema, ".", table),
+      sql = character()
+    ))
+  }
+
+  if (nrow(ros) == 0) {
+    return(list(
+      ok = FALSE,
+      table_id = paste(schema, table, sep = "."),
+      messages = paste0("ROS table not found or has no columns: ", schema, ".", table),
+      sql = character()
+    ))
+  }
+
+  ref_cols <- ref$column_name
+  ros_cols <- ros$column_name
+
+  columns_to_add_in_ros <- setdiff(ref_cols, ros_cols)
+  columns_to_remove_from_ros <- setdiff(ros_cols, ref_cols)
+  common_cols <- intersect(ref_cols, ros_cols)
+
+  compare_fields <- c(
+    "data_type",
+    "udt_name",
+    "character_maximum_length",
+    "numeric_precision",
+    "numeric_scale",
+    "datetime_precision",
+    "is_nullable"
+  )
+
+  if (check_order) {
+    compare_fields <- c(compare_fields, "ordinal_position")
+  }
+
+  messages <- character()
+  sql_fix <- character()
+  columns_to_change_in_ros <- list()
+
+  for (column in columns_to_add_in_ros) {
+    row <- ref[column_name == column]
+
+    messages <- c(
+      messages,
+      "",
+      "Columns to ADD in ROS:",
+      paste0("  + ", format_column_definition(row))
+    )
+
+    sql_fix <- c(
+      sql_fix,
+      sprintf(
+        "ALTER TABLE %s ADD COLUMN %s %s%s;",
+        quote_table(schema, table),
+        quote_ident(column),
+        format_type(row),
+        if (!is_nullable(row$is_nullable)) " NOT NULL" else ""
+      )
+    )
+  }
+
+  for (column in columns_to_remove_from_ros) {
+    row <- ros[column_name == column]
+
+    messages <- c(
+      messages,
+      "",
+      "Columns to REMOVE from ROS:",
+      paste0("  - ", format_column_definition(row))
+    )
+
+    sql_fix <- c(
+      sql_fix,
+      sprintf(
+        "ALTER TABLE %s DROP COLUMN %s;",
+        quote_table(schema, table),
+        quote_ident(column)
+      )
+    )
+  }
+
+  for (column in common_cols) {
+    ref_row <- ref[column_name == column]
+    ros_row <- ros[column_name == column]
+
+    field_differences <- list()
+    type_change_needed <- FALSE
+
+    for (field in compare_fields) {
+      ref_value <- ref_row[[field]]
+      ros_value <- ros_row[[field]]
+
+      if (!same_value(ref_value, ros_value)) {
+        field_differences[[field]] <- list(
+          current = ros_value,
+          expected = ref_value
+        )
+
+        if (field %in% c(
+          "data_type",
+          "udt_name",
+          "character_maximum_length",
+          "numeric_precision",
+          "numeric_scale",
+          "datetime_precision"
+        )) {
+          type_change_needed <- TRUE
+        }
+      }
+    }
+
+    if (length(field_differences) > 0) {
+      columns_to_change_in_ros[[column]] <- field_differences
+    }
+
+    if (type_change_needed) {
+      sql_fix <- c(
+        sql_fix,
+        sprintf(
+          "ALTER TABLE %s ALTER COLUMN %s TYPE %s;",
+          quote_table(schema, table),
+          quote_ident(column),
+          format_type(ref_row)
+        )
+      )
+    }
+
+    if ("is_nullable" %in% names(field_differences)) {
+      current_nullable <- is_nullable(field_differences$is_nullable$current)
+      expected_nullable <- is_nullable(field_differences$is_nullable$expected)
+
+      if (current_nullable && !expected_nullable) {
+        sql_fix <- c(
+          sql_fix,
+          sprintf(
+            "ALTER TABLE %s ALTER COLUMN %s SET NOT NULL;",
+            quote_table(schema, table),
+            quote_ident(column)
+          )
+        )
+      }
+
+      if (!current_nullable && expected_nullable) {
+        sql_fix <- c(
+          sql_fix,
+          sprintf(
+            "ALTER TABLE %s ALTER COLUMN %s DROP NOT NULL;",
+            quote_table(schema, table),
+            quote_ident(column)
+          )
+        )
+      }
+    }
+  }
+
+  if (length(columns_to_change_in_ros) > 0) {
+    messages <- c(messages, "", "Columns to CHANGE in ROS:")
+
+    for (column in names(columns_to_change_in_ros)) {
+      messages <- c(messages, "", paste0("  * ", column))
+
+      for (field in names(columns_to_change_in_ros[[column]])) {
+        diff <- columns_to_change_in_ros[[column]][[field]]
+
+        messages <- c(
+          messages,
+          paste0(
+            "      ",
+            field,
+            ": current ROS = ",
+            format_value(diff$current),
+            " | expected Reference Data = ",
+            format_value(diff$expected)
+          )
+        )
+      }
+    }
+  }
+
+  ok <- length(messages) == 0
+
+  list(
+    ok = ok,
+    table_id = paste(schema, table, sep = "."),
+    messages = messages,
+    sql = sql_fix
+  )
+}
+
 generate_drop_views_script <- function(connection_provider, schemas, output_file) {
   views <- use_connection(connection_provider, function(connection) {
     query(
@@ -916,20 +1174,148 @@ sort_code_list_tables_to_update <- function(connection_provider, tables) {
 #   02_update_code_list_refs_biology.sql
 #
 # =============================================================================
-generate_existing_code_list_upsert_script <- function(connection_provider,
-                                                      tables_to_update,
-                                                      schemas_to_file_prefix,
-                                                      output_file_pattern = "update_existing_%s_code_list_%s.sql") {
+
+collect_existing_code_list_upsert_errors <- function(
+  reference_data_connection_provider,
+  ros_connection_provider,
+  tables_to_update,
+  schemas_to_file_prefix
+) {
+  reports <- list()
+  sql_fix <- character()
 
   schemas_to_update <- unique(tables_to_update$schema)
-  for (schema_name in schemas_to_update) {
-    stopifnot(schema_name %in% names(schemas_to_file_prefix))
-    output_file <- sprintf(output_file_pattern, schemas_to_file_prefix[[schema_name]], schema_name)
-    generate_existing_code_list_upsert_script_for_schema(connection_provider,
-                                                         schema_name,
-                                                         tables_to_update[schema == schema_name],
-                                                         output_file)
+
+  missing_prefixes <- setdiff(schemas_to_update, names(schemas_to_file_prefix))
+
+  if (length(missing_prefixes) > 0) {
+    reports[[length(reports) + 1]] <- list(
+      ok = FALSE,
+      table_id = "schema prefixes",
+      messages = paste0(
+        "Missing file prefix for schema(s): ",
+        paste(missing_prefixes, collapse = ", ")
+      ),
+      sql = character()
+    )
   }
+
+  for (i in seq_len(nrow(tables_to_update))) {
+    schema <- tables_to_update$schema[i]
+    table <- tables_to_update$table[i]
+
+    report <- check_same_table_structure(
+      reference_data_connection_provider = reference_data_connection_provider,
+      ros_connection_provider = ros_connection_provider,
+      schema = schema,
+      table = table,
+      check_order = FALSE
+    )
+
+    if (!report$ok) {
+      reports[[length(reports) + 1]] <- report
+      sql_fix <- c(sql_fix, paste0("-- ", report$table_id), report$sql, "")
+    }
+  }
+
+  list(
+    ok = length(reports) == 0,
+    reports = reports,
+    sql = sql_fix
+  )
+}
+
+generate_existing_code_list_upsert_script <- function(
+    reference_data_connection_provider,
+    ros_connection_provider,
+    tables_to_update,
+    schemas_to_file_prefix,
+    output_file_pattern = "update_existing_%s_code_list_%s.sql",
+    structure_fix_file
+) {
+
+  checks <- collect_existing_code_list_upsert_errors(
+    reference_data_connection_provider = reference_data_connection_provider,
+    ros_connection_provider = ros_connection_provider,
+    tables_to_update = tables_to_update,
+    schemas_to_file_prefix = schemas_to_file_prefix
+  )
+
+  if (!checks$ok) {
+
+    if (length(checks$sql) > 0) {
+
+      writeLines(
+        c(
+          "-- Generated ROS structure fix script",
+          paste0("-- Generated at: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S %z")),
+          "",
+          checks$sql
+        ),
+        structure_fix_file
+      )
+    }
+
+    message("")
+    message("============================================================")
+    message("Cannot generate code-list update scripts")
+    message("============================================================")
+    message("")
+    message("Reference Data is the source of truth.")
+    message("ROS structure must be fixed before generating upserts.")
+    message("")
+
+    for (report in checks$reports) {
+
+      message("------------------------------------------------------------")
+      message(report$table_id)
+      message("------------------------------------------------------------")
+
+      for (line in report$messages) {
+        message(line)
+      }
+
+      message("")
+    }
+
+    if (length(checks$sql) > 0) {
+      message("Structure fix script generated:")
+      message("  ", normalizePath(structure_fix_file, winslash = "/", mustWork = FALSE))
+      message("")
+    }
+
+    stop(
+      sprintf(
+        "Detected %s table structure mismatch(es). Apply '%s' and rerun.",
+        length(checks$reports),
+        structure_fix_file
+      )
+    )
+  }
+
+  schemas_to_update <- unique(tables_to_update$schema)
+
+  for (schema_name in schemas_to_update) {
+
+    stopifnot(schema_name %in% names(schemas_to_file_prefix))
+
+    output_file <- sprintf(
+      output_file_pattern,
+      schemas_to_file_prefix[[schema_name]],
+      schema_name
+    )
+
+    schema_tables <- tables_to_update[schema == schema_name]
+
+    generate_existing_code_list_upsert_script_for_schema(
+      connection_provider = reference_data_connection_provider,
+      schema_name = schema_name,
+      tables_to_update = schema_tables,
+      output_file = output_file
+    )
+  }
+
+  invisible(tables_to_update)
 }
 
 generate_existing_code_list_upsert_script_for_schema <- function(connection_provider,
