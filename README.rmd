@@ -122,3 +122,16 @@ generate_existing_code_list_upsert_script(reference_data_connection_provider = c
                                           schemas_to_file_prefix = schemas_to_file_prefix,
                                           output_file_pattern = "./3.3.0/sql/2026-06-23/%s_update_code_lists_%s.sql")
 ```
+## Remove code list tables not used anymore
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_db.R")
+source("R/reference_data_synchronization.R")
+code_lists_tables <- load_db_metadata(output_directory = DB_METADATA_DIRECTORY)$dependencies[table_id %like% "refs_.+"][, `:=`(
+  schema = mapply(function(x) { table_location$new(x)$schema() }, table_id),
+  table = mapply(function(x) { table_location$new(x)$table() }, table_id))][, .(schema, table)]
+code_lists_tables <- rbind(code_lists_tables,data.table(schema= c("refs_admin"), table = c("fleet_to_flags_and_fisheries")))
+```
