@@ -2,6 +2,7 @@ library(DBI)
 library(RPostgres)
 library(data.table)
 
+# TODO - Check structure of each code list and if not the same, then block the upserts
 # =============================================================================
 # ROS Code List Migration Generator
 # =============================================================================
@@ -908,7 +909,8 @@ generate_existing_code_list_upsert_script_for_schema <- function(reference_data_
       "",
       generate_upsert_sql(reference_data_connection_provider, schema, table),
       "",
-      generate_comment_sql(reference_data_connection_provider, schema, table),
+      ge
+      nerate_comment_sql(reference_data_connection_provider, schema, table),
       ""
     )
   }
