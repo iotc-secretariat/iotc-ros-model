@@ -642,11 +642,10 @@ generate_upsert_sql <- function(connection_provider, schema, table) {
 #
 # =============================================================================
 
-generate_missing_code_list_tables_script <- function(
-  reference_data_connection_provider,
-  ros_connection_provider,
-  schema_excluder = function(x) { FALSE },
-  output_file = "create_missing_refs_tables.sql"
+generate_missing_code_list_tables_script <- function(reference_data_connection_provider,
+                                                     ros_connection_provider,
+                                                     schema_excluder = function(x) { FALSE },
+                                                     output_file = "create_missing_refs_tables.sql"
 ) {
   missing_tables <- detect_missing_refs_tables(reference_data_connection_provider, ros_connection_provider, schema_excluder)
   dependencies <- get_code_list_tables_dependencies(reference_data_connection_provider)
@@ -828,6 +827,11 @@ get_code_list_tables_to_update <- function(
   sort_tables_by_dependencies(tables = existing_tables, dependencies = dependencies)
 }
 
+sort_code_list_tables_to_update <- function(reference_data_connection_provider, tables) {
+  dependencies <- get_code_list_tables_dependencies(reference_data_connection_provider)
+  sort_tables_by_dependencies(tables = tables, dependencies = dependencies)
+}
+
 # =============================================================================
 # Existing code-list update generator
 # =============================================================================
@@ -909,8 +913,7 @@ generate_existing_code_list_upsert_script_for_schema <- function(reference_data_
       "",
       generate_upsert_sql(reference_data_connection_provider, schema, table),
       "",
-      ge
-      nerate_comment_sql(reference_data_connection_provider, schema, table),
+      generate_comment_sql(reference_data_connection_provider, schema, table),
       ""
     )
   }
