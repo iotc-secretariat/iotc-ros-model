@@ -102,13 +102,10 @@ source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 source("R/reference_data_db.R")
 source("R/reference_data_synchronization.R")
-schema_excluder <- function(schema) { schema %in% c("refs_legacy", "refs_socio_economics", "refs_mappings") }
-table_excluder <- function(schema, table) { paste0(schema, ".", table) %in% c("refs_admin.fleet_to_flags_and_fisheries", "refs_fishery.hook_types") }
-
-tables_to_update <- get_code_list_tables_to_update(reference_data_connection_provider = connect_to_reference_data,
-                                                   ros_connection_provider = connect_to_ros,
-                                                   schema_excluder = schema_excluder,
-                                                   table_excluder = table_excluder)
+table_excluder <- function(schema, table) { paste0(schema, ".", table) %in% c("refs_admin.fleet_to_flags_and_fisheries") }
+tables_to_update <- load_db_metadata(output_directory = DB_METADATA_DIRECTORY)$dependencies[table_id %like% "refs_.+"][, `:=`(
+  schema = mapply(function(x) { table_location$new(x)$schema() }, table_id),
+  table = mapply(function(x) { table_location$new(x)$table() }, table_id))][mapply(function(s, t) { !table_excluder(s, t) }, schema, table), .(schema, table)]
 schemas_to_file_prefix <- c(
   refs_admin = "11_05_01",
   refs_biology = "11_05_02",
@@ -117,9 +114,11 @@ schemas_to_file_prefix <- c(
   refs_fishery_config = "11_05_05",
   refs_gis = "11_05_06"
 )
+sorted_tables_to_update <- sort_code_list_tables_to_update(reference_data_connection_provider = connect_to_reference_data,
+                                                           tables = tables_to_update)
 
 generate_existing_code_list_upsert_script(reference_data_connection_provider = connect_to_reference_data,
-                                          tables_to_update = tables_to_update,
+                                          tables_to_update = sorted_tables_to_update,
                                           schemas_to_file_prefix = schemas_to_file_prefix,
                                           output_file_pattern = "./3.3.0/sql/2026-06-23/%s_update_code_lists_%s.sql")
 ```
