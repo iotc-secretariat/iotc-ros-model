@@ -63,7 +63,13 @@ Liste de référence décrivant les méthodes de stockage des avançons à bord 
 refs_fishery,buoy_activity_types,
 refs_fishery,buoy_models,
 refs_fishery,cardinal_points,
-refs_fishery,catch_units,
+refs_fishery,catch_units,"
+[EN]
+Reference code list describing the units used to report catch quantities.
+
+[FR]
+Liste de référence décrivant les unités utilisées pour déclarer les quantités de capture.
+"
 refs_fishery,dehooker_types,"
 [EN]
 Reference code list describing the types of dehooking and line-cutting devices used to remove hooks or release incidentally captured animals.
@@ -72,7 +78,13 @@ Reference code list describing the types of dehooking and line-cutting devices u
 Liste de référence décrivant les types d’outils de décrochage et de coupe utilisés pour retirer les hameçons ou libérer les captures accidentelles.
 "
 refs_fishery,dfad_biodegradability_categories,
-refs_fishery,effort_units,
+refs_fishery,effort_units,"
+[EN]
+Reference code list describing the units used to measure fishing effort.
+
+[FR]
+Liste de référence décrivant les unités utilisées pour mesurer l'effort de pêche.
+"
 refs_fishery,fad_raft_designs,
 refs_fishery,fad_tail_designs,
 refs_fishery,fish_preservation_methods,
@@ -151,7 +163,13 @@ Reference code list describing colours used for fishing nets and net components.
 [FR]
 Liste de référence décrivant les couleurs utilisées pour les filets de pêche et leurs composants.
 "
-refs_fishery,net_conditions,
+refs_fishery,net_conditions,"
+[EN]
+Reference code list describing the condition of fishing nets in terms of physical damage, entanglement, or operational status observed during fishing activities.
+
+[FR]
+Liste de référence décrivant l’état des filets de pêche en termes de dommages physiques, d’emmêlement ou de condition opérationnelle observés lors des activités de pêche.
+"
 refs_fishery,net_configurations,"
 [EN]
 Reference code list describing the geometric configurations of net deployment during fishing operations.
@@ -194,7 +212,13 @@ Reference code list describing the materials used in the construction of fishing
 [FR]
 Liste de référence décrivant les matériaux utilisés pour la fabrication des cannes de pêche.
 "
-refs_fishery,reasons_days_lost,
+refs_fishery,reasons_days_lost,"
+[EN]
+Reference code list describing reasons for fishing days lost or not completed during fishing operations.
+
+[FR]
+Liste de référence décrivant les raisons des jours de pêche perdus ou non réalisés lors des opérations de pêche.
+"
 refs_fishery,school_detection_methods,
 refs_fishery,school_sighting_cues,
 refs_fishery,school_type_categories,"
@@ -220,8 +244,13 @@ Liste de référence décrivant la configuration des banderoles utilisées sur l
 "
 refs_fishery,stunning_methods,
 refs_fishery,surface_fishery_activities,
-refs_fishery,transhipment_categories,
-refs_fishery,vessel_architectures,
+refs_fishery,vessel_architectures,"
+[EN]
+Reference code list describing the structural design and construction type of fishing vessels, including regional, cultural, and material-specific features.
+
+[FR]
+Liste de référence décrivant la conception structurelle et le type de construction des navires de pêche, y compris leurs caractéristiques régionales, culturelles et liées aux matériaux de construction.
+"
 refs_fishery,vessel_measurement_types,"
 [EN]
 Reference code list describing the measurement types used to quantify the size, tonnage, or fish carrying capacity of fishing vessels.
@@ -243,8 +272,20 @@ Reference code list describing fishing vessel types classified according to thei
 [FR]
 Liste de référence décrivant les types de navires de pêche classés selon leur engin principal ou leur fonction opérationnelle, basée sur la Classification statistique internationale standard des navires de pêche (ISSCFV) du CWP de la FAO.
 "
-refs_fishery,waste_categories,
-refs_fishery,waste_disposal_methods,
+refs_fishery,waste_categories,"
+[EN]
+Reference code list describing categories of waste generated during fishing operations and onboard vessel activities.
+
+[FR]
+Liste de référence décrivant les catégories de déchets générés lors des opérations de pêche et des activités à bord des navires.
+"
+refs_fishery,waste_disposal_methods,"
+[EN]
+Reference code list describing the methods used for the disposal, treatment, retention, or discharge of waste generated during fishing operations and onboard vessel activities.
+
+[FR]
+Liste de référence décrivant les méthodes utilisées pour l’élimination, le traitement, la conservation à bord ou le rejet des déchets générés lors des opérations de pêche et des activités à bord des navires.
+"
 refs_fishery,wind_scales,
 refs_fishery_config,areas_of_operation,
 refs_fishery_config,fishery_categories,"
