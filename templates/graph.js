@@ -66,7 +66,7 @@ function parseLangValues(text) {
 }
 
 function renderDescription(description) {
-  if (description === null || description === undefined || Number.isNaN(description)) {
+  if (!description || description === '') {
     return '<p class="error"><b><i>Not filled</i></b></p>';
   }
 
