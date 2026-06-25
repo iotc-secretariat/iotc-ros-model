@@ -52,14 +52,6 @@ ALTER TABLE "refs_biology"."species_groups" DROP COLUMN "description_en";
 ALTER TABLE "refs_biology"."types_of_fate" DROP COLUMN "description_fr";
 ALTER TABLE "refs_biology"."types_of_fate" DROP COLUMN "description_en";
 
--- refs_fishery.net_conditions
-ALTER TABLE "refs_fishery"."net_conditions" DROP COLUMN "description_fr";
-ALTER TABLE "refs_fishery"."net_conditions" DROP COLUMN "description_en";
-
--- refs_fishery.reasons_days_lost
-ALTER TABLE "refs_fishery"."reasons_days_lost" DROP COLUMN "description_fr";
-ALTER TABLE "refs_fishery"."reasons_days_lost" DROP COLUMN "description_en";
-
 -- refs_fishery.school_detection_methods
 ALTER TABLE "refs_fishery"."school_detection_methods" DROP COLUMN "description_fr";
 ALTER TABLE "refs_fishery"."school_detection_methods" DROP COLUMN "description_en";
@@ -68,14 +60,6 @@ ALTER TABLE "refs_fishery"."school_detection_methods" DROP COLUMN "description_e
 ALTER TABLE "refs_fishery"."surface_fishery_activities" ALTER COLUMN "code" TYPE character varying(3);
 ALTER TABLE "refs_fishery"."surface_fishery_activities" ALTER COLUMN "name_en" TYPE character varying(512);
 ALTER TABLE "refs_fishery"."surface_fishery_activities" ALTER COLUMN "name_fr" TYPE character varying(512);
-
--- refs_fishery.waste_categories
-ALTER TABLE "refs_fishery"."waste_categories" DROP COLUMN "description_fr";
-ALTER TABLE "refs_fishery"."waste_categories" DROP COLUMN "description_en";
-
--- refs_fishery.waste_disposal_methods
-ALTER TABLE "refs_fishery"."waste_disposal_methods" DROP COLUMN "description_fr";
-ALTER TABLE "refs_fishery"."waste_disposal_methods" DROP COLUMN "description_en";
 
 -- refs_fishery_config.target_species
 ALTER TABLE "refs_fishery_config"."target_species" ALTER COLUMN "description_en" TYPE character varying(600);
@@ -97,3 +81,26 @@ ALTER TABLE "refs_gis"."areas" DROP COLUMN "description_en";
 ALTER TABLE "refs_biology"."species_aggregates" DROP COLUMN "description_fr";
 ALTER TABLE "refs_biology"."species_aggregates" DROP COLUMN "description_en";
 
+-- refs_fishery.net_conditions
+ALTER TABLE "refs_fishery"."net_conditions" ALTER COLUMN "description_en" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."net_conditions" ALTER COLUMN "description_en" DROP NOT NULL;
+ALTER TABLE "refs_fishery"."net_conditions" ALTER COLUMN "description_fr" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."net_conditions" ALTER COLUMN "description_fr" DROP NOT NULL;
+
+-- refs_fishery.reasons_days_lost
+ALTER TABLE "refs_fishery"."reasons_days_lost" ALTER COLUMN "description_en" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."reasons_days_lost" ALTER COLUMN "description_en" DROP NOT NULL;
+ALTER TABLE "refs_fishery"."reasons_days_lost" ALTER COLUMN "description_fr" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."reasons_days_lost" ALTER COLUMN "description_fr" DROP NOT NULL;
+
+-- refs_fishery.waste_categories
+ALTER TABLE "refs_fishery"."waste_categories" ALTER COLUMN "description_en" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."waste_categories" ALTER COLUMN "description_en" DROP NOT NULL;
+ALTER TABLE "refs_fishery"."waste_categories" ALTER COLUMN "description_fr" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."waste_categories" ALTER COLUMN "description_fr" DROP NOT NULL;
+
+-- refs_fishery.waste_disposal_methods
+ALTER TABLE "refs_fishery"."waste_disposal_methods" ALTER COLUMN "description_en" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."waste_disposal_methods" ALTER COLUMN "description_en" DROP NOT NULL;
+ALTER TABLE "refs_fishery"."waste_disposal_methods" ALTER COLUMN "description_fr" TYPE character varying(255);
+ALTER TABLE "refs_fishery"."waste_disposal_methods" ALTER COLUMN "description_fr" DROP NOT NULL;
