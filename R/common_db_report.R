@@ -64,6 +64,59 @@ render_column_names <- function(columns,
   )
 }
 
+#' Parse language-tagged text values
+#'
+#' Extracts text blocks prefixed by language tags such as `[EN]` or `[FR]`.
+#' If no language tag is detected, the full input is returned as English.
+#'
+#' @param x A character string containing one or more language-tagged text
+#'   blocks. Language tags must use the form `[XX]`, where `XX` is a
+#'   two-letter uppercase language code.
+#'
+#' @return A named list where names are language codes and values are the
+#'   corresponding trimmed text blocks.
+#'
+#' @examples
+#' txt <- "[EN]
+#' Reference code list describing the units used to report catch quantities.
+#'
+#' [FR]
+#' Liste de référence décrivant les unités utilisées pour déclarer les quantités de capture."
+#'
+#' parse_lang_values(txt)
+#'
+#' txt_without_lang <- "Reference code list describing the units used to report catch quantities."
+#'
+#' parse_lang_values(txt_without_lang)
+#'
+#' @export
+parse_lang_values <- function(x) {
+  m <- gregexpr(
+    "\\[([A-Z]{2})\\]\\s*([\\s\\S]*?)(?=\\n\\s*\\[[A-Z]{2}\\]|$)",
+    x,
+    perl = TRUE
+  )
+
+  matches <- regmatches(x, m)[[1]]
+
+  if (length(matches) == 0) {
+    return(list(EN = trimws(x)))
+  }
+
+  langs <- sub("^\\[([A-Z]{2})\\].*$", "\\1", matches)
+
+  values <- sub(
+    "^\\[[A-Z]{2}\\]\\s*",
+    "",
+    matches,
+    perl = TRUE
+  )
+
+  values <- trimws(values)
+
+  setNames(as.list(values), langs)
+}
+
 out_table_columns <- function(data) {
   hidden_columns <- c("mandatory", "primary_key")
   real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key, foreign_key),
@@ -379,7 +432,25 @@ sanitize_id <- function(...) {
 }
 
 render_description <- function(description) {
-  ifelse(is.na(description), '<p class="error">Not filled</p>', description)
+  if (is.na(description)) {
+    return('<p class="error">Not filled</p>')
+  }
+  description_per_language <- parse_lang_values(description)
+
+  result <- sprintf("
+  <span class='badge bg-primary'>EN</span>
+%1$s
+", description_per_language$EN)
+  for (l in names(description_per_language)) {
+    if (l == "EN") {
+      next
+    }
+    result <- sprintf("%s
+<span class='badge bg-secondary'>%s</span>
+%s
+    ", result, l, description_per_language[[l]])
+  }
+  result
 }
 
 generate_db_metadata_report_template <- function(domain,

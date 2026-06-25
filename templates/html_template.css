@@ -190,3 +190,7 @@ pre {
 .pk-column {
     font-weight: bold;
 }
+
+.bg-primary {
+  background-color: #116bac !important;
+}

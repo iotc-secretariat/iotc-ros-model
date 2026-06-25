@@ -36,12 +36,64 @@ function clearNodeDetails() {
   edges.get().forEach(edge => { edges.update({ id: edge.id, width: 1 }); });
 }
 
+/**
+ * Parse language-tagged text values.
+ *
+ * Extracts text blocks prefixed by language tags such as `[EN]` or `[FR]`.
+ * If no language tag is detected, the full input is returned as English.
+ *
+ * @param {string} text - Text containing one or more language-tagged blocks.
+ * @returns {Object.<string, string>} Object keyed by language code.
+ */
+function parseLangValues(text) {
+  const regex = /\[([A-Z]{2})\]\s*([\s\S]*?)(?=\n\s*\[[A-Z]{2}\]|$)/g;
+  const result = {};
+
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    const lang = match[1];
+    const value = match[2].trim();
+
+    result[lang] = value;
+  }
+
+  if (Object.keys(result).length === 0) {
+    result.EN = text.trim();
+  }
+
+  return result;
+}
+
+function renderDescription(description) {
+  if (description === null || description === undefined || Number.isNaN(description)) {
+    return '<p class="error"><b><i>Not filled</i></b></p>';
+  }
+
+  const descriptionPerLanguage = parseLangValues(String(description));
+
+  let result = `
+  <span class='badge bg-primary'>EN</span>&nbsp;<b><i>${descriptionPerLanguage.EN ?? ""}</i></b>
+`;
+
+  for (const lang of Object.keys(descriptionPerLanguage)) {
+    if (lang === "EN") {
+      continue;
+    }
+
+    result = `${result}
+<span class='badge bg-secondary'>${lang}</span>&nbsp;<b><i>${descriptionPerLanguage[lang]}</i></b>
+    `;
+  }
+
+  return result;
+}
+
 function showNodeDetails(nodeId) {
   var columns = window.dbTables_columns[nodeId] || [];
   var dependencies = window.dbTables_dependencies[nodeId] || [];
   var usages = window.dbTables_usages[nodeId] || [];
-  var description = window.dbTables_descriptions[nodeId] || '';
-  description= !description || description === '' ? '<p class="error"><b><i>Not filled</i></b></p>' : '<p><b><i>' + description + '</i></b></p>';
+  var description = renderDescription(window.dbTables_descriptions[nodeId] || '');
   var html = `
   <h3>Table <b><i>${nodeId}</i></b></h3>
   <h4>Description</h4>

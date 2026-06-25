@@ -148,3 +148,11 @@ div.details-panel h4 {
 .pk-column {
     font-weight: bold;
 }
+
+.badge {
+  font-size: 10px;
+}
+
+.bg-primary {
+  background-color: #116bac !important;
+}
