@@ -65,3 +65,16 @@ tables_columns <- tables_columns[!schema %in% "refs_legacy" & mandatory != "YES"
 queries <- set_not_null_on_db(data = tables_columns, connection_provider = connect_to_reference_data, apply = TRUE)
 writeLines(queries, con=file.path(IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY, "migration", "01_set-not-null.sql"))
 ```
+## Add missing audit on tables
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+reference_data_db_metadata <- load_db_metadata(output_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY)
+existing_tables <- reference_data_db_metadata$tables_description[, .(schema, table)]
+existing_tables_pk <- reference_data_db_metadata$tables_primary_keys
+historized_tables <- get_audit_tables(connection_provider = connect_to_reference_data)
+missing_tables <- existing_tables_pk[!historized_tables, on = .(schema, table)]
+add_missing_audit_tables(data = missing_tables, output_file = file.path(IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY, "migration", "05_add_missing_audit_tables.sql"))
+```

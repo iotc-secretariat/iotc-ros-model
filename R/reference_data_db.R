@@ -134,3 +134,56 @@ reference_data_db_metadata_generate_report <- function(version = IOTC_REFERENCE_
                               remove_unused_tables = FALSE)
 }
 
+get_audit_tables <- function(connection_provider) {
+  use_connection(connection_provider, function(connection) {
+    sql <- read_sql("get_audit_tables.sql")
+    result <- query(connection, sql)
+    result[, `:=`(table = auditedtable, auditedtable = NULL)]
+  })
+}
+
+add_missing_audit_tables <- function(data, output_file) {
+  sql <- c(
+    "-- Generated add missing audit tables script",
+    paste0("-- Generated at: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S %z")),
+    ""
+  )
+  if (nrow(data) == 0) {
+    sql <- c(
+      sql,
+      paste0("-- No tables found."),
+      "")
+
+    writeLines(sql, output_file)
+    return(invisible(data))
+  }
+  for (i in seq_len(nrow(data))) {
+    schema <- data$schema[i]
+    table <- data$table[i]
+    primary_key_list <- unlist(data$primary_key_columns[i])
+    primary_key <- paste0("{", fifelse(length(primary_key_list) == 1, as.character(primary_key_list[[1]]), paste0(primary_key_list, collapse = ", ")), "}")
+    message("Generating audit for table: ", schema, ".", table, " - primary key: ", primary_key)
+
+    sql <- c(
+      sql,
+      "-- -------------------------------------------------------------------",
+      paste0("-- ", schema, ".", table),
+      "-- -------------------------------------------------------------------",
+      "",
+      sprintf("
+create trigger audit_trigger_row
+    after insert or update or delete
+    on %1$s.%2$s
+    for each row
+execute procedure public.if_modified_func('true', '%3$s', '{}');
+
+create trigger audit_trigger_stm
+    after truncate
+    on %1$s.%2$s
+execute procedure public.if_modified_func('true', '%3$s');", schema, table, primary_key),
+      ""
+    )
+  }
+  writeLines(sql, output_file)
+  invisible(data)
+}
