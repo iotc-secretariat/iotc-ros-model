@@ -22,7 +22,9 @@ Create a *JSON* file named ```ros-db.json``` with content:
 source("R/common_db_utils.R")
 source("R/ros_db_metadata.R")
 # Generate Ros dtabase metatadata files
-generate_db_metadata(extract_db_metadata(schemas = ROS_SCHEMAS$ALL, connection_provider = connect_to_ros), output_directory = DB_METADATA_DIRECTORY)
+generate_db_metadata(extract_db_metadata(schemas = c(ROS_SCHEMAS$ALL, ROS_SCHEMAS$CODE_LIST), connection_provider = connect_to_ros), output_directory = DB_METADATA_DIRECTORY)
+# Generate Ros database shell dependencies table
+ros_db_generate_shell_dependencies(root_directory = DB_METADATA_DIRECTORY)
 ```
 ## Update comments on database
 
@@ -65,4 +67,77 @@ ros_db_metadata_generate_report(domain = "LL", timestamp = DEFAULT_TIME_STAMP)
 # Load sources
 source("R/generate_indexes.R")
 
+```
+
+## Remove all views from Ros database on code list schemas
+```{r,  warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_synchronization.R")
+generate_drop_views_script(connection_provider = connect_to_ros,
+                           schemas = ROS_SCHEMAS$CODE_LIST,
+                           output_file = "3.3.0/sql/2026-06-23/11_00_01_drop_code_lists_views.sql")
+
+```
+## Generate SQL script to synchronize missing code list from Reference data db to Ros db
+
+**We should not use this code, because adding a new code list should be controled by human, and if the code list is not use in the ROS database, no need of it.**
+
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_db.R")
+source("R/reference_data_synchronization.R")
+schema_excluder <- function(schema) { schema %in% c("refs_legacy", "refs_socio_economics", "refs_mappings") }
+generate_missing_code_list_tables_script(reference_data_connection_provider = connect_to_reference_data,
+                                         ros_connection_provider = connect_to_ros,
+                                         schema_excluder = schema_excluder,
+                                         output_file = "./3.3.0/sql/2026-06-23/11_02_add_new_code_lists.sql")
+```
+## Generate SQL script to synchronize existing code list from Reference data db to Ros db (will also synchronize descriptions on table and columns)
+
+**TODO: We need to check structure between the both database, and if there is some changed we block to process, because generated sql statements won't work**.
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_db.R")
+source("R/reference_data_synchronization.R")
+tables_to_update <- load_db_metadata(output_directory = DB_METADATA_DIRECTORY)$dependencies[table_id %like% "refs_.+"][, `:=`(
+  schema = mapply(function(x) { table_location$new(x)$schema() }, table_id),
+  table = mapply(function(x) { table_location$new(x)$table() }, table_id))][, .(schema, table)]
+schemas_to_file_prefix <- c(
+  refs_admin = "11_05_01",
+  refs_biology = "11_05_02",
+  refs_data = "11_05_03",
+  refs_fishery = "11_05_04",
+  refs_fishery_config = "11_05_05",
+  refs_gis = "11_05_06"
+)
+sorted_tables_to_update <- sort_code_list_tables_to_update(connection_provider = connect_to_reference_data,
+                                                           tables = tables_to_update)
+
+generate_existing_code_list_upsert_script(reference_data_connection_provider = connect_to_reference_data,
+                                          ros_connection_provider = connect_to_ros,
+                                          tables_to_update = sorted_tables_to_update,
+                                          schemas_to_file_prefix = schemas_to_file_prefix,
+                                          output_file_pattern = "./3.3.0/sql/2026-06-23/%s_update_code_lists_%s.sql",
+                                          structure_fix_file = "./3.3.0/sql/2026-06-23/fix_before_reference_data_synchronisation.sql")
+```
+## Remove code list tables not used any more
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/ros_db_metadata.R")
+source("R/reference_data_db.R")
+source("R/reference_data_synchronization.R")
+
+code_list_tables_to_remove_sorted <- generate_drop_unused_code_list_table(output_directory = DB_METADATA_DIRECTORY,
+                                                                          connection_provider = connect_to_ros,
+                                                                          output_file = "./3.3.0/sql/2026-06-23/11_08_drop_unused_code_lists.sql")
 ```

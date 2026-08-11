@@ -1,0 +1,14 @@
+schema,description
+ros_meta,Ros meta schema with registries (contacts and vessels)
+ros_common,Ros common schema with neutral stuff
+ros_ps,Ros ps schema for Pure Seine data
+ros_ll,Ros ll schema for Longline data
+ros_pl,Ros pl schema for Pole line data
+ros_gn,Ros gn schema for Gillnet data
+refs_admin,
+refs_biology,
+refs_data,
+refs_fishery,
+refs_fishery_config,
+refs_gis,
+refs_meta,

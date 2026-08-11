@@ -1,6 +1,6 @@
 ---
-title: "ROS Database (version: `r paste0(db_metadata$version(), ' ', timestamp)` ) - Domain `r db_metadata$domain()`"
-subtitle: "Last updated: `r db_metadata$last_update()`"
+title: "{{ title }} `r variables$domain_title`."
+subtitle: "Last updated: `r variables$last_update`"
 author: "Author: [IOTC Secretariat](mailto:IOTC-Secretariat@fao.org)"
 output:
   html_document:
@@ -12,6 +12,7 @@ output:
     toc: yes
     toc_float:
       collapsed: FALSE
+    anchor_sections: TRUE
     smooth_scroll: FALSE
 ---
 ```{r, setup, include=FALSE}
@@ -20,5 +21,15 @@ knitr::opts_chunk$set(fig.width = 8, echo = FALSE, message = FALSE)
 
 # Abstract
 
-This document describes the ***ROS*** database tables used by the domain ***`r db_metadata$domain()`***.
+{{ abstract_content }}
+
+### Legend
+
+```{r legend}
+output_legend()
+```
+
+Columns that belong to a primary key are displayed in **bold**.
+
+{{{ schema_sections }}}
 

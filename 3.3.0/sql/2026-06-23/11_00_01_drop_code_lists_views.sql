@@ -1,0 +1,43 @@
+-- Drop all views from schemas refs_admin, refs_biology, refs_data, refs_fishery, refs_fishery_config, refs_gis
+-- Generated at 2026-06-23 17:24:38.032143
+
+DROP VIEW IF EXISTS "refs_admin"."v_current_cpcs" CASCADE;
+DROP VIEW IF EXISTS "refs_admin"."v_fleets_out" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_discard_reasons" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_length_measurement_tools" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_length_measurements" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_retain_reasons" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_baits" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_cetaceans" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_cetaceans_and_whale_sharks" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_iotc" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_others" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_predators" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_seabirds" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_sharks_and_rays" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_ssi" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_target" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_species_turtles" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_weight_measurement_tools" CASCADE;
+DROP VIEW IF EXISTS "refs_biology"."v_weight_measurements" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_processings_ce" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_processings_di" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_processings_fa" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_processings_fc" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_processings_rc" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_processings_sf" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_sources_ce" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_sources_di" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_sources_fa" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_sources_fc" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_sources_rc" CASCADE;
+DROP VIEW IF EXISTS "refs_data"."v_sources_sf" CASCADE;
+DROP VIEW IF EXISTS "refs_fishery"."v_afob_activity_types" CASCADE;
+DROP VIEW IF EXISTS "refs_fishery"."v_afob_types" CASCADE;
+DROP VIEW IF EXISTS "refs_fishery"."v_dfob_activity_types" CASCADE;
+DROP VIEW IF EXISTS "refs_fishery"."v_dfob_types" CASCADE;
+DROP VIEW IF EXISTS "refs_fishery"."v_fisheries_out" CASCADE;
+DROP VIEW IF EXISTS "refs_gis"."v_iotc_ar_areas_01_05_grids_intersections" CASCADE;
+DROP VIEW IF EXISTS "refs_gis"."v_iotc_ar_areas_01_grids_intersections" CASCADE;
+DROP VIEW IF EXISTS "refs_gis"."v_iotc_ar_areas_05_grids_intersections" CASCADE;

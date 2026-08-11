@@ -1,6 +1,7 @@
 window.dbTables_columns = %s;
 window.dbTables_dependencies = %s;
 window.dbTables_usages = %s;
+window.dbTables_descriptions = %s;
 
 function selectNode(nodeId) {
   window.myNetwork.setSelection( { nodes: [nodeId] });
@@ -35,12 +36,68 @@ function clearNodeDetails() {
   edges.get().forEach(edge => { edges.update({ id: edge.id, width: 1 }); });
 }
 
+/**
+ * Parse language-tagged text values.
+ *
+ * Extracts text blocks prefixed by language tags such as `[EN]` or `[FR]`.
+ * If no language tag is detected, the full input is returned as English.
+ *
+ * @param {string} text - Text containing one or more language-tagged blocks.
+ * @returns {Object.<string, string>} Object keyed by language code.
+ */
+function parseLangValues(text) {
+  const regex = /\[([A-Z]{2})\]\s*([\s\S]*?)(?=\n\s*\[[A-Z]{2}\]|$)/g;
+  const result = {};
+
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    const lang = match[1];
+    const value = match[2].trim();
+
+    result[lang] = value;
+  }
+
+  if (Object.keys(result).length === 0) {
+    result.EN = text.trim();
+  }
+
+  return result;
+}
+
+function renderDescription(description) {
+  if (!description || description === '') {
+    return '<p class="error"><b><i>Not filled</i></b></p>';
+  }
+
+  const descriptionPerLanguage = parseLangValues(String(description));
+
+  let result = `
+  <span class='badge bg-primary'>EN</span>&nbsp;<b><i>${descriptionPerLanguage.EN ?? ""}</i></b>
+`;
+
+  for (const lang of Object.keys(descriptionPerLanguage)) {
+    if (lang === "EN") {
+      continue;
+    }
+
+    result = `${result}
+<span class='badge bg-secondary'>${lang}</span>&nbsp;<b><i>${descriptionPerLanguage[lang]}</i></b>
+    `;
+  }
+
+  return result;
+}
+
 function showNodeDetails(nodeId) {
   var columns = window.dbTables_columns[nodeId] || [];
   var dependencies = window.dbTables_dependencies[nodeId] || [];
   var usages = window.dbTables_usages[nodeId] || [];
+  var description = renderDescription(window.dbTables_descriptions[nodeId] || '');
   var html = `
   <h3>Table <b><i>${nodeId}</i></b></h3>
+  <h4>Description</h4>
+  ${description}
   ${generate_table_columns(nodeId, columns)}
   ${generate_table_dependencies(nodeId, dependencies)}
   ${generate_table_usages(nodeId, usages)}
@@ -51,10 +108,10 @@ function showNodeDetails(nodeId) {
 
 function generate_table_columns(nodeId, data) {
   const rows = data.map(datum => `
-    <tr${datum.mandatory === 'YES' ? ' class="mandatory"' : ''}>
-      <td>${datum.column}</td>
+    <tr${isTrue(datum.primary_key) ? ' class="primary_key"' : ''}>
+      <td>${renderColumnName(datum.column, datum.mandatory, datum.primary_key, datum.foreign_key)}</td>
       <td>${datum.type}</td>
-      <td>${datum.description === '' ? '<p class="error">Not filled</p>' : datum.description}</td>
+      <td>${!datum.description || datum.description === '' ? '<p class="error">Not filled</p>' : datum.description}</td>
     </tr>
   `).join('');
 
@@ -74,6 +131,10 @@ function generate_table_columns(nodeId, data) {
     </table>
   `;
 }
+function patchReportAnchors(html) {
+  if (!html || html.length === 0) { return html; }
+  return html.replace( /href=(['"])#table_([^'"]+)\1/g, 'href=$1#$2$1' );
+}
 
 function generate_table_dependencies(nodeId, data) {
   if (data.length == 0) {
@@ -83,11 +144,11 @@ function generate_table_dependencies(nodeId, data) {
   `;
   }
   const rows = data.map(datum => `
-    <tr${datum.mandatory === 'YES' ? ' class="mandatory"' : ''}>
-      <td>${datum.column}</td>
+    <tr${isTrue(datum.primary_key) ? ' class="mandatory"' : ''}>
+      <td>${renderColumnNames(datum.columns, datum.mandatory, datum.primary_key, false)}</td>
       <td>${datum.dependency_type}</td>
-      <td>${datum.dependency_table}</td>
-      <td>${datum.dependency_column}</td>
+      <td>${patchReportAnchors(datum.dependency_table)}</td>
+      <td>${renderColumnNames(datum.dependency_columns, datum.dependency_mandatory, datum.dependency_primary_key, false)}</td>
     </tr>
   `).join('');
   return `
@@ -118,10 +179,10 @@ function generate_table_usages(nodeId, data) {
   }
   const rows = data.map(datum => `
     <tr>
-      <td>${datum.column}</td>
+      <td>${renderColumnNames(datum.columns, datum.mandatory, datum.primary_key, false)}</td>
       <td>${datum.usage_type}</td>
-      <td>${datum.usage_table}</td>
-      <td>${datum.usage_column}</td>
+      <td>${patchReportAnchors(datum.usage_table)}</td>
+      <td>${renderColumnNames(datum.usage_columns, datum.usage_mandatory, datum.usage_primary_key, false)}</td>
     </tr>
   `).join('');
 
@@ -141,4 +202,54 @@ function generate_table_usages(nodeId, data) {
       </tbody>
     </table>
   `;
+}
+
+function hasValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== "";
+}
+
+function isTrue(value) {
+  return value === true || value === "TRUE" || value === "true" || value === "YES";
+}
+
+function iconSpan(className, title) {
+  return `<span class="${className}" title="${title}" aria-hidden="true"></span>`;
+}
+
+function escapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderColumnNames(columns, mandatory, primary_key, foreign_key) {
+  const cols = Array.isArray(columns) ? columns : [columns];
+  const mandatoryValues = Array.isArray(mandatory) ? mandatory : cols.map(() => mandatory);
+  const pkValues = Array.isArray(primary_key) ? primary_key : cols.map(() => primary_key);
+  const fkValues = Array.isArray(foreign_key) ? foreign_key : cols.map(() => foreign_key);
+
+  return cols.map((column, index) =>
+    renderColumnName(
+      column,
+      mandatoryValues[index],
+      pkValues[index],
+      fkValues[index]
+    )
+  ).join("<br/>");
+}
+
+function renderColumnName(column, mandatory, primary_key, foreign_key) {
+  const is_mandatory = isTrue(mandatory);
+  const is_pk = isTrue(primary_key);
+  const is_fk = isTrue(foreign_key);
+  const not_null = is_mandatory ? iconSpan("mandatory-icon", "Mandatory") : "";
+  const pk = is_pk ? iconSpan("pk-icon", "Primary Key") : "";
+  const fk = is_fk ? iconSpan("fk-icon", "Foreign Key") : "";
+  const name = escapeHtml(column);
+  const label = is_pk  ? `<span class="pk-column">${name}</span>` : name;
+  return `${pk}${fk}${not_null}${label}`;
 }

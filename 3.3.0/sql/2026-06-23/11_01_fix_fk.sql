@@ -1,0 +1,7 @@
+
+alter table ros_common.trip_daily_activity_details DROP CONSTRAINT fk_ros_common_trip_daily_activity_details_activity_code;
+alter table ros_common.trip_daily_activities ALTER COLUMN date SET NOT NULL;
+alter table ros_common.trip_daily_activity_details ADD CONSTRAINT fk_ros_common_trip_daily_activity_details_activity_code foreign key (activity_code) references refs_fishery.surface_fishery_activities;
+alter table ros_gn.gillnet_configuration DROP CONSTRAINT fk_ros_gn_gillnet_material_type_code_gillnet_configuration;
+alter table ros_gn.gillnet_configuration ADD CONSTRAINT fk_ros_gn_gillnet_material_type_code_gillnet_configuration foreign key (gillnet_material_type_code) references refs_fishery.line_material_types;
+

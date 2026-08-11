@@ -5,17 +5,133 @@ library(stringr)
 library(DT)
 library(visNetwork)
 library(jsonlite)
+library(whisker)
+
+render_column_name <- function(column, mandatory = FALSE, primary_key = FALSE, foreign_key = FALSE) {
+  not_null <- if (!is.na(mandatory) & (isTRUE(mandatory) | mandatory == "YES")) {
+    "<span class='mandatory-icon'></span>"
+  } else {
+    ""
+  }
+  pk <- if (isTRUE(primary_key)) {
+    "<span class='pk-icon'></span>"
+  } else {
+    ""
+  }
+  fk <- if (isTRUE(foreign_key)) {
+    "<span class='fk-icon'></span>"
+  } else {
+    ""
+  }
+  label <- htmltools::htmlEscape(column)
+  if (isTRUE(primary_key)) {
+    label <- paste0("<span class='pk-column'>", label, "</span>")
+  }
+  paste0(pk, fk, not_null, label)
+}
+
+render_column_names <- function(columns,
+                                mandatory = FALSE,
+                                primary_key = FALSE,
+                                foreign_key = FALSE,
+                                collapse = "<br/>") {
+  columns <- unlist(columns, use.names = FALSE)
+  mandatory <- unlist(mandatory, use.names = FALSE)
+  primary_key <- unlist(primary_key, use.names = FALSE)
+
+  if (length(mandatory) == 1L && length(columns) > 1L) {
+    mandatory <- rep(mandatory, length(columns))
+  }
+
+  if (length(primary_key) == 1L && length(columns) > 1L) {
+    primary_key <- rep(primary_key, length(columns))
+  }
+
+  if (length(foreign_key) == 1L && length(columns) > 1L) {
+    foreign_key <- rep(foreign_key, length(columns))
+  }
+
+  paste(
+    mapply(
+      render_column_name,
+      columns,
+      mandatory,
+      primary_key,
+      foreign_key,
+      USE.NAMES = FALSE
+    ),
+    collapse = collapse
+  )
+}
+
+#' Parse language-tagged text values
+#'
+#' Extracts text blocks prefixed by language tags such as `[EN]` or `[FR]`.
+#' If no language tag is detected, the full input is returned as English.
+#'
+#' @param x A character string containing one or more language-tagged text
+#'   blocks. Language tags must use the form `[XX]`, where `XX` is a
+#'   two-letter uppercase language code.
+#'
+#' @return A named list where names are language codes and values are the
+#'   corresponding trimmed text blocks.
+#'
+#' @examples
+#' txt <- "[EN]
+#' Reference code list describing the units used to report catch quantities.
+#'
+#' [FR]
+#' Liste de référence décrivant les unités utilisées pour déclarer les quantités de capture."
+#'
+#' parse_lang_values(txt)
+#'
+#' txt_without_lang <- "Reference code list describing the units used to report catch quantities."
+#'
+#' parse_lang_values(txt_without_lang)
+#'
+#' @export
+parse_lang_values <- function(x) {
+  m <- gregexpr(
+    "\\[([A-Z]{2})\\]\\s*([\\s\\S]*?)(?=\\n\\s*\\[[A-Z]{2}\\]|$)",
+    x,
+    perl = TRUE
+  )
+
+  matches <- regmatches(x, m)[[1]]
+
+  if (length(matches) == 0) {
+    return(list(EN = trimws(x)))
+  }
+
+  langs <- sub("^\\[([A-Z]{2})\\].*$", "\\1", matches)
+
+  values <- sub(
+    "^\\[[A-Z]{2}\\]\\s*",
+    "",
+    matches,
+    perl = TRUE
+  )
+
+  values <- trimws(values)
+
+  setNames(as.list(values), langs)
+}
 
 out_table_columns <- function(data) {
-  real_data <- data.table(data)[, `:=`(description = fifelse(is.na(description) | description == "", "Not filled", description), schema = NULL, table = NULL, foreign_key = NULL)]
+  hidden_columns <- c("mandatory", "primary_key")
+  real_data <- data.table(data)[, `:=`(column = mapply(render_column_name, column, mandatory, primary_key, foreign_key),
+                                       description = fifelse(is.na(description) | description == "", "Not filled", description),
+                                       schema = NULL, table = NULL, foreign_key = NULL)]
   datatable(real_data,
             autoHideNavigation = TRUE,
             rownames = FALSE,
             lazyRender = TRUE,
             fillContainer = FALSE,
+            escape = FALSE,
+            colnames = c("Column", "Type", "mandatory", "Description", "primary_key"),
             options = list(dom = "t", ordering = FALSE,
                            columnDefs = list(
-                             list(visible = FALSE, targets = which(names(real_data) == "mandatory") - 1),
+                             list(visible = FALSE, targets = which(names(real_data) %in% hidden_columns) - 1),
                              list(
                                targets = "description",
                                createdCell = JS(
@@ -25,29 +141,23 @@ out_table_columns <- function(data) {
                                  "  }",
                                  "}"
                                )
-                             )))) %>% formatStyle("mandatory",
-                                                  target = "row",
-                                                  fontWeight = styleEqual(
-                                                    c("YES", "NO"),
-                                                    c("bold", "normal")
-                                                  ),
-                                                  backgroundColor = styleEqual(
-                                                    c("YES", "NO"),
-                                                    c("#fff8e1", NA)
-                                                  )
-  )
+                             )))
+  ) %>% formatStyle(
+    "primary_key",
+    target = "row",
+    fontWeight = styleEqual(c(TRUE, FALSE), c("bold", "normal")))
 }
 
 out_table_dependencies <- function(data) {
+  if (nrow(data) == 0) {
+    return(p("NO DATA"))
+  }
+  hidden_columns <- c("mandatory", "primary_key", "dependency_mandatory", "dependency_primary_key")
+  real_data <- data.table(data)[, `:=`(columns = mapply(render_column_names, columns, mandatory, primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE),
+                                       dependency_columns = mapply(render_column_names, dependency_columns, dependency_mandatory, dependency_primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE))]
   datatable(
-    data,
-    colnames = c(
-       "Column",
-       "mandatory",
-       "Relation type",
-       "Dependency table",
-       "Dependency column"
-    ),
+    real_data,
+    colnames = c("Column", "mandatory", "primary_key", "Relation type", "Dependency table", "Dependency column"),
     escape = FALSE,
     autoHideNavigation = TRUE,
     rownames = FALSE,
@@ -55,24 +165,23 @@ out_table_dependencies <- function(data) {
     fillContainer = FALSE,
     options = list(dom = "t",
                    ordering = FALSE,
-                   columnDefs = list(list(visible = FALSE, targets = which(names(data) == "mandatory") - 1)))
+                   columnDefs = list(list(visible = FALSE, targets = which(names(real_data) %in% hidden_columns) - 1)))
   ) %>% formatStyle(
-    "mandatory",
+    "primary_key",
     target = "row",
-    fontWeight = styleEqual(c("YES", "NO"), c("bold", "normal")),
-    backgroundColor = styleEqual(c("YES", "NO"), c("#fff8e1", NA)))
+    fontWeight = styleEqual(c(TRUE, FALSE), c("bold", "normal")))
 }
 
 out_table_usages <- function(data) {
+  if (nrow(data) == 0) {
+    return(p("NO DATA"))
+  }
+  hidden_columns <- c("mandatory", "primary_key", "usage_mandatory", "usage_primary_key")
+  real_data <- data.table(data)[, `:=`(columns = mapply(render_column_names, columns, mandatory, primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE),
+                                       usage_columns = mapply(render_column_names, usage_columns, usage_mandatory, usage_primary_key, MoreArgs = list(foreign_key = FALSE), USE.NAMES = FALSE))]
   datatable(
-    data,
-    colnames = c(
-       "Column",
-       "mandatory",
-       "Relation type",
-       "Usage table",
-       "Usage column"
-    ),
+    real_data,
+    colnames = c("Column", "mandatory", "primary_key", "Relation type", "Usage table", "Usage column"),
     escape = FALSE,
     autoHideNavigation = TRUE,
     rownames = FALSE,
@@ -80,49 +189,47 @@ out_table_usages <- function(data) {
     fillContainer = FALSE,
     options = list(dom = "t",
                    ordering = FALSE,
-                   columnDefs = list(list(visible = FALSE, targets = which(names(data) == "mandatory") - 1)))
-  ) %>% formatStyle(
-    "mandatory",
-    target = "row",
-    fontWeight = styleEqual(c("YES", "NO"), c("bold", "normal")),
-    backgroundColor = styleEqual(c("YES", "NO"), c("#fff8e1", NA)))
+                   columnDefs = list(list(visible = FALSE, targets = which(names(real_data) %in% hidden_columns) - 1)))
+  ) %>% formatStyle("primary_key", target = "row", fontWeight = styleEqual(c(TRUE, FALSE), c("bold", "normal")))
 }
 
 out_data_dependencies <- function(data, entry_point) {
-  data <- data.table(data[,
-                       tree_view := mapply(
-                         function(level, table, table_column, parent_table, parent_column, link_type) {
-                           result <- sprintf("%s%s%s",
-                                             strrep("&nbsp;&nbsp;&nbsp;&nbsp;", level),
-                                             ifelse(level == 0, "", "└── "),
-                                             table)
-                           ifelse(level == 0,
-                                  result,
-                                  ifelse(link_type == "←",
-                                         sprintf("%s (%s.%s %s %s.%s)",
-                                                 result,
-                                                 table,
-                                                 table_column,
-                                                 link_type,
-                                                 parent_table,
-                                                 parent_column),
-                                         sprintf("%s (%s.%s %s %s.%s)",
-                                                 result,
-                                                 parent_table,
-                                                 parent_column,
-                                                 link_type,
-                                                 table,
-                                                 table_column)))
-                         },
-                         level,
-                         table,
-                         table_column,
-                         parent_table,
-                         parent_column,
-                         link_type
-                       )])[, .(tree_view)]
+  real_data <- data.table(data)[, `:=`(table_column = vapply(table_columns, paste, collapse = ", ", FUN.VALUE = character(1)),
+                                       parent_column = vapply(parent_columns, paste, collapse = ", ", FUN.VALUE = character(1)))]
+  real_data <- real_data[,
+    tree_view := mapply(
+      function(level, table, table_column, parent_table, parent_column, link_type) {
+        result <- sprintf("%s%s%s",
+                          strrep("&nbsp;&nbsp;&nbsp;&nbsp;", level),
+                          ifelse(level == 0, "", "└── "),
+                          table)
+        ifelse(level == 0,
+               result,
+               ifelse(link_type == "←",
+                      sprintf("%s (%s.%s %s %s.%s)",
+                              result,
+                              table,
+                              table_column,
+                              link_type,
+                              parent_table,
+                              parent_column),
+                      sprintf("%s (%s.%s %s %s.%s)",
+                              result,
+                              parent_table,
+                              parent_column,
+                              link_type,
+                              table,
+                              table_column)))
+      },
+      level,
+      table,
+      table_column,
+      parent_table,
+      parent_column,
+      link_type
+    )][, .(tree_view)]
   datatable(
-    data,
+    real_data,
     escape = FALSE,
     rownames = FALSE,
     options = list(dom = "t", ordering = FALSE, autoWidth = FALSE)
@@ -206,7 +313,7 @@ out_data_graph <- function(data) {
 
 generate_graph_data_input <- function(data, entry_point) {
   deps <- data.table(data[!is.na(parent_table)])
-  inverse_deps <- deps[link_type == "←"][, `:=`(parent_table = table, parent_column = table_column, table = parent_table, table_column = parent_column)]
+  inverse_deps <- deps[link_type == "←"][, `:=`(parent_table = table, parent_columns = table_columns, table = parent_table, table_columns = parent_columns)]
   direct_deps <- deps[link_type == "→"]
   deps <- rbind(inverse_deps, direct_deps)
 
@@ -227,9 +334,9 @@ generate_graph_data_input <- function(data, entry_point) {
   # Build edges
   edges <- data.table(
     from = deps$parent_table,
-    from_column = deps$parent_column,
+    from_column = deps$parent_columns,
     to = deps$table,
-    to_column = deps$table_column,
+    to_column = deps$table_columns,
     relation = deps$link_type,
     stringsAsFactors = FALSE)
   edges$title <- paste0(edges$from, ".", edges$from_column, " → ", edges$to, ".", edges$to_column)
@@ -239,35 +346,199 @@ generate_graph_data_input <- function(data, entry_point) {
   list(nodes = nodes, edges = edges)
 }
 
-generate_data_graph_js <- function(tables_columns, tables_dependencies, tables_usages) {
+generate_data_graph_js <- function(tables_columns, tables_dependencies, tables_usages, table_descriptions) {
   columns <- toJSON(tables_columns, dataframe = 'rows', auto_unbox = TRUE)
   dependencies <- toJSON(tables_dependencies, dataframe = 'rows', auto_unbox = TRUE)
   usages <- toJSON(tables_usages, dataframe = 'rows', auto_unbox = TRUE)
+  descriptions <- toJSON(table_descriptions, auto_unbox = TRUE)
   js_template <- paste(readLines("./templates/graph.js", warn = FALSE), collapse = "\n")
-  js_content <- sprintf(paste0("<script>\n", js_template, "\n</script>"), columns, dependencies, usages)
+  js_content <- sprintf(paste0("<script>\n", js_template, "\n</script>"), columns, dependencies, usages, descriptions)
   writeLines(js_content, "./templates/generated-graph.js")
 }
 
-generate_db_metadata_dependencies <- function(db_metadata, db_reverse_dependencies_tree, db_tables_columns, db_tables_dependencies, db_tables_usages, export_directory, timestamp, report_prefix) {
+generate_db_metadata_dependencies <- function(db_metadata, main_variables, export_directory, report_prefix) {
+  db_reverse_dependencies_tree <- main_variables$db_reverse_dependencies_tree
+  db_tables_columns <- main_variables$db_tables_columns
+  db_tables_dependencies <- main_variables$db_tables_dependencies_js
+  db_tables_usages <- main_variables$db_tables_usages_js
   for (schema_name in names(db_reverse_dependencies_tree)) {
     graph_location <- file.path(export_directory, sprintf("%s%s_dependencies_%s.html", report_prefix, db_metadata$to_domain_report(), schema_name))
     db_schema_reverse_dependencies_tree <- data.table(db_reverse_dependencies_tree[[schema_name]])
     db_schema_tables_names <- unique(append(db_schema_reverse_dependencies_tree[!is.na(parent_table)]$parent_table, db_schema_reverse_dependencies_tree$table))
     db_schema_tables_columns <- db_tables_columns[names(db_tables_columns) %in% db_schema_tables_names]
+    dt <- db_metadata$to_table_descriptions()[, gav := paste0(schema, ".", table)][, .(gav, description)]
+    db_tables_descriptions <- setNames(as.list(dt$description), dt$gav)
     # FIXME add this in db_metadata class
     filter <- sprintf("ros_common|ros_meta|refs_|%s", schema_name)
     db_schema_tables_dependencies <- lapply(db_tables_dependencies[names(db_tables_dependencies) %in% db_schema_tables_names], function(x) { data.table(x)[dependency_table_raw %like% filter][, dependency_table_raw := NULL] })
     db_schema_tables_usages <- lapply(db_tables_usages[names(db_tables_usages) %in% db_schema_tables_names], function(x) { data.table(x)[usage_table_raw %like% filter][, usage_table_raw := NULL] })
     entry_point_table_gav <- db_metadata$entry_point_table_gav()
     graph_data <- generate_graph_data_input(db_schema_reverse_dependencies_tree, entry_point_table_gav)
-    generate_data_graph_js(db_schema_tables_columns, db_schema_tables_dependencies, db_schema_tables_usages)
-    render("./RMDs/ros_metatadata-schema-graph.Rmd",
-           output_format = "html_document",
-           output_file = basename(graph_location),
-           output_dir = dirname(graph_location),
-           quiet = TRUE)
+    generate_data_graph_js(db_schema_tables_columns, db_schema_tables_dependencies, db_schema_tables_usages, db_tables_descriptions)
+    variables <- list(
+      timestamp = main_variables$timestamp,
+      last_update = main_variables$last_update,
+      version = main_variables$version,
+      domain_title = main_variables$domain_title,
+      graph_data = graph_data,
+      schema_name = schema_name)
+    generate_db_metadata_dependencies_call(graph_location, variables)
     file.remove("./templates/generated-graph.js")
   }
+}
+
+output_legend <- function() {
+  legend_data <- data.table::data.table(
+    Icon = c(
+      "<span class='pk-icon'></span>",
+      "<span class='fk-icon'></span>",
+      "<span class='mandatory-icon'></span>"
+    ),
+    Meaning = c(
+      "Primary Key column",
+      "Foreign Key column",
+      "Mandatory (NOT NULL) column"
+    )
+  )
+  DT::datatable(
+    legend_data,
+    escape = FALSE,
+    rownames = FALSE,
+    options = list(
+      dom = "t",
+      ordering = FALSE,
+      paging = FALSE,
+      searching = FALSE,
+      info = FALSE,
+      class = "table table-striped table-sm"
+    )
+  )
+}
+
+format_timestamp <- function(timestamp) {
+  str_replace_all(timestamp, "[ :.]", "_")
+}
+
+render_template <- function(template_path, data) {
+  template <- paste(readLines(template_path, warn = FALSE), collapse = "\n")
+  whisker.render(template, data)
+}
+
+sanitize_id <- function(...) {
+  x <- paste(..., sep = "_")
+  x <- gsub("[^A-Za-z0-9_-]", "_", x)
+  x <- gsub("_+", "_", x)
+  tolower(x)
+}
+
+render_description <- function(description) {
+  if (is.na(description)) {
+    return('<p class="error">Not filled</p>')
+  }
+  description_per_language <- parse_lang_values(description)
+
+  result <- sprintf("
+  <span class='badge bg-primary'>EN</span>
+%1$s
+", description_per_language$EN)
+  for (l in names(description_per_language)) {
+    if (l == "EN") {
+      next
+    }
+    result <- sprintf("%s
+<span class='badge bg-secondary'>%s</span>
+%s
+    ", result, l, description_per_language[[l]])
+  }
+  result
+}
+
+generate_db_metadata_report_template <- function(domain,
+                                                 version,
+                                                 root_directory,
+                                                 db_metadata_supplier,
+                                                 db_metadata_report_template_supplier,
+                                                 remove_unused_tables = FALSE) {
+  print("Generating template...")
+  if (is.function(db_metadata_supplier)) {
+    db_metadata <- db_metadata_supplier(domain, version, root_directory)
+    db_metadata$generate_dependencies()
+    if (remove_unused_tables) {
+      db_metadata$remove_unused_tables()
+    }
+  } else {
+    db_metadata <- db_metadata_supplier
+  }
+  template <- db_metadata_report_template_supplier(db_metadata)
+  print(sprintf("Generated template at %s", template))
+  template
+}
+
+patch_tocify_hash_generator <- function(html_file) {
+
+  html <- paste(readLines(html_file, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+
+  old <- 'hashGenerator: function \\(text\\) \\{\\n\\s*return text\\.replace\\(/\\[\\.\\\\\\\\/\\?&!#<>\\]/g, \'\'\\)\\.replace\\(/\\\\s/g, \'_\'\\);\\n\\s*\\}'
+
+  new <- 'hashGenerator: function (text) {
+        var foundId = null;
+
+        $("div.section[id] > h1, div.section[id] > h2, div.section[id] > h3").each(function () {
+          var headingText = $(this).clone().children().remove().end().text().trim();
+          if (headingText === text && foundId === null) {
+            foundId = $(this).parent().attr("id");
+          }
+        });
+
+        if (foundId) return foundId;
+
+        return text.replace(/[.\\\\/?&!#<>]/g, \'\').replace(/\\s/g, \'_\');
+      }'
+
+  html2 <- sub(old, new, html, perl = TRUE)
+
+  if (identical(html, html2)) {
+    stop("Could not patch tocify hashGenerator: pattern not found")
+  }
+
+  writeLines(html2, html_file, useBytes = TRUE)
+}
+
+
+to_dependencies_table <- function(db_table, link_to_type, link_to_url) {
+  data.table(db_table$dependencies())[, `:=`(
+    dependency_type = sapply(target_table_id, link_to_type),
+    dependency_table_raw = target_table_id,
+    dependency_table = mapply(link_to_url, target_schema, target_table, target_table_id),
+    dependency_columns = target_columns,
+    dependency_mandatory = target_mandatory,
+    dependency_primary_key = target_primary_key
+  )][, .(columns, mandatory, primary_key, dependency_type, dependency_table_raw, dependency_table, dependency_columns, dependency_mandatory, dependency_primary_key)]
+}
+
+to_usages_table <- function(db_table, link_to_type, link_to_url) {
+  data.table(db_table$usages())[, `:=`(
+    usage_type = sapply(table_id, link_to_type),
+    usage_table_raw = usage_table_id,
+    usage_table = mapply(link_to_url, usage_schema, usage_table, usage_table_id),
+    usage_columns = usage_columns
+  )][, .(columns, mandatory, primary_key, usage_type, usage_table_raw, usage_table, usage_columns, usage_mandatory, usage_primary_key)]
+}
+
+generate_db_metadata_report_variables <- function(db_metadata, link_to_type, link_to_url, link_to_url_js, timestamp) {
+  list(timestamp = timestamp,
+       last_update = db_metadata$last_update(),
+       version = db_metadata$version(),
+       domain_title = ifelse(db_metadata$domain() == "ALL", "", paste0(" - Domain ", str_to_upper(db_metadata$domain()))),
+       db_reverse_dependencies_tree = db_metadata$db_reverse_dependencies_tree(),
+       db_schemas_description = lapply(db_metadata$all_schemas(), function(x) { x$schema_description() }),
+       db_tables_columns = lapply(db_metadata$all_tables(), function(x) { x$columns() }),
+       db_tables_description = lapply(db_metadata$all_tables(), function(x) { x$table_description() }),
+       db_tables_dependencies_js = lapply(db_metadata$all_tables(), function(x) { to_dependencies_table(x, link_to_type, link_to_url_js) }),
+       db_tables_usages_js = lapply(db_metadata$all_tables(), function(x) { to_usages_table(x, link_to_type, link_to_url_js) }),
+       db_tables_dependencies = lapply(db_metadata$all_tables(), function(x) { to_dependencies_table(x, link_to_type, link_to_url) }[, dependency_table_raw := NULL]),
+       db_tables_usages = lapply(db_metadata$all_tables(), function(x) { to_usages_table(x, link_to_type, link_to_url) }[, usage_table_raw := NULL])
+  )
 }
 
 generate_db_metadata_report <- function(domain,
@@ -277,8 +548,9 @@ generate_db_metadata_report <- function(domain,
                                         timestamp = format_timestamp(Sys.time()),
                                         db_metadata_supplier,
                                         db_metadata_report_template_supplier,
-                                        build_tables_dependencies_supplier,
-                                        build_tables_usages_supplier,
+                                        link_to_type,
+                                        link_to_url,
+                                        link_to_url_js,
                                         report_prefix,
                                         remove_unused_tables = FALSE) {
   db_metadata <- db_metadata_supplier(domain, version, root_directory)
@@ -286,21 +558,40 @@ generate_db_metadata_report <- function(domain,
   if (remove_unused_tables) {
     db_metadata$remove_unused_tables()
   }
-  template <- db_metadata_report_template_supplier(db_metadata)
+  template <- generate_db_metadata_report_template(domain,
+                                                   version,
+                                                   root_directory,
+                                                   db_metadata,
+                                                   db_metadata_report_template_supplier,
+                                                   remove_unused_tables)
   export_directory <- file.path(export_directory, timestamp)
   if (!dir.exists(export_directory)) {
     dir.create(export_directory, recursive = TRUE)
   }
   file_location <- file.path(export_directory, sprintf("%s%s.html", report_prefix, db_metadata$to_domain_report()))
-  db_reverse_dependencies_tree <- db_metadata$db_reverse_dependencies_tree()
-  db_tables_columns <- lapply(db_metadata$all_tables(), function(x) { x$columns() })
-  db_tables_dependencies <- build_tables_dependencies_supplier(db_metadata)
-  db_tables_usages <- build_tables_usages_supplier(db_metadata, db_tables_dependencies)
-  generate_db_metadata_dependencies(db_metadata, db_reverse_dependencies_tree, db_tables_columns, db_tables_dependencies, db_tables_usages, export_directory, timestamp, report_prefix)
-  db_tables_dependencies <- lapply(db_tables_dependencies, function(x) { x[, dependency_table_raw := NULL] })
-  db_tables_usages <- lapply(db_tables_usages, function(x) { x[, usage_table_raw := NULL] })
-  options(DT.options = list(pageLength = -1))
+  print("Preparing variables...")
+  variables <- generate_db_metadata_report_variables(db_metadata, link_to_type, link_to_url, link_to_url_js, timestamp)
 
+  print("Generating db_metadata_dependencies...")
+  generate_db_metadata_dependencies(db_metadata, variables, export_directory, report_prefix)
+  options(DT.options = list(pageLength = -1))
+  print(sprintf("Generating report: %s...", file_location))
+  generate_db_metadata_report_call(file_location, template, variables)
+
+  print(sprintf("Generated report: %s...", file_location))
+  print(sprintf("Patching report: %s...", file_location))
+  patch_tocify_hash_generator(file_location)
+}
+
+generate_db_metadata_dependencies_call <- function(graph_location, variables) {
+  render("./RMDs/ros_metatadata-schema-graph.Rmd",
+         output_format = "html_document",
+         output_file = basename(graph_location),
+         output_dir = dirname(graph_location),
+         quiet = TRUE)
+}
+
+generate_db_metadata_report_call <- function(file_location, template, variables) {
   render(template,
          output_format = "html_document",
          output_file = basename(file_location),

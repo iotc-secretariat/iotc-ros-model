@@ -1,0 +1,80 @@
+# Abstract
+
+
+## Prepare the ros connection file
+
+Create a *JSON* file named ```IOTC_ReferenceData-db.json``` with content (you will need to adapt with your own connection details):
+
+```json
+{
+  "host": "localhost",
+  "port": "5432",
+  "dbname": "IOTC_ReferenceData_2025_06_18",
+  "user": "xxx",
+  "password": "xxx"
+}
+```
+
+## Generate database metadata
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+# Generate Reference data database metatadata files
+generate_db_metadata(extract_db_metadata(schemas = IOTC_REFERENCE_DATA_SCHEMAS, connection_provider = connect_to_reference_data), output_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY)
+```
+## Update comments on database
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+# Update for the hole Reference data database documentation
+update_queries <- apply_comments_on_db(root_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY, connection_provider = connect_to_reference_data)
+```
+## Generate database metadata report
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/common_db_report.R")
+source("R/reference_data_db.R")
+# Generate documentation report of the hole Reference data database
+reference_data_db_metadata_generate_report(timestamp = DEFAULT_TIME_STAMP)
+```
+
+## Generate missing index.html files in doc directory
+
+```{r, warning = FALSE}
+# Load sources
+source("R/generate_indexes.R")
+
+```
+
+## Fix not null columns
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+# Load tables columns
+tables_columns <- as.data.table(load_db_metadata(output_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY)$tables_columns)[, .(schema, table, column, mandatory)]
+# Remove some schemas we do not want to deal with
+tables_columns <- tables_columns[!schema %in% "refs_legacy" & mandatory != "YES"]
+queries <- set_not_null_on_db(data = tables_columns, connection_provider = connect_to_reference_data, apply = TRUE)
+writeLines(queries, con=file.path(IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY, "migration", "01_set-not-null.sql"))
+```
+## Add missing audit on tables
+
+```{r, warning = FALSE}
+# Load sources
+source("R/common_db_utils.R")
+source("R/reference_data_db.R")
+reference_data_db_metadata <- load_db_metadata(output_directory = IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY)
+existing_tables <- reference_data_db_metadata$tables_description[, .(schema, table)]
+existing_tables_pk <- reference_data_db_metadata$tables_primary_keys
+historized_tables <- get_audit_tables(connection_provider = connect_to_reference_data)
+missing_tables <- existing_tables_pk[!historized_tables, on = .(schema, table)]
+add_missing_audit_tables(data = missing_tables, output_file = file.path(IOTC_REFERENCE_DATA_DB_METADATA_DIRECTORY, "migration", "05_add_missing_audit_tables.sql"))
+```

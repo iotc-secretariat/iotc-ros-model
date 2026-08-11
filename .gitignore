@@ -8,4 +8,6 @@
 /RMDs/ros_metatadata-ALL.Rmd
 /RMDs/ros_metatadata-GN.Rmd
 /RMDs/ros_metatadata-PL.Rmd
+/RMDs/reference_data_metatadata-ALL.Rmd
 *-db.json
+/models/*/migration/update-*.psql
