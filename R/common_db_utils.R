@@ -45,7 +45,7 @@ use_connection <- function(connection_supplier, code_to_execute) {
 #' @param output_file location of file to write
 #' @export
 write_file <- function(content, output_file) {
-  fwrite(content, file = output_file, sep = ",", sep2 = c("", "\"", ""), quote = "auto", encoding = "UTF-8")
+  fwrite(content, file = output_file, sep = ",", sep2 = c("", "\"", ""), quote = "auto", encoding = "UTF-8", bom = TRUE)
 }
 
 split_location <- function(value) {
