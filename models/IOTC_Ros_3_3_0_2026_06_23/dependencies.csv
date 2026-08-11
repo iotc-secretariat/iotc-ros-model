@@ -1,4 +1,4 @@
-table_id,direct_dependency,outer_dependency,outer_transitive_dependency
+﻿table_id,direct_dependency,outer_dependency,outer_transitive_dependency
 refs_admin.countries,TRUE,TRUE,FALSE
 refs_admin.cpc_history,FALSE,FALSE,TRUE
 refs_admin.cpc_to_flags,FALSE,FALSE,TRUE

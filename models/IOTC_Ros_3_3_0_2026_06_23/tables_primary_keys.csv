@@ -1,4 +1,4 @@
-schema,table,primary_key_columns
+﻿schema,table,primary_key_columns
 ros_meta,contact,id
 ros_meta,focal_point,contact_id
 ros_meta,observer,contact_id

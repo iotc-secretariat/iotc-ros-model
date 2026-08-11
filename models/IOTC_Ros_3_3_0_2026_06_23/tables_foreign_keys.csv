@@ -1,4 +1,4 @@
-schema,table,foreign_key,columns,target_schema,target_table,target_columns
+﻿schema,table,foreign_key,columns,target_schema,target_table,target_columns
 ros_meta,contact,fk_ros_meta_nationality_code_contact,nationality_code,refs_admin,countries,code
 ros_meta,focal_point,fk_ros_meta_contact_id_focal_point,contact_id,ros_meta,contact,id
 ros_meta,observer,fk_ros_meta_contact_id_observer,contact_id,ros_meta,contact,id

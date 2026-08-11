@@ -1,4 +1,4 @@
-schema,table,foreign_key,columns,target_schema,target_table,target_columns
+﻿schema,table,foreign_key,columns,target_schema,target_table,target_columns
 refs_admin,cpc_history,fk_refs_admin_cpc_history_cpc_code,cpc_code,refs_admin,cpcs,code
 refs_admin,cpc_to_flags,fk_refs_admin_cpc_to_flags_cpc_code,cpc_code,refs_admin,cpcs,code
 refs_admin,cpc_to_flags,fk_refs_admin_cpc_to_flags_flag_code,flag_code,refs_admin,countries,code

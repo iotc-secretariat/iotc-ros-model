@@ -1,4 +1,4 @@
-schema,table,description
+﻿schema,table,description
 refs_admin,countries,
 refs_admin,cpc_history,
 refs_admin,cpc_to_flags,

@@ -1,4 +1,4 @@
-schema,table,column,type,mandatory,description
+﻿schema,table,column,type,mandatory,description
 refs_admin,countries,code,character(3),YES,
 refs_admin,countries,code_iso2,character(2),YES,
 refs_admin,countries,code_iso3,character(3),YES,

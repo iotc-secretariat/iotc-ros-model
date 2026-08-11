@@ -1,4 +1,4 @@
-schema,table,primary_key_columns
+﻿schema,table,primary_key_columns
 refs_admin,countries,code
 refs_admin,cpc_history,cpc_code|contracting_party|acceptance_date
 refs_admin,cpc_to_flags,cpc_code|flag_code
